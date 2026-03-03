@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Δ Helix | CFTR Clinical Intelligence</title>
+    <title>Δ Helix | CFTR Clinical Intelligence Platform</title>
 
+    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
@@ -14,9 +15,9 @@
 
     <style>
         /* ============================================================
-           Δ HELIX v2 — CLINICAL INTELLIGENCE PLATFORM
-           Design: Clean & Clinical — IBM precision, Epic/ClinVar feel
+           Δ HELIX v3 — COMPLETE CLINICAL INTELLIGENCE PLATFORM
            Architecture: Collapsible sidebar + full-width detail
+           Features: Full CRUD, Validation, Evidence, Import/Export, Analytics
            ============================================================ */
 
         :root {
@@ -1830,9 +1831,13 @@
                 <i class="fas fa-bolt" style="font-size:9px"></i> Exceptional
                 <span class="chip-count" id="chipExceptional">—</span>
             </button>
-            <button class="filter-chip" id="chip-missing" onclick="setDataView('missing')">
+            <button class="filter-chip" id="chip-missing" onclick="filterVariants('missing')">
                 Missing
                 <span class="chip-count" id="chipMissing">—</span>
+            </button>
+            <button class="filter-chip" id="chip-complete" onclick="setDataView('complete')">
+                Complete
+                <span class="chip-count" id="chipComplete">—</span>
             </button>
         </div>
 
@@ -1915,18 +1920,28 @@
         </div>
         <div class="modal-body">
             <div class="tabs">
-                <button class="tab active" id="tabJson" onclick="switchTab('json')">
+                <button class="tab active" id="tabJson" onclick="switchImportTab('json')">
                     <i class="fas fa-code"></i> JSON
                 </button>
-                <button class="tab" id="tabForm" onclick="switchTab('form')">
+                <button class="tab" id="tabForm" onclick="switchImportTab('form')">
                     <i class="fas fa-edit"></i> Manual
+                </button>
+                <button class="tab" id="tabBulk" onclick="switchImportTab('bulk')">
+                    <i class="fas fa-layer-group"></i> Bulk CSV
                 </button>
             </div>
 
             <!-- JSON panel -->
-            <div id="panelJson">
+            <div id="jsonImportPanel">
                 <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:14px; font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">
-{"variant_legacy_name":"G542X","variant_protein_name":"p.Gly542X",<br>"variant_cDNA_name":"c.1624G>T","variant_final_determination":"CF-causing",<br>"cftr_class":"I","eti_prediction":"responsive"}
+{
+  "variant_legacy_name": "G542X",
+  "variant_protein_name": "p.Gly542X",
+  "variant_cDNA_name": "c.1624G>T",
+  "variant_final_determination": "CF-causing",
+  "cftr_class": "I",
+  "eti_prediction": "responsive"
+}
                 </div>
                 <div class="form-group">
                     <label class="form-label">JSON Data</label>
@@ -1942,7 +1957,7 @@
             </div>
 
             <!-- Manual form panel -->
-            <div id="panelForm" class="hidden">
+            <div id="formImportPanel" class="hidden">
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                     <div class="form-group">
                         <label class="form-label">Legacy Name *</label>
@@ -1976,6 +1991,22 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label class="form-label">Class Subtype</label>
+                        <select id="formClassSubtype" class="form-control">
+                            <option value="">—</option>
+                            <option value="standard">Standard</option>
+                            <option value="exceptional">Exceptional</option>
+                            <option value="true">True Class I</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confidence</label>
+                        <select id="formConfidence" class="form-control">
+                            <option value="">—</option>
+                            <option>Confirmed</option><option>High</option><option>Moderate</option><option>Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">ETI Response</label>
                         <select id="formEtiResponse" class="form-control">
                             <option value="">—</option>
@@ -1984,10 +2015,52 @@
                             <option value="unknown">Unknown</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Evidence Level</label>
+                        <select id="formEvidenceLevel" class="form-control">
+                            <option value="">—</option>
+                            <option>High</option><option>Moderate</option><option>Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Recommendation</label>
+                        <input type="text" id="formRecommendation" class="form-control" placeholder="e.g., Consider ETI">
+                    </div>
                 </div>
                 <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
                     <button onclick="clearManualForm()" class="btn btn-secondary">Clear</button>
                     <button onclick="submitManualForm()" class="btn btn-primary">Save Variant</button>
+                </div>
+            </div>
+
+            <!-- Bulk Import Panel -->
+            <div id="bulkImportPanel" class="hidden">
+                <div class="bg-[var(--brand-faint)] rounded-xl p-5 border border-[var(--brand-mid)] mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[var(--brand-light)] flex items-center justify-center">
+                            <i class="fas fa-file-csv text-[var(--brand)]"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900">Bulk CSV Import</p>
+                            <p class="text-xs text-gray-600">Upload multiple variants at once (TAB-separated)</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[var(--brand)] transition-colors cursor-pointer" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-700 font-medium">Drag & drop CSV file here</p>
+                    <p class="text-xs text-gray-500 mt-1">or click to browse</p>
+                    <input type="file" id="csvFileInput" class="hidden" accept=".csv">
+                </div>
+                
+                <div class="flex justify-end gap-3 mt-6">
+                    <button onclick="downloadTemplate()" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Template
+                    </button>
+                    <button onclick="processBulkImport()" class="btn btn-primary">
+                        <i class="fas fa-cloud-upload-alt"></i> Import CSV
+                    </button>
                 </div>
             </div>
         </div>
@@ -2086,7 +2159,7 @@
 <div id="dashboardModal" class="modal-overlay hidden">
     <div class="modal dashboard-modal">
         <div class="modal-header">
-            <span class="modal-title">Analytics</span>
+            <span class="modal-title">Analytics Dashboard</span>
             <button class="btn btn-ghost btn-icon" onclick="closeDashboard()">
                 <i class="fas fa-times"></i>
             </button>
@@ -2124,19 +2197,64 @@
                 <div class="dash-card-title">Data Completeness</div>
                 <canvas id="completionChart" height="100"></canvas>
             </div>
+            <div class="dash-card mt-4">
+                <div class="dash-card-title">Exceptional Cases</div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-3xl font-bold text-[var(--class-ii)]" id="dashboardExceptional">—</p>
+                        <p class="text-xs text-gray-600 mt-1">Class I responsive to ETI</p>
+                    </div>
+                    <div class="w-16 h-16 rounded-full bg-[var(--class-ii-bg)] flex items-center justify-center">
+                        <i class="fas fa-star text-2xl text-[var(--class-ii)]"></i>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">
+                        <span id="exceptionalPercentile">—</span>% of Class I variants show exceptional response
+                    </p>
+                </div>
+            </div>
         </div>
         <div class="modal-footer">
             <button onclick="exportFullReport()" class="btn btn-secondary">
-                <i class="fas fa-download"></i> Export CSV
+                <i class="fas fa-download"></i> Export Full Report
             </button>
             <button onclick="closeDashboard()" class="btn btn-primary">Close</button>
         </div>
     </div>
 </div>
 
-<!-- Evidence modal -->
+<!-- ================================================================
+     EVIDENCE MODALS
+     ================================================================ -->
+
+<!-- All Evidence Modal -->
+<div id="allEvidenceModal" class="modal-overlay hidden">
+    <div class="modal" style="max-width: 600px;">
+        <div class="modal-header">
+            <span class="modal-title">All Evidence Sources</span>
+            <button class="btn btn-ghost btn-icon" onclick="closeAllEvidenceModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body max-h-[60vh] overflow-y-auto" id="allEvidenceList">
+            <div class="text-center py-10">
+                <i class="fas fa-spinner fa-spin text-[var(--brand)] text-2xl"></i>
+                <p class="text-sm text-gray-500 mt-2">Loading evidence...</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeAllEvidenceModal()" class="btn btn-secondary">Close</button>
+            <button onclick="showEvidenceModal(currentVariantName, currentVariantId)" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Link
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Evidence Modal -->
 <div id="addEvidenceModal" class="modal-overlay hidden">
-    <div class="modal" style="max-width:500px">
+    <div class="modal" style="max-width: 550px;">
         <div class="modal-header">
             <span class="modal-title">Add Evidence Link</span>
             <button class="btn btn-ghost btn-icon" onclick="closeAddEvidenceModal()">
@@ -2149,7 +2267,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Source Type *</label>
-                <div style="display:flex; gap:6px;">
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px;">
                     <button type="button" onclick="selectEvidenceType('pubmed')" id="type-pubmed" class="btn btn-secondary btn-sm">PubMed</button>
                     <button type="button" onclick="selectEvidenceType('cftr2')" id="type-cftr2" class="btn btn-secondary btn-sm">CFTR2</button>
                     <button type="button" onclick="selectEvidenceType('clinvar')" id="type-clinvar" class="btn btn-secondary btn-sm">ClinVar</button>
@@ -2169,12 +2287,16 @@
                 <label class="form-label">Source Name</label>
                 <input type="text" id="evidenceSource" class="form-control" placeholder="PubMed, CFTR2…">
             </div>
+            <div class="form-group">
+                <label class="form-label">Notes (optional)</label>
+                <textarea id="evidenceNotes" class="form-control" rows="2" placeholder="Additional notes..."></textarea>
+            </div>
             <div id="evidenceMessage" style="font-size:12px; margin-top:8px;"></div>
         </div>
         <div class="modal-footer">
             <button onclick="closeAddEvidenceModal()" class="btn btn-secondary">Cancel</button>
             <button onclick="saveEvidenceLink()" class="btn btn-primary" id="saveEvidenceBtn">
-                <i class="fas fa-save"></i> Save
+                <i class="fas fa-save"></i> Save Evidence
             </button>
         </div>
     </div>
@@ -2188,34 +2310,53 @@
      ================================================================ -->
 <script>
 /* ================================================================
-   Δ HELIX v2 — CLINICAL INTELLIGENCE PLATFORM
+   Δ HELIX v3 — COMPLETE CLINICAL INTELLIGENCE PLATFORM
+   Features: Full CRUD, Validation, Evidence, Import/Export, Analytics
    Architecture: Collapsible sidebar + full-width detail
    Design: Clean & Clinical (IBM Plex)
    ================================================================ */
 
+// ========== CONFIGURATION ==========
 const CONFIG = {
     SUPABASE: {
         URL: 'https://oxlkisjwfarseyqgeyuw.supabase.co',
+        // IMPORTANT: In production, this should be moved to a backend proxy
+        // This is a publishable key with Row Level Security enabled
         KEY: 'sb_publishable_vKCe5bc1Qr20_LI_awKIYw_CqSFrblh'
     },
     UI: {
         ITEMS_PER_PAGE: 25,
         SEARCH_DELAY: 180,
-        NOTIFICATION_DURATION: 4000
-    }
+        NOTIFICATION_DURATION: 4000,
+        MIN_SEARCH_CHARS: 2
+    },
+    VERSION: '3.0.0-PRODUCTION'
 };
 
+// ========== STATE MANAGEMENT ==========
 const STATE = {
     variants: [],
     variantsById: new Map(),
     variantsByLegacyName: new Map(),
-    searchIndex: { termMap: new Map(), stats: {} },
-    masterStats: {
-        total: 0, complete: 0, clinical: 0,
-        classI: 0, classII: 0, classIII: 0, classIV: 0, classV: 0,
-        exceptional: 0, responsive: 0, nonResponsive: 0, validated: 0
+    
+    searchIndex: {
+        termMap: new Map(),
+        stats: {}
     },
+    
+    masterStats: {
+        total: 0,
+        complete: 0,
+        clinical: 0,
+        classI: 0, classII: 0, classIII: 0, classIV: 0, classV: 0,
+        exceptional: 0,
+        responsive: 0, nonResponsive: 0, unknown: 0,
+        validated: 0
+    },
+    
     existingRoles: [],
+    validationCache: new Map(),
+    
     view: {
         filteredVariants: [],
         selectedVariant: null,
@@ -2225,26 +2366,42 @@ const STATE = {
         searchQuery: '',
         sortAsc: true
     },
+    
     ui: {
         charts: {},
         sidebarCollapsed: false,
         annotationContext: null,
         deleteContext: null,
         validationContext: null,
+        evidenceContext: null,
         validatedJson: null,
         searchTimeout: null,
-        evidenceVariantId: null,
-        selectedEvidenceType: null
+        renderTimeout: null
+    },
+    
+    system: {
+        initialized: false,
+        initStartTime: null,
+        initEndTime: null,
+        errorCount: 0,
+        lastError: null,
+        apiCalls: 0
     }
 };
 
-// ================================================================
-// DATA LOADING
-// ================================================================
+// Global variables for evidence modals
+let currentVariantId = null;
+let currentVariantName = '';
+
+// ========== DATABASE OPERATIONS ==========
 
 async function loadVariants() {
-    showListLoading();
+    const startTime = performance.now();
+    STATE.system.initStartTime = new Date();
+    
     try {
+        showListLoading();
+        
         let allVariants = [];
         let offset = 0;
         const limit = 1000;
@@ -2253,8 +2410,16 @@ async function loadVariants() {
         while (hasMore) {
             const res = await fetch(
                 `${CONFIG.SUPABASE.URL}/rest/v1/variants?select=*,evidence_links(*)&order=legacy_name.asc&limit=${limit}&offset=${offset}`,
-                { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
+                { 
+                    headers: { 
+                        'apikey': CONFIG.SUPABASE.KEY, 
+                        'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` 
+                    } 
+                }
             );
+            
+            STATE.system.apiCalls++;
+            
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             allVariants = [...allVariants, ...data];
@@ -2277,18 +2442,23 @@ async function loadVariants() {
         updateHeaderStats();
         updateFilterChips();
 
-        showNotification(`${STATE.variants.length.toLocaleString()} variants loaded`, 'success', 2500);
+        STATE.system.initialized = true;
+        STATE.system.initEndTime = new Date();
+        
+        const initTime = (performance.now() - startTime).toFixed(0);
+        showNotification(`${STATE.variants.length.toLocaleString()} variants loaded in ${initTime}ms`, 'success', 2500);
 
     } catch (err) {
         console.error('Load failed:', err);
         showListError(err.message);
         showNotification('Database connection failed', 'error');
+        
+        STATE.system.errorCount++;
+        STATE.system.lastError = err;
     }
 }
 
-// ================================================================
-// SEARCH INDEX
-// ================================================================
+// ========== SEARCH INDEX ==========
 
 function buildSearchIndex() {
     const termMap = new Map();
@@ -2320,10 +2490,15 @@ function buildSearchIndex() {
     });
 
     STATE.searchIndex.termMap = termMap;
+    STATE.searchIndex.stats = {
+        variantCount: STATE.variants.length,
+        termCount: termMap.size,
+        lastBuilt: new Date()
+    };
 }
 
 function searchVariants(query) {
-    if (!query || query.length < 2) return STATE.variants;
+    if (!query || query.length < CONFIG.UI.MIN_SEARCH_CHARS) return STATE.variants;
     const q = query.toLowerCase().trim();
     const matchedIds = new Set();
     const scores = new Map();
@@ -2345,9 +2520,7 @@ function searchVariants(query) {
         .map(r => r.v);
 }
 
-// ================================================================
-// STATS
-// ================================================================
+// ========== STATISTICS ==========
 
 function calculateMasterStats() {
     const v = STATE.variants;
@@ -2363,6 +2536,7 @@ function calculateMasterStats() {
         exceptional: v.filter(x => x.class_subtype === 'exceptional').length,
         responsive: v.filter(x => x.eti_prediction === 'responsive').length,
         nonResponsive: v.filter(x => x.eti_prediction === 'non_responsive').length,
+        unknown: v.filter(x => !x.eti_prediction || x.eti_prediction === 'unknown').length,
         validated: v.filter(x => (x.validation_count || 0) > 0).length
     };
 }
@@ -2382,31 +2556,39 @@ function updateFilterChips() {
     setText('chipAll', s.total.toLocaleString());
     setText('chipResponsive', s.responsive.toLocaleString());
     setText('chipExceptional', s.exceptional.toLocaleString());
+    setText('chipComplete', s.complete.toLocaleString());
     const missing = STATE.variants.filter(hasMissingData).length;
     setText('chipMissing', missing.toLocaleString());
-    // dashboard
+    
+    // Dashboard
     setText('dkTotal', s.total.toLocaleString());
     setText('dkResponsive', s.responsive.toLocaleString());
     setText('dkExceptional', s.exceptional.toLocaleString());
     setText('dkValidated', s.validated.toLocaleString());
+    setText('dashboardExceptional', s.exceptional.toLocaleString());
+    
+    if (s.classI > 0) {
+        setText('exceptionalPercentile', ((s.exceptional / s.classI) * 100).toFixed(1));
+    }
 }
 
-// ================================================================
-// VIEW & FILTERING
-// ================================================================
+// ========== VIEW & FILTERING ==========
 
 function applyFilterChain() {
     let filtered = [...STATE.variants];
 
-    if (STATE.view.searchQuery.length >= 2) {
+    if (STATE.view.searchQuery.length >= CONFIG.UI.MIN_SEARCH_CHARS) {
         filtered = searchVariants(STATE.view.searchQuery);
     }
 
     switch (STATE.view.dataViewMode) {
         case 'responsive':  filtered = filtered.filter(v => v.eti_prediction === 'responsive'); break;
         case 'exceptional': filtered = filtered.filter(v => v.class_subtype === 'exceptional'); break;
-        case 'missing':     filtered = filtered.filter(hasMissingData); break;
         case 'complete':    filtered = filtered.filter(v => v.data_status === 'complete_clinical'); break;
+    }
+
+    if (STATE.view.activeFilter === 'missing') {
+        filtered = filtered.filter(hasMissingData);
     }
 
     if (STATE.view.classFilter !== 'all') {
@@ -2427,10 +2609,37 @@ function applyFilterChain() {
 
 function setDataView(mode) {
     STATE.view.dataViewMode = mode;
-    ['all','responsive','exceptional','missing'].forEach(m => {
+    STATE.view.activeFilter = null; // Reset missing filter
+    
+    ['all','responsive','exceptional','complete'].forEach(m => {
         const el = document.getElementById(`chip-${m}`);
         if (el) el.classList.toggle('active', m === mode);
     });
+    
+    // Reset missing chip
+    const missingChip = document.getElementById('chip-missing');
+    if (missingChip) missingChip.classList.remove('active');
+    
+    applyFilterChain();
+}
+
+function filterVariants(filter) {
+    if (filter === 'missing') {
+        STATE.view.activeFilter = filter;
+        STATE.view.dataViewMode = 'all';
+        
+        // Update chip UI
+        ['all','responsive','exceptional','complete'].forEach(m => {
+            const el = document.getElementById(`chip-${m}`);
+            if (el) el.classList.remove('active');
+        });
+        
+        const missingChip = document.getElementById('chip-missing');
+        if (missingChip) missingChip.classList.add('active');
+    } else {
+        setDataView(filter);
+    }
+    
     applyFilterChain();
 }
 
@@ -2477,9 +2686,7 @@ function quickSearch(name) {
     setTimeout(() => selectVariant(name), 200);
 }
 
-// ================================================================
-// SIDEBAR TOGGLE
-// ================================================================
+// ========== SIDEBAR TOGGLE ==========
 
 function toggleSidebar() {
     STATE.ui.sidebarCollapsed = !STATE.ui.sidebarCollapsed;
@@ -2487,9 +2694,7 @@ function toggleSidebar() {
     shell.classList.toggle('sidebar-collapsed', STATE.ui.sidebarCollapsed);
 }
 
-// ================================================================
-// RENDER — VARIANT LIST
-// ================================================================
+// ========== RENDER — VARIANT LIST ==========
 
 function renderVariantList() {
     const container = document.getElementById('variantList');
@@ -2529,8 +2734,14 @@ function renderVariantList() {
         }
 
         // Collapsed icon row
-        const clsColor = { ci: 'var(--class-i)', cii: 'var(--class-ii)', ciii: 'var(--class-iii)', civ: 'var(--class-iv)', cv: 'var(--class-v)', cx: 'var(--text-tertiary)' };
-        const clsBg = { ci: 'var(--class-i-bg)', cii: 'var(--class-ii-bg)', ciii: 'var(--class-iii-bg)', civ: 'var(--class-iv-bg)', cv: 'var(--class-v-bg)', cx: 'var(--surface-alt)' };
+        const clsColor = { 
+            ci: 'var(--class-i)', cii: 'var(--class-ii)', ciii: 'var(--class-iii)', 
+            civ: 'var(--class-iv)', cv: 'var(--class-v)', cx: 'var(--text-tertiary)' 
+        };
+        const clsBg = { 
+            ci: 'var(--class-i-bg)', cii: 'var(--class-ii-bg)', ciii: 'var(--class-iii-bg)', 
+            civ: 'var(--class-iv-bg)', cv: 'var(--class-v-bg)', cx: 'var(--surface-alt)' 
+        };
 
         return `
         <div class="variant-row ${isSelected ? 'selected' : ''}" onclick="selectVariant('${escapeAttr(v.legacy_name)}')">
@@ -2559,9 +2770,7 @@ function renderVariantList() {
     updatePagination();
 }
 
-// ================================================================
-// RENDER — VARIANT DETAIL
-// ================================================================
+// ========== RENDER — VARIANT DETAIL ==========
 
 function renderVariantDetail(variant) {
     document.getElementById('detailEmpty').classList.add('hidden');
@@ -2585,20 +2794,7 @@ function renderVariantDetail(variant) {
     const evidenceLinks = variant.evidence_links || [];
     const evidenceHTML = evidenceLinks.length === 0
         ? `<div class="evidence-empty"><i class="fas fa-link" style="margin-bottom:6px;display:block;font-size:18px;opacity:0.3"></i>No evidence links yet</div>`
-        : evidenceLinks.map(link => {
-            const typeClass = link.type?.toLowerCase() || 'other';
-            const iconMap = { pubmed: 'fa-book-open', cftr2: 'fa-dna', clinvar: 'fa-hospital', other: 'fa-link' };
-            const icon = iconMap[typeClass] || 'fa-link';
-            return `
-            <a href="${escapeHTML(link.url || '#')}" target="_blank" class="evidence-item" onclick="event.stopPropagation()">
-                <div class="evidence-type-icon ${typeClass}"><i class="fas ${icon}"></i></div>
-                <div class="evidence-info">
-                    <div class="evidence-title">${escapeHTML(link.title || 'Untitled')}</div>
-                    <div class="evidence-source">${escapeHTML(link.source || link.type || 'Source')}</div>
-                </div>
-                <i class="fas fa-external-link-alt evidence-arrow"></i>
-            </a>`;
-        }).join('');
+        : evidenceLinks.slice(0, 3).map(link => renderEvidenceLink(link)).join('');
 
     // Class description
     const classDesc = {
@@ -2635,7 +2831,7 @@ function renderVariantDetail(variant) {
                     <button onclick="showValidationModal('${escapeAttr(variant.legacy_name)}', ${variant.id})" class="btn btn-secondary btn-sm">
                         <i class="fas fa-check-circle"></i> Validate
                     </button>
-                    <button onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'legacy_name', '')" class="btn btn-secondary btn-sm">
+                    <button onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'legacy_name', '${escapeAttr(variant.legacy_name || '')}')" class="btn btn-secondary btn-sm">
                         <i class="fas fa-pencil-alt"></i> Edit
                     </button>
                     <button onclick="showDeleteModal('${escapeAttr(variant.legacy_name)}', ${variant.id})" class="btn btn-ghost btn-sm" title="Delete">
@@ -2711,11 +2907,19 @@ function renderVariantDetail(variant) {
                 <div class="section-header">
                     <div class="section-header-icon" style="background:var(--class-v-bg);color:var(--class-v)"><i class="fas fa-link"></i></div>
                     <span class="section-title">Evidence Chain</span>
-                    <span style="font-size:11px;color:var(--text-tertiary);margin-right:4px;">${evidenceLinks.length} source${evidenceLinks.length !== 1 ? 's' : ''}</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-right:4px;" id="evidenceCount-${variant.id}">${evidenceLinks.length} source${evidenceLinks.length !== 1 ? 's' : ''}</span>
+                    <button class="section-action" onclick="showAllEvidence(${variant.id})">View All</button>
                     <button class="section-action" onclick="showEvidenceModal('${escapeAttr(variant.legacy_name)}', ${variant.id})">+ Add</button>
                 </div>
                 <div class="section-body">
-                    <div class="evidence-list">${evidenceHTML}</div>
+                    <div class="evidence-list" id="evidencePreview-${variant.id}">${evidenceHTML}</div>
+                    ${evidenceLinks.length > 3 ? `
+                        <div class="mt-3 text-right">
+                            <button onclick="showAllEvidence(${variant.id})" class="text-xs text-[var(--brand)] hover:underline">
+                                View all ${evidenceLinks.length} sources →
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
 
@@ -2724,6 +2928,7 @@ function renderVariantDetail(variant) {
                 <div class="section-header">
                     <div class="section-header-icon" style="background:var(--brand-light);color:var(--brand)"><i class="fas fa-shield-alt"></i></div>
                     <span class="section-title">Clinical Validation</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-right:4px;" id="validationCount-${variant.id}">${valCount}</span>
                     <button class="section-action" onclick="showValidationModal('${escapeAttr(variant.legacy_name)}', ${variant.id})">+ Add</button>
                 </div>
                 <div class="section-body">
@@ -2797,9 +3002,23 @@ function dataField(label, value, field, variant) {
     </div>`;
 }
 
-// ================================================================
-// VALIDATION
-// ================================================================
+function renderEvidenceLink(link) {
+    const iconMap = { pubmed: 'fa-book-open', cftr2: 'fa-dna', clinvar: 'fa-hospital', other: 'fa-link' };
+    const icon = iconMap[link.type?.toLowerCase()] || 'fa-link';
+    const typeClass = link.type?.toLowerCase() || 'other';
+    
+    return `
+    <a href="${escapeHTML(link.url || '#')}" target="_blank" class="evidence-item" onclick="event.stopPropagation()">
+        <div class="evidence-type-icon ${typeClass}"><i class="fas ${icon}"></i></div>
+        <div class="evidence-info">
+            <div class="evidence-title">${escapeHTML(link.title || 'Untitled')}</div>
+            <div class="evidence-source">${escapeHTML(link.source || link.type || 'Source')}</div>
+        </div>
+        <i class="fas fa-external-link-alt evidence-arrow"></i>
+    </a>`;
+}
+
+// ========== VALIDATION ==========
 
 async function loadExistingRoles() {
     try {
@@ -2945,9 +3164,7 @@ async function loadValidationHistory(variantId) {
     }
 }
 
-// ================================================================
-// ANNOTATION
-// ================================================================
+// ========== ANNOTATION ==========
 
 function showAnnotationModal(variantName, field, currentValue) {
     const variant = STATE.variantsByLegacyName.get(variantName);
@@ -3040,9 +3257,7 @@ async function saveAnnotation() {
     }
 }
 
-// ================================================================
-// DELETE
-// ================================================================
+// ========== DELETE ==========
 
 function showDeleteModal(name, id) {
     STATE.ui.deleteContext = { variantName: name, variantId: id };
@@ -3083,24 +3298,24 @@ async function confirmDeleteVariant() {
     }
 }
 
-// ================================================================
-// IMPORT
-// ================================================================
+// ========== IMPORT ==========
 
 function showImportModal() {
     document.getElementById('importModal').classList.remove('hidden');
-    switchTab('json');
+    switchImportTab('json');
 }
 
 function closeImportModal() {
     document.getElementById('importModal').classList.add('hidden');
     clearImportForm();
+    clearManualForm();
 }
 
-function switchTab(tab) {
-    ['json','form'].forEach(t => {
-        document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`)?.classList.toggle('active', t === tab);
-        document.getElementById(`panel${t.charAt(0).toUpperCase()+t.slice(1)}`)?.classList.toggle('hidden', t !== tab);
+function switchImportTab(tab) {
+    ['json', 'form', 'bulk'].forEach(t => {
+        document.getElementById(`${t}ImportPanel`)?.classList.toggle('hidden', t !== tab);
+        const tabBtn = document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`);
+        if (tabBtn) tabBtn.classList.toggle('active', t === tab);
     });
 }
 
@@ -3115,7 +3330,8 @@ function clearImportForm() {
 }
 
 function clearManualForm() {
-    ['formLegacyName','formProteinName','formCdnaName','formDetermination','formClass','formEtiResponse'].forEach(id => {
+    ['formLegacyName','formProteinName','formCdnaName','formDetermination','formClass',
+     'formClassSubtype','formConfidence','formEtiResponse','formEvidenceLevel','formRecommendation'].forEach(id => {
         const el = document.getElementById(id); if (el) el.value = '';
     });
 }
@@ -3155,14 +3371,33 @@ async function executeJsonImport() {
                 await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${exists.id}`, {
                     method: 'PATCH',
                     headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-                    body: JSON.stringify({ protein_name: data.variant_protein_name, cdna_name: data.variant_cDNA_name, final_determination: data.variant_final_determination, cftr_class: data.cftr_class||null, eti_prediction: data.eti_prediction||null, updated_at: new Date().toISOString() })
+                    body: JSON.stringify({ 
+                        protein_name: data.variant_protein_name, 
+                        cdna_name: data.variant_cDNA_name, 
+                        final_determination: data.variant_final_determination, 
+                        cftr_class: data.cftr_class||null, 
+                        eti_prediction: data.eti_prediction||null, 
+                        updated_at: new Date().toISOString() 
+                    })
                 });
                 updated++;
             } else {
                 const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants`, {
                     method: 'POST',
                     headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-                    body: JSON.stringify({ legacy_name: data.variant_legacy_name, protein_name: data.variant_protein_name, cdna_name: data.variant_cDNA_name, final_determination: data.variant_final_determination, cftr_class: data.cftr_class||null, eti_prediction: data.eti_prediction||null, data_status: 'minimal', source_summary: 'Manual_JSON_Import', validation_count: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+                    body: JSON.stringify({ 
+                        legacy_name: data.variant_legacy_name, 
+                        protein_name: data.variant_protein_name, 
+                        cdna_name: data.variant_cDNA_name, 
+                        final_determination: data.variant_final_determination, 
+                        cftr_class: data.cftr_class||null, 
+                        eti_prediction: data.eti_prediction||null, 
+                        data_status: 'minimal', 
+                        source_summary: 'Manual_JSON_Import', 
+                        validation_count: 0, 
+                        created_at: new Date().toISOString(), 
+                        updated_at: new Date().toISOString() 
+                    })
                 });
                 if (res.ok) { const d = await res.json(); STATE.variants.push(d[0]||data); added++; }
             }
@@ -3184,35 +3419,187 @@ async function submitManualForm() {
     const cdna = document.getElementById('formCdnaName').value.trim();
     const det = document.getElementById('formDetermination').value;
     if (!name || !prot || !cdna || !det) { showNotification('Please fill required fields', 'warning'); return; }
-    STATE.ui.validatedJson = { variant_legacy_name: name, variant_protein_name: prot, variant_cDNA_name: cdna, variant_final_determination: det, cftr_class: document.getElementById('formClass').value||null, eti_prediction: document.getElementById('formEtiResponse').value||null };
+    
+    const formData = {
+        variant_legacy_name: name,
+        variant_protein_name: prot,
+        variant_cDNA_name: cdna,
+        variant_final_determination: det,
+        cftr_class: document.getElementById('formClass').value || null,
+        class_subtype: document.getElementById('formClassSubtype').value || null,
+        class_confidence: document.getElementById('formConfidence').value || null,
+        eti_prediction: document.getElementById('formEtiResponse').value || null,
+        eti_evidence_level: document.getElementById('formEvidenceLevel').value || null,
+        eti_recommendation: document.getElementById('formRecommendation').value.trim() || null
+    };
+    
+    STATE.ui.validatedJson = formData;
     await executeJsonImport();
 }
 
-// ================================================================
-// EVIDENCE
-// ================================================================
+// ========== BULK IMPORT ==========
+
+function initializeBulkImport() {
+    const drop = document.getElementById('dropZone');
+    const file = document.getElementById('csvFileInput');
+    
+    if (!drop || !file) return;
+    
+    drop.addEventListener('click', () => file.click());
+    
+    drop.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        drop.classList.add('border-[var(--brand)]', 'bg-[var(--brand-faint)]');
+    });
+    
+    drop.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        drop.classList.remove('border-[var(--brand)]', 'bg-[var(--brand-faint)]');
+    });
+    
+    drop.addEventListener('drop', (e) => {
+        e.preventDefault();
+        drop.classList.remove('border-[var(--brand)]', 'bg-[var(--brand-faint)]');
+        if (e.dataTransfer.files.length) {
+            handleCSVFile(e.dataTransfer.files[0]);
+        }
+    });
+    
+    file.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            handleCSVFile(e.target.files[0]);
+        }
+    });
+}
+
+function handleCSVFile(file) {
+    if (!file.name.endsWith('.csv')) {
+        showNotification('Please upload a CSV file', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            showNotification(`Parsing ${file.name}...`, 'info', 2000);
+            
+            const content = e.target.result;
+            const lines = content.trim().split('\n');
+            const headers = lines[0].split('\t').map(h => h.trim());
+            
+            const requiredHeaders = ['variant_legacy_name', 'variant_protein_name', 
+                                   'variant_cDNA_name', 'variant_final_determination'];
+            
+            const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+            if (missingHeaders.length > 0) {
+                throw new Error(`Missing columns: ${missingHeaders.join(', ')}`);
+            }
+            
+            const variants = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                const values = lines[i].split('\t');
+                const variant = {};
+                
+                headers.forEach((header, index) => {
+                    variant[header] = values[index]?.trim() || '';
+                });
+                
+                const missing = requiredHeaders.filter(f => !variant[f]);
+                if (missing.length > 0) {
+                    showNotification(`Skipping row ${i + 1}: missing ${missing.join(', ')}`, 'warning', 3000);
+                    continue;
+                }
+                
+                variants.push(variant);
+            }
+            
+            if (variants.length === 0) {
+                throw new Error('No valid variants found in CSV');
+            }
+            
+            STATE.ui.validatedJson = variants;
+            
+            const resultsDiv = document.getElementById('importResults');
+            resultsDiv.innerHTML = `
+                <div style="background:var(--success-bg);border:1px solid #bbf7d0;border-radius:8px;padding:12px;font-size:12px;color:var(--success);">
+                    ✓ CSV parsed successfully — ${variants.length} variants ready to import
+                </div>
+            `;
+            
+            await executeJsonImport();
+            
+        } catch (error) {
+            console.error('CSV parsing failed:', error);
+            showNotification(`CSV import failed: ${error.message}`, 'error');
+        }
+    };
+    
+    reader.onerror = () => {
+        showNotification('Failed to read file', 'error');
+    };
+    
+    reader.readAsText(file);
+}
+
+function processBulkImport() {
+    document.getElementById('csvFileInput')?.click();
+}
+
+function downloadTemplate() {
+    const template = 'variant_legacy_name\tvariant_protein_name\tvariant_cDNA_name\tvariant_final_determination\tcftr_class\teti_prediction\n' +
+                    'G542X\tp.Gly542X\tc.1624G>T\tCF-causing\tI\tresponsive\n' +
+                    'F508del\tp.Phe508del\tc.1521_1523delCTT\tCF-causing\tII\tresponsive\n' +
+                    'G551D\tp.Gly551Asp\tc.1652G>A\tCF-causing\tIII\tresponsive';
+    
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'helix_import_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showNotification('Template downloaded (TAB-separated)', 'success');
+}
+
+// ========== EVIDENCE ==========
 
 function showEvidenceModal(variantName, variantId) {
-    STATE.ui.evidenceVariantId = variantId;
+    currentVariantName = variantName;
+    currentVariantId = variantId;
+    
     setText('evidenceVariantName', variantName);
-    ['evidenceTitle','evidenceUrl','evidenceSource'].forEach(id => { const el = document.getElementById(id); if (el) el.value=''; });
+    ['evidenceTitle','evidenceUrl','evidenceSource','evidenceNotes'].forEach(id => { 
+        const el = document.getElementById(id); 
+        if (el) el.value=''; 
+    });
     setText('evidenceMessage', '');
-    STATE.ui.selectedEvidenceType = null;
+    STATE.ui.evidenceContext = { variantName, variantId };
+    
+    // Reset type buttons
     ['pubmed','cftr2','clinvar','other'].forEach(t => {
         const btn = document.getElementById(`type-${t}`);
-        if (btn) { btn.classList.remove('btn-primary'); btn.classList.add('btn-secondary'); }
+        if (btn) { btn.classList.remove('bg-[var(--brand)]', 'text-white', 'border-[var(--brand)]'); }
     });
     document.getElementById('evidenceType').value = '';
+    
     document.getElementById('addEvidenceModal').classList.remove('hidden');
 }
 
-function closeAddEvidenceModal() { document.getElementById('addEvidenceModal').classList.add('hidden'); }
+function closeAddEvidenceModal() { 
+    document.getElementById('addEvidenceModal').classList.add('hidden'); 
+    STATE.ui.evidenceContext = null;
+}
 
 function selectEvidenceType(type) {
-    STATE.ui.selectedEvidenceType = type;
     ['pubmed','cftr2','clinvar','other'].forEach(t => {
         const btn = document.getElementById(`type-${t}`);
-        if (btn) { btn.classList.toggle('btn-primary', t === type); btn.classList.toggle('btn-secondary', t !== type); }
+        if (btn) { 
+            btn.classList.toggle('bg-[var(--brand)]', t === type); 
+            btn.classList.toggle('text-white', t === type);
+            btn.classList.toggle('border-[var(--brand)]', t === type);
+        }
     });
     document.getElementById('evidenceType').value = type;
 }
@@ -3222,6 +3609,7 @@ async function saveEvidenceLink() {
     const title = document.getElementById('evidenceTitle').value.trim();
     const url = document.getElementById('evidenceUrl').value.trim();
     const source = document.getElementById('evidenceSource').value.trim();
+    const notes = document.getElementById('evidenceNotes').value.trim();
     const msgDiv = document.getElementById('evidenceMessage');
     const btn = document.getElementById('saveEvidenceBtn');
 
@@ -3234,13 +3622,24 @@ async function saveEvidenceLink() {
         const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/evidence_links`, {
             method: 'POST',
             headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-            body: JSON.stringify({ variant_id: STATE.ui.evidenceVariantId, type, title, url, source: source||type, date_added: new Date().toISOString() })
+            body: JSON.stringify({ 
+                variant_id: currentVariantId, 
+                type, 
+                title, 
+                url, 
+                source: source || type,
+                notes: notes || null,
+                date_added: new Date().toISOString() 
+            })
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const saved = await res.json();
-        const variant = STATE.variants.find(v => v.id === STATE.ui.evidenceVariantId);
-        if (variant) { if (!variant.evidence_links) variant.evidence_links=[]; variant.evidence_links.push(saved[0]||saved); }
-        if (STATE.view.selectedVariant?.id === STATE.ui.evidenceVariantId) renderVariantDetail(variant);
+        const variant = STATE.variants.find(v => v.id === currentVariantId);
+        if (variant) { 
+            if (!variant.evidence_links) variant.evidence_links = []; 
+            variant.evidence_links.push(saved[0] || saved); 
+        }
+        if (STATE.view.selectedVariant?.id === currentVariantId) renderVariantDetail(variant);
         msgDiv.innerHTML = '<span style="color:var(--success)">✓ Saved</span>';
         showNotification('Evidence link added', 'success');
         setTimeout(closeAddEvidenceModal, 1000);
@@ -3250,59 +3649,236 @@ async function saveEvidenceLink() {
     }
 }
 
-// ================================================================
-// DASHBOARD
-// ================================================================
+function showAllEvidence(variantId) {
+    const variant = STATE.variantsById.get(variantId);
+    if (!variant) return;
+    
+    currentVariantId = variantId;
+    currentVariantName = variant.legacy_name;
+    
+    const evidenceLinks = variant.evidence_links || [];
+    const modalList = document.getElementById('allEvidenceList');
+    
+    if (evidenceLinks.length === 0) {
+        modalList.innerHTML = `
+            <div class="text-center py-12">
+                <div class="w-16 h-16 bg-[var(--brand-light)] rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                    <i class="fas fa-link text-3xl text-[var(--brand)] opacity-40"></i>
+                </div>
+                <p class="text-gray-700 font-medium mb-2">No evidence links yet</p>
+                <p class="text-sm text-gray-500 mb-6">Add your first evidence source</p>
+                <button onclick="showEvidenceModal('${currentVariantName}', ${variantId}); closeAllEvidenceModal();" 
+                        class="btn btn-primary">
+                    <i class="fas fa-plus mr-2"></i> Add Evidence
+                </button>
+            </div>
+        `;
+    } else {
+        modalList.innerHTML = evidenceLinks.map(link => `
+            <div class="group relative bg-white rounded-xl border border-[var(--border)] hover:border-[var(--brand)] hover:shadow-md transition-all duration-200 mb-4 p-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--brand-light)] to-[var(--brand-faint)] flex items-center justify-center flex-shrink-0">
+                        <i class="fas ${getEvidenceIcon(link.type)} text-[var(--brand)]"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h4 class="font-semibold text-gray-900">${escapeHTML(link.title)}</h4>
+                                <div class="flex items-center gap-3 mt-2">
+                                    <span class="text-xs bg-[var(--brand-light)] text-[var(--brand)] px-2 py-1 rounded-full">
+                                        <i class="fas ${getEvidenceIcon(link.type)} mr-1"></i>
+                                        ${escapeHTML(link.source || link.type)}
+                                    </span>
+                                    <span class="text-xs text-gray-500">
+                                        <i class="far fa-clock mr-1"></i>${formatDate(link.date_added)}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="${escapeHTML(link.url)}" target="_blank" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 hover:text-[var(--brand)]">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                                <button onclick="copyToClipboard('${escapeHTML(link.url)}')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 hover:text-[var(--brand)]">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-3 bg-gray-50 rounded-lg px-3 py-2 text-xs font-mono text-gray-500 truncate">
+                            🔗 ${escapeHTML(link.url)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    document.getElementById('allEvidenceModal').classList.remove('hidden');
+}
+
+function closeAllEvidenceModal() {
+    document.getElementById('allEvidenceModal').classList.add('hidden');
+}
+
+function getEvidenceIcon(type) {
+    const icons = {
+        'pubmed': 'fa-book-open',
+        'cftr2': 'fa-dna',
+        'clinvar': 'fa-hospital',
+        'article': 'fa-file-alt',
+        'study': 'fa-flask',
+        'default': 'fa-link'
+    };
+    return icons[type?.toLowerCase()] || icons.default;
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('Link copied to clipboard', 'success');
+    }).catch(() => {
+        showNotification('Failed to copy', 'error');
+    });
+}
+
+// ========== DASHBOARD ==========
 
 function showDashboard() {
     document.getElementById('dashboardModal').classList.remove('hidden');
     setTimeout(renderCharts, 100);
 }
 
-function closeDashboard() { document.getElementById('dashboardModal').classList.add('hidden'); }
+function closeDashboard() { 
+    document.getElementById('dashboardModal').classList.add('hidden'); 
+}
 
 function renderCharts() {
     if (!window.Chart) return;
     const s = STATE.masterStats;
 
-    const defs = {
-        classChart: { type: 'doughnut', data: { labels:['I','II','III','IV','V'], datasets:[{ data:[s.classI,s.classII,s.classIII,s.classIV,s.classV], backgroundColor:['#c0392b','#b7610a','#0b6e6d','#1a56a5','#6b3fa0'], borderWidth:3, borderColor:'#fff' }] }, options:{ responsive:true, cutout:'68%', plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } } } },
-        responseChart: { type: 'bar', data: { labels:['Responsive','Non-responsive','Unknown'], datasets:[{ data:[s.responsive,s.nonResponsive,s.total-s.responsive-s.nonResponsive], backgroundColor:['#0b6e6d','#c0392b','#b7610a'], borderRadius:6, borderSkipped:false }] }, options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, grid:{ color:'#f1f5f9' } }, x:{ grid:{ display:false } } } } },
-        completionChart: { type: 'bar', data: { labels:['Complete','Partial','Minimal'], datasets:[{ data:[s.complete, s.clinical-s.complete, s.total-s.clinical], backgroundColor:['#0b6e6d','#1a56a5','#e4e8ef'], borderRadius:6, borderSkipped:false }] }, options:{ indexAxis:'y', responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ beginAtZero:true, max:s.total, grid:{ color:'#f1f5f9' } }, y:{ grid:{ display:false } } } } }
+    const classCfg = {
+        type: 'doughnut',
+        data: {
+            labels: ['I','II','III','IV','V'],
+            datasets: [{
+                data: [s.classI, s.classII, s.classIII, s.classIV, s.classV],
+                backgroundColor: ['#c0392b','#b7610a','#0b6e6d','#1a56a5','#6b3fa0'],
+                borderWidth: 3,
+                borderColor: '#fff'
+            }]
+        },
+        options: { 
+            responsive: true, 
+            cutout: '68%', 
+            plugins: { 
+                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } 
+            } 
+        }
     };
 
-    Object.entries(defs).forEach(([id, cfg]) => {
+    const respCfg = {
+        type: 'bar',
+        data: {
+            labels: ['Responsive','Non-responsive','Unknown'],
+            datasets: [{
+                data: [s.responsive, s.nonResponsive, s.unknown],
+                backgroundColor: ['#0b6e6d','#c0392b','#b7610a'],
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: { 
+            responsive: true, 
+            plugins: { legend: { display: false } },
+            scales: { 
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                x: { grid: { display: false } }
+            } 
+        }
+    };
+
+    const compCfg = {
+        type: 'bar',
+        data: {
+            labels: ['Complete','Partial','Minimal'],
+            datasets: [{
+                data: [s.complete, s.clinical - s.complete, s.total - s.clinical],
+                backgroundColor: ['#0b6e6d','#1a56a5','#e4e8ef'],
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: { 
+            indexAxis: 'y',
+            responsive: true, 
+            plugins: { legend: { display: false } },
+            scales: { 
+                x: { beginAtZero: true, max: s.total, grid: { color: '#f1f5f9' } },
+                y: { grid: { display: false } }
+            } 
+        }
+    };
+
+    ['classChart','responseChart','completionChart'].forEach(id => {
         const canvas = document.getElementById(id);
         if (!canvas) return;
         if (STATE.ui.charts[id]) STATE.ui.charts[id].destroy();
+        
+        let cfg = id === 'classChart' ? classCfg : id === 'responseChart' ? respCfg : compCfg;
         STATE.ui.charts[id] = new Chart(canvas, cfg);
     });
 }
 
-// ================================================================
-// EXPORT
-// ================================================================
+function refreshDashboardStats() {
+    calculateMasterStats();
+    renderCharts();
+    showNotification('Dashboard refreshed', 'success');
+}
+
+// ========== EXPORT ==========
 
 function exportReport() {
     const headers = ['Legacy Name','Protein','cDNA','Determination','CFTR Class','ETI Prediction','Subtype','Confidence','Validation Count'];
-    const rows = STATE.variants.map(v => [v.legacy_name,v.protein_name,v.cdna_name,v.final_determination,v.cftr_class,v.eti_prediction,v.class_subtype,v.class_confidence,v.validation_count||0]);
-    generateCSV(headers, rows, `helix-export-${new Date().toISOString().split('T')[0]}.csv`);
+    const rows = STATE.variants.map(v => [
+        v.legacy_name, v.protein_name, v.cdna_name, v.final_determination,
+        v.cftr_class, v.eti_prediction, v.class_subtype, v.class_confidence,
+        v.validation_count || 0
+    ]);
+    generateCSV(headers, rows, `helix-export-${getCurrentDate()}.csv`);
     showNotification('Export complete', 'success');
 }
 
-function exportFullReport() { exportReport(); }
-
-function generateCSV(headers, rows, filename) {
-    const csv = [headers,...rows].map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-    a.download = filename;
-    a.click();
+function exportFullReport() {
+    const headers = ['ID','Legacy Name','Protein','cDNA','Determination','CFTR Class',
+        'Subtype','Confidence','ETI Response','Evidence Level','Recommendation',
+        'Data Status','Source','Population Frequency','PubMed IDs','Date Updated',
+        'Validation Count','Last Validator','Last Validated'];
+    
+    const rows = STATE.variants.map(v => [
+        v.id, v.legacy_name, v.protein_name, v.cdna_name, v.final_determination,
+        v.cftr_class, v.class_subtype, v.class_confidence, v.eti_prediction,
+        v.eti_evidence_level, v.eti_recommendation, v.data_status, v.source_summary,
+        v.population_frequency, v.pubmed_ids, v.date_updated,
+        v.validation_count || 0,
+        v.last_validator_name || '',
+        v.last_validated_at || ''
+    ]);
+    
+    generateCSV(headers, rows, `helix-full-report-${getCurrentDate()}.csv`);
+    showNotification('Full export complete', 'success');
 }
 
-// ================================================================
-// PAGINATION
-// ================================================================
+function generateCSV(headers, rows, filename) {
+    const csv = [headers, ...rows]
+        .map(row => row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+    
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// ========== PAGINATION ==========
 
 function updatePagination() {
     const total = Math.ceil(STATE.view.filteredVariants.length / CONFIG.UI.ITEMS_PER_PAGE);
@@ -3326,9 +3902,7 @@ function nextPage() {
     if (STATE.view.currentPage < total) { STATE.view.currentPage++; renderVariantList(); updatePagination(); }
 }
 
-// ================================================================
-// LOADING / ERROR STATES
-// ================================================================
+// ========== LOADING STATES ==========
 
 function showListLoading() {
     const c = document.getElementById('variantList');
@@ -3354,9 +3928,7 @@ function showListError(msg) {
     </div>`;
 }
 
-// ================================================================
-// UTILITIES
-// ================================================================
+// ========== UTILITIES ==========
 
 function hasMissingData(v) {
     return !v.cftr_class || !v.eti_prediction || !v.final_determination;
@@ -3372,15 +3944,24 @@ function escapeAttr(s) {
     return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;');
 }
 
-function escapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function escapeRegExp(s) { 
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
+}
 
-function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function setText(id, val) { 
+    const el = document.getElementById(id); 
+    if (el) el.textContent = val; 
+}
 
 function formatDate(s) {
     if (!s) return '';
     try {
         return new Date(s).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
     } catch { return s; }
+}
+
+function getCurrentDate() {
+    return new Date().toISOString().split('T')[0];
 }
 
 function showNotification(msg, type='info', duration=CONFIG.UI.NOTIFICATION_DURATION) {
@@ -3400,9 +3981,7 @@ function showNotification(msg, type='info', duration=CONFIG.UI.NOTIFICATION_DURA
     if (duration > 0) setTimeout(() => n.remove(), duration);
 }
 
-// ================================================================
-// SEARCH INIT
-// ================================================================
+// ========== SEARCH INIT ==========
 
 function initSearch() {
     const input = document.getElementById('searchInput');
@@ -3424,20 +4003,19 @@ function initSearch() {
     });
 
     document.addEventListener('keydown', e => {
-        if (e.key === '/' && !e.ctrlKey && !e.metaKey && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+        if (e.key === '/' && !e.ctrlKey && !e.metaKey && 
+            !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
             e.preventDefault(); input.focus();
         }
     });
 }
 
-// ================================================================
-// EVENT LISTENERS
-// ================================================================
+// ========== EVENT LISTENERS ==========
 
 function attachEvents() {
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
-            ['importModal','annotationModal','validationModal','deleteModal','dashboardModal','addEvidenceModal']
+            ['importModal','annotationModal','validationModal','deleteModal','dashboardModal','addEvidenceModal','allEvidenceModal']
                 .forEach(id => document.getElementById(id)?.classList.add('hidden'));
         }
     });
@@ -3449,13 +4027,12 @@ function attachEvents() {
     });
 }
 
-// ================================================================
-// INIT
-// ================================================================
+// ========== INIT ==========
 
 async function init() {
     attachEvents();
     initSearch();
+    initializeBulkImport();
     await loadVariants();
 }
 
@@ -3463,14 +4040,17 @@ document.addEventListener('DOMContentLoaded', init);
 
 // Expose globals for inline onclick handlers
 Object.assign(window, {
-    selectVariant, filterVariants: setDataView, setDataView, setClassFilter, toggleSort,
+    selectVariant, setDataView, filterVariants, setClassFilter, toggleSort,
     clearSearch, quickSearch, toggleSidebar, previousPage, nextPage,
-    showImportModal, closeImportModal, switchTab, validateImport, executeJsonImport, submitManualForm, clearManualForm, clearImportForm,
+    showImportModal, closeImportModal, switchImportTab, validateImport, 
+    executeJsonImport, submitManualForm, clearManualForm, clearImportForm,
     showAnnotationModal, closeAnnotationModal, saveAnnotation,
     showDeleteModal, closeDeleteModal, confirmDeleteVariant,
     showValidationModal, closeValidationModal, submitValidation,
-    showDashboard, closeDashboard, exportReport, exportFullReport,
-    showEvidenceModal, closeAddEvidenceModal, selectEvidenceType, saveEvidenceLink
+    showDashboard, closeDashboard, refreshDashboardStats, exportReport, exportFullReport,
+    showEvidenceModal, closeAddEvidenceModal, selectEvidenceType, saveEvidenceLink,
+    showAllEvidence, closeAllEvidenceModal, copyToClipboard,
+    downloadTemplate, processBulkImport
 });
 </script>
 </body>
