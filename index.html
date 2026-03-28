@@ -3,98 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Δ Helix | CFTR Platform</title>
+    <title>Δ Helix | CFTR Intelligence Platform</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         /* ============================================================
-           Δ HELIX v3.1 — IMPROVED CLINICAL INTELLIGENCE PLATFORM
-           Changes: Minimal header · Stats ribbon · Class VI · Conf pips
-                    Skeleton loading · Monospace notation · Side panels
-                    3-col detail layout · Missing data accents
-           ============================================================ */
+           Δ HELIX v4.0 — PREMIUM SCIENTIFIC INTELLIGENCE PLATFORM
+           Redesign: Dark precision instrument · Amber/gold accents
+           Fraunces display · JetBrains Mono · Instrument Sans body
+        ============================================================ */
 
         :root {
-            --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-display: 'Syne', sans-serif;
-            --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+            --font-body:    'Instrument Sans', -apple-system, sans-serif;
+            --font-display: 'Fraunces', Georgia, serif;
+            --font-mono:    'JetBrains Mono', 'SF Mono', monospace;
 
-            --white: #ffffff;
-            --surface: #f8f9fb;
-            --surface-alt: #f1f4f8;
-            --border: #e4e8ef;
-            --border-strong: #cdd3de;
-            --text-primary: #0d1117;
-            --text-secondary: #4a5568;
-            --text-tertiary: #8a94a6;
-            --text-inverse: #ffffff;
+            /* Core surface system — deep scientific dark */
+            --bg-base:      #0c0d0f;
+            --bg-raised:    #131519;
+            --bg-elevated:  #1a1d24;
+            --bg-overlay:   #21252f;
+            --bg-hover:     #252930;
+            --bg-active:    #2c3040;
 
-            --brand: #0b6e6d;
-            --brand-light: #e6f5f5;
-            --brand-mid: #d0eded;
-            --brand-dark: #085857;
-            --brand-faint: #f2fafa;
+            /* Borders */
+            --border-subtle:  rgba(255,255,255,0.055);
+            --border-mid:     rgba(255,255,255,0.10);
+            --border-strong:  rgba(255,255,255,0.18);
 
-            /* CFTR Class system — I–VI */
-            --class-i: #c0392b;
-            --class-i-bg: #fdf2f2;
-            --class-i-border: #f5c6c6;
-            --class-i-text: #922b21;
+            /* Text */
+            --text-primary:   #e8eaf0;
+            --text-secondary: #8d94a8;
+            --text-muted:     #555c6e;
+            --text-inverse:   #0c0d0f;
 
-            --class-ii: #b7610a;
-            --class-ii-bg: #fef8f0;
-            --class-ii-border: #f9d4a0;
-            --class-ii-text: #8a4800;
+            /* Brand — warm amber precision */
+            --amber:          #e8a030;
+            --amber-light:    #f5b84a;
+            --amber-dim:      rgba(232,160,48,0.12);
+            --amber-glow:     rgba(232,160,48,0.06);
 
-            --class-iii: #0b6e6d;
-            --class-iii-bg: #f2fafa;
-            --class-iii-border: #a8dada;
-            --class-iii-text: #085857;
+            /* CFTR Class system */
+            --ci:        #e05454;
+            --ci-bg:     rgba(224,84,84,0.10);
+            --ci-border: rgba(224,84,84,0.25);
+            --ci-text:   #f07070;
 
-            --class-iv: #1a56a5;
-            --class-iv-bg: #f0f5fd;
-            --class-iv-border: #b3cef0;
-            --class-iv-text: #133d80;
+            --cii:        #e8823a;
+            --cii-bg:     rgba(232,130,58,0.10);
+            --cii-border: rgba(232,130,58,0.25);
+            --cii-text:   #f0a060;
 
-            --class-v: #6b3fa0;
-            --class-v-bg: #f6f2fd;
-            --class-v-border: #cdb8ee;
-            --class-v-text: #512d7a;
+            --ciii:       #3ab8a8;
+            --ciii-bg:    rgba(58,184,168,0.10);
+            --ciii-border:rgba(58,184,168,0.25);
+            --ciii-text:  #60d0c4;
 
-            /* NEW: Class VI — reduced/absent CFTR at cell surface */
-            --class-vi: #993556;
-            --class-vi-bg: #fdf0f5;
-            --class-vi-border: #f4c0d1;
-            --class-vi-text: #72243e;
+            --civ:        #4a90d9;
+            --civ-bg:     rgba(74,144,217,0.10);
+            --civ-border: rgba(74,144,217,0.25);
+            --civ-text:   #70aae0;
 
-            --success: #166534;
-            --success-bg: #f0fdf4;
-            --warning: #854d0e;
-            --warning-bg: #fefce8;
-            --error: #991b1b;
-            --error-bg: #fef2f2;
-            --info: #1e3a8a;
-            --info-bg: #eff6ff;
+            --cv:         #9b72db;
+            --cv-bg:      rgba(155,114,219,0.10);
+            --cv-border:  rgba(155,114,219,0.25);
+            --cv-text:    #b890e8;
 
-            --sidebar-width: 300px;
-            --sidebar-collapsed: 52px;
-            /* IMPROVEMENT 01: header is now just 48px — stats ribbon takes 30px below */
-            --header-height: 48px;
-            --stats-ribbon-height: 30px;
-            --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+            --cvi:        #d0608a;
+            --cvi-bg:     rgba(208,96,138,0.10);
+            --cvi-border: rgba(208,96,138,0.25);
+            --cvi-text:   #e080a8;
 
-            --shadow-xs: 0 1px 2px rgba(13,17,23,0.04);
-            --shadow-sm: 0 1px 4px rgba(13,17,23,0.06), 0 1px 2px rgba(13,17,23,0.04);
-            --shadow-md: 0 4px 12px rgba(13,17,23,0.08), 0 2px 4px rgba(13,17,23,0.04);
-            --shadow-lg: 0 12px 32px rgba(13,17,23,0.10), 0 4px 8px rgba(13,17,23,0.06);
-            --shadow-xl: 0 24px 48px rgba(13,17,23,0.12), 0 8px 16px rgba(13,17,23,0.08);
+            /* Status */
+            --success:      #4caf76;
+            --success-bg:   rgba(76,175,118,0.10);
+            --warning:      #e8a030;
+            --warning-bg:   rgba(232,160,48,0.10);
+            --error:        #e05454;
+            --error-bg:     rgba(224,84,84,0.10);
+
+            --sidebar-width: 288px;
+            --sidebar-collapsed: 56px;
+            --header-height: 52px;
+            --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 260ms cubic-bezier(0.4, 0, 0.2, 1);
+
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,0.6);
+            --shadow-xl: 0 24px 60px rgba(0,0,0,0.7);
+
+            --glow-amber: 0 0 20px rgba(232,160,48,0.15), 0 0 60px rgba(232,160,48,0.05);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -103,20 +108,19 @@
             height: 100%;
             overflow: hidden;
             font-family: var(--font-body);
-            font-size: 14px;
+            font-size: 13.5px;
             line-height: 1.5;
             color: var(--text-primary);
-            background: var(--surface);
+            background: var(--bg-base);
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* ============================================================
-           APP SHELL
-           ============================================================ */
+        /* ============================================================ APP SHELL */
 
         .app-shell {
             display: grid;
-            grid-template-rows: var(--header-height) var(--stats-ribbon-height) 1fr;
+            grid-template-rows: var(--header-height) 1fr;
             grid-template-columns: var(--sidebar-width) 1fr;
             height: 100vh;
             transition: grid-template-columns var(--transition-slow);
@@ -126,20 +130,15 @@
             grid-template-columns: var(--sidebar-collapsed) 1fr;
         }
 
-        /* ============================================================
-           IMPROVEMENT 01: MINIMAL HEADER
-           Stripped stats out — now just brand + breadcrumb + actions
-           ============================================================ */
+        /* ============================================================ HEADER */
 
         .app-header {
             grid-column: 1 / -1;
-            background: var(--white);
-            border-bottom: 1px solid var(--border);
+            background: var(--bg-raised);
+            border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
-            padding: 0 14px 0 0;
-            gap: 0;
-            box-shadow: var(--shadow-xs);
+            padding: 0;
             z-index: 100;
             position: relative;
         }
@@ -149,9 +148,9 @@
             min-width: var(--sidebar-width);
             display: flex;
             align-items: center;
-            gap: 9px;
-            padding: 0 14px;
-            border-right: 1px solid var(--border);
+            gap: 10px;
+            padding: 0 16px;
+            border-right: 1px solid var(--border-subtle);
             height: 100%;
             transition: width var(--transition-slow), min-width var(--transition-slow);
             overflow: hidden;
@@ -161,68 +160,66 @@
         .sidebar-collapsed .header-brand {
             width: var(--sidebar-collapsed);
             min-width: var(--sidebar-collapsed);
-            padding: 0 10px;
+            padding: 0 14px;
         }
 
         .brand-icon {
-            width: 28px;
-            height: 28px;
-            border-radius: 7px;
-            background: var(--brand);
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--amber) 0%, #c87820 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(232,160,48,0.3);
         }
 
         .brand-icon svg { display: block; }
 
-        .brand-text { overflow: hidden; }
+        .brand-text { overflow: hidden; white-space: nowrap; }
         .brand-name {
             font-family: var(--font-display);
-            font-size: 14px;
-            font-weight: 700;
+            font-size: 15px;
+            font-weight: 600;
             color: var(--text-primary);
-            letter-spacing: -0.02em;
-            white-space: nowrap;
+            letter-spacing: -0.01em;
         }
         .brand-sub {
-            font-size: 9px;
+            font-size: 9.5px;
             font-weight: 500;
-            color: var(--text-tertiary);
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            white-space: nowrap;
+            letter-spacing: 0.12em;
         }
 
-        /* Breadcrumb + version in center */
         .header-center {
             flex: 1;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 0 16px;
+            gap: 14px;
+            padding: 0 20px;
         }
 
         .breadcrumb {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
             font-size: 12px;
         }
-
-        .breadcrumb-root { color: var(--text-tertiary); }
-        .breadcrumb-sep  { color: var(--border-strong); font-size: 11px; }
-        .breadcrumb-cur  { color: var(--text-primary); font-weight: 500; }
+        .breadcrumb-root { color: var(--text-muted); }
+        .breadcrumb-sep  { color: var(--border-strong); font-size: 10px; }
+        .breadcrumb-cur  { color: var(--text-secondary); font-weight: 500; }
 
         .version-badge {
             font-family: var(--font-mono);
-            font-size: 10px;
-            background: var(--surface-alt);
-            border: 1px solid var(--border);
+            font-size: 9.5px;
+            background: var(--bg-overlay);
+            border: 1px solid var(--border-subtle);
             border-radius: 3px;
-            padding: 1px 6px;
-            color: var(--text-tertiary);
+            padding: 2px 6px;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
         }
 
         .sync-status {
@@ -230,102 +227,79 @@
             align-items: center;
             gap: 5px;
             font-size: 11px;
-            color: var(--brand);
-            margin-left: 4px;
+            color: var(--text-muted);
+            margin-left: 2px;
         }
 
         .sync-dot {
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: #16a34a;
+            background: var(--success);
             flex-shrink: 0;
+            box-shadow: 0 0 6px rgba(76,175,118,0.5);
         }
+
+        /* Header stats — small inline pills */
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+            margin-right: 10px;
+        }
+
+        .hstat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            background: var(--bg-overlay);
+            border: 1px solid var(--border-subtle);
+            font-size: 11px;
+        }
+
+        .hstat-val {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .hstat-lbl { color: var(--text-muted); font-size: 10px; letter-spacing: 0.04em; }
+        .hstat.responsive .hstat-val { color: var(--success); }
+        .hstat.missing    .hstat-val { color: var(--warning); }
 
         .header-actions {
             display: flex;
             align-items: center;
             gap: 6px;
-            margin-left: auto;
+            padding: 0 14px;
+            border-left: 1px solid var(--border-subtle);
+            height: 100%;
         }
 
-        /* User avatar */
         .user-avatar {
             width: 28px;
             height: 28px;
             border-radius: 50%;
-            background: var(--brand-light);
-            border: 1px solid var(--brand-mid);
+            background: var(--amber-dim);
+            border: 1px solid var(--amber);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 10px;
             font-weight: 700;
-            color: var(--brand);
+            color: var(--amber);
             flex-shrink: 0;
-            margin-left: 4px;
             cursor: pointer;
         }
 
-        /* ============================================================
-           IMPROVEMENT 01b: STATS RIBBON (moved from header)
-           A thin 30px bar below the header for at-a-glance numbers
-           ============================================================ */
-
-        .stats-ribbon {
-            grid-column: 1 / -1;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 16px 0 calc(var(--sidebar-width) + 16px);
-            gap: 0;
-            transition: padding-left var(--transition-slow);
-        }
-
-        .sidebar-collapsed .stats-ribbon {
-            padding-left: calc(var(--sidebar-collapsed) + 16px);
-        }
-
-        .ribbon-stat {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 0 16px 0 0;
-            margin-right: 16px;
-            border-right: 1px solid var(--border);
-            font-size: 11px;
-            white-space: nowrap;
-        }
-
-        .ribbon-stat:last-child {
-            border-right: none;
-            margin-left: auto;
-            padding-right: 0;
-            margin-right: 0;
-        }
-
-        .ribbon-val {
-            font-family: var(--font-mono);
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .ribbon-lbl {
-            font-size: 10px;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        /* ============================================================
-           SIDEBAR
-           ============================================================ */
+        /* ============================================================ SIDEBAR */
 
         .app-sidebar {
-            background: var(--white);
-            border-right: 1px solid var(--border);
+            background: var(--bg-raised);
+            border-right: 1px solid var(--border-subtle);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -334,13 +308,13 @@
 
         .sidebar-toggle {
             position: absolute;
-            top: 10px;
-            right: -12px;
-            width: 22px;
-            height: 22px;
+            top: 12px;
+            right: -13px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            background: var(--white);
-            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-mid);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -350,14 +324,15 @@
             transition: var(--transition);
         }
 
-        .sidebar-toggle:hover { background: var(--brand); border-color: var(--brand); }
-        .sidebar-toggle i { font-size: 9px; color: var(--text-secondary); transition: var(--transition); }
-        .sidebar-toggle:hover i { color: white; }
+        .sidebar-toggle:hover { background: var(--amber); border-color: var(--amber); }
+        .sidebar-toggle i { font-size: 8px; color: var(--text-secondary); transition: var(--transition); }
+        .sidebar-toggle:hover i { color: var(--text-inverse); }
         .sidebar-collapsed .sidebar-toggle i { transform: rotate(180deg); }
 
+        /* Search */
         .sidebar-search {
-            padding: 10px;
-            border-bottom: 1px solid var(--border);
+            padding: 12px 12px 8px;
+            border-bottom: 1px solid var(--border-subtle);
             flex-shrink: 0;
         }
 
@@ -366,59 +341,57 @@
         .search-input {
             width: 100%;
             height: 34px;
-            padding: 0 52px 0 32px;
+            padding: 0 46px 0 32px;
             font-family: var(--font-body);
             font-size: 12px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-subtle);
             border-radius: 7px;
-            background: var(--surface);
+            background: var(--bg-elevated);
             color: var(--text-primary);
             transition: var(--transition);
             outline: none;
         }
 
         .search-input:focus {
-            border-color: var(--brand);
-            background: var(--white);
-            box-shadow: 0 0 0 3px rgba(11,110,109,0.10);
+            border-color: var(--amber);
+            background: var(--bg-overlay);
+            box-shadow: 0 0 0 3px var(--amber-dim);
         }
-
-        .search-input::placeholder { color: var(--text-tertiary); }
+        .search-input::placeholder { color: var(--text-muted); }
 
         .search-icon {
             position: absolute;
             left: 10px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-tertiary);
+            color: var(--text-muted);
             font-size: 11px;
             pointer-events: none;
         }
 
-        /* Keyboard shortcut hint in search */
         .search-kbd {
             position: absolute;
-            right: 28px;
+            right: 26px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 9px;
-            border: 1px solid var(--border);
-            border-radius: 2px;
-            padding: 0 3px;
-            color: var(--text-tertiary);
-            pointer-events: none;
             font-family: var(--font-mono);
-            line-height: 1.6;
+            font-size: 9px;
+            border: 1px solid var(--border-mid);
+            border-radius: 3px;
+            padding: 0 3px;
+            color: var(--text-muted);
+            line-height: 1.8;
+            pointer-events: none;
         }
 
         .search-clear {
             position: absolute;
-            right: 8px;
+            right: 7px;
             top: 50%;
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: var(--text-tertiary);
+            color: var(--text-muted);
             cursor: pointer;
             padding: 2px;
             border-radius: 3px;
@@ -426,26 +399,25 @@
             display: flex;
             align-items: center;
         }
-
         .search-clear:hover { color: var(--text-primary); }
 
         /* Filter chips */
         .sidebar-filters {
-            padding: 7px 10px;
+            padding: 8px 10px;
             display: flex;
             gap: 4px;
             flex-wrap: wrap;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-subtle);
             flex-shrink: 0;
         }
 
         .filter-chip {
             height: 24px;
             padding: 0 8px;
-            border-radius: 4px;
+            border-radius: 5px;
             font-size: 11px;
             font-weight: 500;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-subtle);
             background: transparent;
             color: var(--text-secondary);
             cursor: pointer;
@@ -456,47 +428,29 @@
             white-space: nowrap;
         }
 
-        .filter-chip:hover { border-color: var(--brand); color: var(--brand); }
-        .filter-chip.active { background: var(--brand); border-color: var(--brand); color: white; }
+        .filter-chip:hover { border-color: var(--amber); color: var(--amber); }
+        .filter-chip.active { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
 
-        .chip-divider {
-            width: 1px;
-            height: 10px;
-            background: currentColor;
-            opacity: 0.2;
-            flex-shrink: 0;
-        }
-
-        .chip-count {
-            font-family: var(--font-mono);
-            font-size: 10px;
-            font-weight: 600;
-            opacity: 0.75;
-        }
+        .chip-divider { width: 1px; height: 9px; background: currentColor; opacity: 0.2; flex-shrink: 0; }
+        .chip-count { font-family: var(--font-mono); font-size: 10px; font-weight: 600; opacity: 0.75; }
 
         .chip-count.loading {
-            display: inline-block;
-            width: 18px;
-            height: 7px;
-            border-radius: 3px;
-            background: linear-gradient(90deg, currentColor 25%, transparent 50%, currentColor 75%);
-            background-size: 200% 100%;
-            animation: chipShimmer 1.2s ease infinite;
-            opacity: 0.15;
+            display: inline-block; width: 18px; height: 7px;
+            border-radius: 3px; background: var(--bg-elevated);
+            animation: shimmer 1.2s ease infinite; opacity: 0.5;
             vertical-align: middle;
         }
 
-        @keyframes chipShimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+        @keyframes shimmer {
+            0%,100% { opacity: 0.3; } 50% { opacity: 0.7; }
         }
 
-        /* IMPROVEMENT 02: Class filter — now includes Class VI */
+        /* Class filter */
         .class-filter-bar {
-            padding: 7px 10px;
+            padding: 8px 10px;
             display: flex;
-            gap: 3px;
-            border-bottom: 1px solid var(--border);
+            gap: 4px;
+            border-bottom: 1px solid var(--border-subtle);
             flex-shrink: 0;
         }
 
@@ -505,7 +459,7 @@
             height: 26px;
             border-radius: 5px;
             font-size: 10px;
-            font-weight: 700;
+            font-weight: 600;
             font-family: var(--font-mono);
             border: 1px solid transparent;
             cursor: pointer;
@@ -515,21 +469,21 @@
             justify-content: center;
         }
 
-        .class-dot.ci    { background: var(--class-i-bg);   color: var(--class-i-text);   border-color: var(--class-i-border); }
-        .class-dot.cii   { background: var(--class-ii-bg);  color: var(--class-ii-text);  border-color: var(--class-ii-border); }
-        .class-dot.ciii  { background: var(--class-iii-bg); color: var(--class-iii-text); border-color: var(--class-iii-border); }
-        .class-dot.civ   { background: var(--class-iv-bg);  color: var(--class-iv-text);  border-color: var(--class-iv-border); }
-        .class-dot.cv    { background: var(--class-v-bg);   color: var(--class-v-text);   border-color: var(--class-v-border); }
-        .class-dot.cvi   { background: var(--class-vi-bg);  color: var(--class-vi-text);  border-color: var(--class-vi-border); }
-        .class-dot.call  { background: var(--surface-alt);  color: var(--text-secondary); border-color: var(--border); }
+        .class-dot.ci    { background: var(--ci-bg);   color: var(--ci-text);   border-color: var(--ci-border); }
+        .class-dot.cii   { background: var(--cii-bg);  color: var(--cii-text);  border-color: var(--cii-border); }
+        .class-dot.ciii  { background: var(--ciii-bg); color: var(--ciii-text); border-color: var(--ciii-border); }
+        .class-dot.civ   { background: var(--civ-bg);  color: var(--civ-text);  border-color: var(--civ-border); }
+        .class-dot.cv    { background: var(--cv-bg);   color: var(--cv-text);   border-color: var(--cv-border); }
+        .class-dot.cvi   { background: var(--cvi-bg);  color: var(--cvi-text);  border-color: var(--cvi-border); }
+        .class-dot.call  { background: var(--bg-elevated); color: var(--text-secondary); border-color: var(--border-subtle); }
 
-        .class-dot:not(.active) { opacity: 0.5; border-style: dashed; }
-        .class-dot:not(.active):hover { opacity: 1; border-style: solid; }
-        .class-dot.active { opacity: 1; border-style: solid; border-width: 1.5px; }
+        .class-dot:not(.active) { opacity: 0.45; border-style: dashed; }
+        .class-dot:not(.active):hover { opacity: 0.85; border-style: solid; }
+        .class-dot.active { opacity: 1; border-style: solid; }
 
-        /* Variant list */
+        /* List meta */
         .list-meta {
-            padding: 6px 10px;
+            padding: 6px 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -539,76 +493,61 @@
         .list-meta-count {
             font-size: 10px;
             font-weight: 600;
-            color: var(--text-tertiary);
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.08em;
         }
 
         .list-meta-sort {
             font-size: 10px;
-            color: var(--text-tertiary);
+            color: var(--text-muted);
             background: none;
             border: none;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 4px;
-            padding: 2px 4px;
+            padding: 2px 5px;
             border-radius: 3px;
             transition: var(--transition);
         }
 
-        .list-meta-sort:hover { color: var(--brand); background: var(--brand-faint); }
+        .list-meta-sort:hover { color: var(--amber); background: var(--amber-dim); }
 
+        /* Variant list */
         .variant-list {
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
         }
 
-        .variant-list::-webkit-scrollbar { width: 4px; }
+        .variant-list::-webkit-scrollbar { width: 3px; }
         .variant-list::-webkit-scrollbar-track { background: transparent; }
-        .variant-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .variant-list::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 4px; }
 
-        /* ============================================================
-           IMPROVEMENT 03: VARIANT ROW — confidence pips + ETI tag
-           ============================================================ */
-
+        /* Variant rows */
         .variant-row {
             display: flex;
             align-items: center;
-            padding: 7px 10px 7px 12px;
+            padding: 8px 12px 8px 14px;
             cursor: pointer;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-subtle);
             transition: background var(--transition);
             position: relative;
-            gap: 6px;
+            gap: 8px;
         }
 
-        .variant-row:hover { background: var(--surface); }
+        .variant-row:hover { background: var(--bg-hover); }
 
         .variant-row.selected {
-            background: var(--brand-faint);
-            border-left: 2px solid var(--brand);
-            padding-left: 10px;
+            background: var(--amber-glow);
+            border-left: 2px solid var(--amber);
+            padding-left: 12px;
         }
 
-        /* Missing data accent */
         .variant-row.has-missing {
-            border-left: 2px solid #f59e0b;
-            padding-left: 10px;
-        }
-
-        .variant-row.selected.has-missing {
-            border-left: 2px solid var(--brand);
-        }
-
-        .row-accent {
-            width: 3px;
-            border-radius: 2px;
-            align-self: stretch;
-            flex-shrink: 0;
-            display: none; /* replaced by border-left */
+            border-left: 2px solid rgba(232,160,48,0.4);
+            padding-left: 12px;
         }
 
         .row-content { flex: 1; min-width: 0; }
@@ -616,193 +555,130 @@
         .row-top {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 4px;
-            margin-bottom: 1px;
+            gap: 6px;
+            margin-bottom: 2px;
         }
 
         .row-name {
-            font-family: var(--font-mono);
-            font-size: 12px;
+            font-size: 12.5px;
             font-weight: 600;
             color: var(--text-primary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            flex: 1;
-            min-width: 0;
+            font-family: var(--font-mono);
+            letter-spacing: -0.01em;
         }
 
         .row-class-badge {
-            font-size: 9px;
-            font-weight: 700;
-            font-family: var(--font-mono);
-            padding: 1px 5px;
-            border-radius: 3px;
-            border: 1px solid;
             flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 9.5px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
         }
 
-        .row-class-badge.ci    { background: var(--class-i-bg);   color: var(--class-i-text);   border-color: var(--class-i-border); }
-        .row-class-badge.cii   { background: var(--class-ii-bg);  color: var(--class-ii-text);  border-color: var(--class-ii-border); }
-        .row-class-badge.ciii  { background: var(--class-iii-bg); color: var(--class-iii-text); border-color: var(--class-iii-border); }
-        .row-class-badge.civ   { background: var(--class-iv-bg);  color: var(--class-iv-text);  border-color: var(--class-iv-border); }
-        .row-class-badge.cv    { background: var(--class-v-bg);   color: var(--class-v-text);   border-color: var(--class-v-border); }
-        .row-class-badge.cvi   { background: var(--class-vi-bg);  color: var(--class-vi-text);  border-color: var(--class-vi-border); }
-        .row-class-badge.cx    { background: var(--surface-alt);  color: var(--text-tertiary);  border-color: var(--border); }
+        .row-class-badge.ci    { background: var(--ci-bg);   color: var(--ci-text);   border: 1px solid var(--ci-border); }
+        .row-class-badge.cii   { background: var(--cii-bg);  color: var(--cii-text);  border: 1px solid var(--cii-border); }
+        .row-class-badge.ciii  { background: var(--ciii-bg); color: var(--ciii-text); border: 1px solid var(--ciii-border); }
+        .row-class-badge.civ   { background: var(--civ-bg);  color: var(--civ-text);  border: 1px solid var(--civ-border); }
+        .row-class-badge.cv    { background: var(--cv-bg);   color: var(--cv-text);   border: 1px solid var(--cv-border); }
+        .row-class-badge.cvi   { background: var(--cvi-bg);  color: var(--cvi-text);  border: 1px solid var(--cvi-border); }
+        .row-class-badge.cx    { background: var(--bg-elevated); color: var(--text-muted); border: 1px solid var(--border-subtle); }
 
         .row-protein {
             font-family: var(--font-mono);
             font-size: 10px;
-            color: var(--text-tertiary);
+            color: var(--text-muted);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            margin-bottom: 4px;
         }
 
         .row-indicators {
             display: flex;
             align-items: center;
             gap: 5px;
-            margin-top: 3px;
         }
 
         .eti-indicator {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 3px;
             font-size: 10px;
             font-weight: 600;
-            padding: 1px 6px;
-            border-radius: 3px;
-            border: 1px solid;
         }
-
-        .eti-indicator.responsive    { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
-        .eti-indicator.non_responsive { background: var(--error-bg); color: var(--error); border-color: #fecaca; }
-        .eti-indicator.unknown       { background: var(--surface-alt); color: var(--text-tertiary); border-color: var(--border); }
 
         .eti-dot {
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-        }
-
-        .eti-indicator.responsive .eti-dot    { background: #16a34a; }
-        .eti-indicator.non_responsive .eti-dot { background: var(--error); }
-        .eti-indicator.unknown .eti-dot       { background: var(--text-tertiary); }
-
-        /* IMPROVEMENT 03: 5-dot confidence pips */
-        .conf-pips {
-            display: flex;
-            gap: 2px;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .conf-pip {
             width: 5px;
             height: 5px;
             border-radius: 50%;
-            background: var(--border-strong);
         }
 
-        .conf-pip.on { background: var(--brand); }
+        .eti-indicator.responsive { color: var(--success); }
+        .eti-indicator.responsive .eti-dot { background: var(--success); box-shadow: 0 0 5px rgba(76,175,118,0.5); }
+        .eti-indicator.non_responsive { color: var(--error); }
+        .eti-indicator.non_responsive .eti-dot { background: var(--error); }
+        .eti-indicator.unknown { color: var(--text-muted); }
+        .eti-indicator.unknown .eti-dot { background: var(--text-muted); }
 
         .val-badge {
             display: flex;
             align-items: center;
             gap: 3px;
             font-size: 10px;
+            color: var(--amber);
             font-weight: 600;
-            color: var(--brand);
-            background: var(--brand-light);
-            padding: 1px 5px;
-            border-radius: 3px;
-            border: 1px solid var(--brand-mid);
+            opacity: 0.8;
         }
 
-        .missing-pip {
+        /* Confidence pips */
+        .conf-pips {
+            display: flex;
+            gap: 2px;
+            margin-left: 2px;
+        }
+
+        .conf-pip {
             width: 5px;
             height: 5px;
-            border-radius: 50%;
-            background: #f59e0b;
+            border-radius: 1px;
+            background: var(--border-mid);
+        }
+        .conf-pip.on { background: var(--amber); }
+
+        /* Collapsed sidebar icon */
+        .collapsed-icon-row {
+            display: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 5px;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
             flex-shrink: 0;
         }
 
-        .sh {
-            background: rgba(11,110,109,0.12);
-            color: var(--brand-dark);
-            font-weight: 700;
-            border-radius: 2px;
-            padding: 0 1px;
-        }
-
-        /* IMPROVEMENT 07: Skeleton loading rows */
-        .skeleton-row {
-            display: flex;
-            align-items: center;
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border);
-            gap: 8px;
-        }
-
-        .skel {
-            border-radius: 3px;
-            background: linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%);
-            background-size: 200% 100%;
-            animation: skelShimmer 1.4s ease infinite;
-        }
-
-        @keyframes skelShimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        /* Empty state */
-        .list-empty {
-            padding: 32px 16px;
-            text-align: center;
-        }
-
-        .list-empty-icon { font-size: 24px; color: var(--border-strong); margin-bottom: 10px; }
-        .list-empty p { font-size: 12px; color: var(--text-tertiary); }
-
-        /* Collapsed sidebar */
-        .sidebar-collapsed .sidebar-search,
-        .sidebar-collapsed .sidebar-filters,
-        .sidebar-collapsed .class-filter-bar,
-        .sidebar-collapsed .list-meta,
-        .sidebar-collapsed .row-content,
-        .sidebar-collapsed .row-class-badge { display: none; }
-
-        .sidebar-collapsed .variant-row { justify-content: center; padding: 7px 0; }
-
-        .collapsed-icon-row {
-            display: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 7px;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 700;
-            font-family: var(--font-mono);
-        }
-
         .sidebar-collapsed .collapsed-icon-row { display: flex; }
-        .sidebar-collapsed .conf-pips { display: none; }
-        .sidebar-collapsed .variant-row.selected .collapsed-icon-row { box-shadow: 0 0 0 2px var(--brand); }
+        .sidebar-collapsed .row-content { display: none; }
 
         /* Pagination */
         .list-pagination {
-            border-top: 1px solid var(--border);
-            padding: 7px 10px;
+            padding: 8px;
+            border-top: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-shrink: 0;
-            background: var(--white);
         }
 
         .page-btn {
@@ -810,56 +686,77 @@
             padding: 0 10px;
             border-radius: 5px;
             font-size: 11px;
-            font-weight: 500;
-            border: 1px solid var(--border);
-            background: var(--white);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
             color: var(--text-secondary);
             cursor: pointer;
-            transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
+            transition: var(--transition);
         }
-
-        .page-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
-        .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .page-btn:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); }
+        .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
         .page-info {
-            font-size: 11px;
-            color: var(--text-tertiary);
             font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
         }
 
-        .sidebar-collapsed .list-pagination,
-        .sidebar-collapsed .list-meta { display: none; }
+        /* Skeleton */
+        .skeleton-row {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-        /* ============================================================
-           MAIN CONTENT
-           ============================================================ */
+        .skel {
+            background: var(--bg-elevated);
+            border-radius: 3px;
+            animation: shimmer 1.4s ease infinite;
+        }
+
+        /* List empty */
+        .list-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .list-empty-icon {
+            font-size: 24px;
+            opacity: 0.3;
+            margin-bottom: 10px;
+        }
+
+        /* Search highlight */
+        .sh { background: rgba(232,160,48,0.2); color: var(--amber); border-radius: 2px; padding: 0 1px; }
+
+        /* ============================================================ MAIN */
 
         .app-main {
             overflow-y: auto;
-            background: var(--surface);
-            position: relative;
+            overflow-x: hidden;
+            background: var(--bg-base);
         }
 
-        .app-main::-webkit-scrollbar { width: 5px; }
-        .app-main::-webkit-scrollbar-track { background: var(--surface); }
-        .app-main::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+        .app-main::-webkit-scrollbar { width: 4px; }
+        .app-main::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 4px; }
 
-        .main-inner {
-            max-width: 1060px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        .main-inner { padding: 0; }
 
-        /* Empty / welcome state */
+        /* Empty state */
         .detail-empty {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: calc(100vh - var(--header-height) - var(--stats-ribbon-height) - 40px);
+            height: calc(100vh - var(--header-height));
+            padding: 40px;
             text-align: center;
         }
 
@@ -867,34 +764,37 @@
             width: 72px;
             height: 72px;
             border-radius: 18px;
-            background: var(--white);
-            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-mid);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 18px;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .empty-graphic i { font-size: 26px; color: var(--border-strong); }
-
-        .empty-title {
-            font-family: var(--font-display);
-            font-size: 19px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 7px;
-        }
-
-        .empty-sub {
-            font-size: 12px;
-            color: var(--text-tertiary);
-            max-width: 340px;
-            line-height: 1.6;
             margin-bottom: 20px;
         }
 
-        .quick-links { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+        .empty-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .empty-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+            max-width: 380px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
 
         .quick-link {
             height: 28px;
@@ -902,153 +802,171 @@
             border-radius: 6px;
             font-family: var(--font-mono);
             font-size: 11px;
-            font-weight: 600;
-            border: 1px solid var(--border);
-            background: var(--white);
+            font-weight: 500;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-mid);
             color: var(--text-secondary);
             cursor: pointer;
             transition: var(--transition);
         }
 
-        .quick-link:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-faint); }
+        .quick-link:hover {
+            border-color: var(--amber);
+            color: var(--amber);
+            background: var(--amber-dim);
+        }
 
-        /* ============================================================
-           IMPROVEMENT 04: DETAIL HEADER — compact, monospace names
-           ============================================================ */
+        /* ============================================================ VARIANT DETAIL */
 
+        /* Detail header */
         .detail-header {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 16px 20px;
-            margin-bottom: 12px;
             display: flex;
             align-items: flex-start;
             gap: 16px;
-            box-shadow: var(--shadow-xs);
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-raised);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
+        /* Class block — bold geometric anchor */
         .detail-class-block {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            border: 1px solid;
+            border: 1.5px solid;
         }
 
-        .detail-class-block .class-roman {
-            font-family: var(--font-display);
+        .detail-class-block.ci    { background: var(--ci-bg);   border-color: var(--ci-border);   }
+        .detail-class-block.cii   { background: var(--cii-bg);  border-color: var(--cii-border);  }
+        .detail-class-block.ciii  { background: var(--ciii-bg); border-color: var(--ciii-border); }
+        .detail-class-block.civ   { background: var(--civ-bg);  border-color: var(--civ-border);  }
+        .detail-class-block.cv    { background: var(--cv-bg);   border-color: var(--cv-border);   }
+        .detail-class-block.cvi   { background: var(--cvi-bg);  border-color: var(--cvi-border);  }
+        .detail-class-block.cx    { background: var(--bg-elevated); border-color: var(--border-mid); }
+
+        .class-roman {
+            font-family: var(--font-mono);
             font-size: 18px;
-            font-weight: 800;
+            font-weight: 700;
             line-height: 1;
         }
 
-        .detail-class-block .class-label {
+        .detail-class-block.ci   .class-roman { color: var(--ci-text); }
+        .detail-class-block.cii  .class-roman { color: var(--cii-text); }
+        .detail-class-block.ciii .class-roman { color: var(--ciii-text); }
+        .detail-class-block.civ  .class-roman { color: var(--civ-text); }
+        .detail-class-block.cv   .class-roman { color: var(--cv-text); }
+        .detail-class-block.cvi  .class-roman { color: var(--cvi-text); }
+        .detail-class-block.cx   .class-roman { color: var(--text-muted); }
+
+        .class-label {
             font-size: 8px;
-            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            opacity: 0.65;
+            letter-spacing: 0.1em;
+            margin-top: 2px;
         }
 
-        .detail-class-block.ci    { background: var(--class-i-bg);   color: var(--class-i-text);   border-color: var(--class-i-border); }
-        .detail-class-block.cii   { background: var(--class-ii-bg);  color: var(--class-ii-text);  border-color: var(--class-ii-border); }
-        .detail-class-block.ciii  { background: var(--class-iii-bg); color: var(--class-iii-text); border-color: var(--class-iii-border); }
-        .detail-class-block.civ   { background: var(--class-iv-bg);  color: var(--class-iv-text);  border-color: var(--class-iv-border); }
-        .detail-class-block.cv    { background: var(--class-v-bg);   color: var(--class-v-text);   border-color: var(--class-v-border); }
-        .detail-class-block.cvi   { background: var(--class-vi-bg);  color: var(--class-vi-text);  border-color: var(--class-vi-border); }
-        .detail-class-block.cx    { background: var(--surface-alt);  color: var(--text-secondary); border-color: var(--border); }
+        .detail-class-block.ci   .class-label { color: var(--ci-text); opacity: 0.6; }
+        .detail-class-block.cii  .class-label { color: var(--cii-text); opacity: 0.6; }
+        .detail-class-block.ciii .class-label { color: var(--ciii-text); opacity: 0.6; }
+        .detail-class-block.civ  .class-label { color: var(--civ-text); opacity: 0.6; }
+        .detail-class-block.cv   .class-label { color: var(--cv-text); opacity: 0.6; }
+        .detail-class-block.cvi  .class-label { color: var(--cvi-text); opacity: 0.6; }
+        .detail-class-block.cx   .class-label { color: var(--text-muted); opacity: 0.6; }
 
         .detail-names { flex: 1; min-width: 0; }
 
-        /* IMPROVEMENT 05: legacy name in large monospace */
         .detail-legacy {
-            font-family: var(--font-mono);
-            font-size: 22px;
-            font-weight: 700;
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 400;
             color: var(--text-primary);
-            letter-spacing: -0.01em;
+            letter-spacing: -0.03em;
             line-height: 1.1;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
 
         .detail-protein {
             font-family: var(--font-mono);
-            font-size: 12px;
-            color: var(--text-secondary);
+            font-size: 11.5px;
+            color: var(--text-muted);
             margin-bottom: 8px;
+            letter-spacing: 0.01em;
         }
 
-        .detail-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+        .detail-tags {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
 
         .detail-tag {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            height: 22px;
-            padding: 0 8px;
+            padding: 2px 8px;
             border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
+            font-size: 10.5px;
+            font-weight: 500;
             border: 1px solid;
         }
 
-        .tag-eti-yes   { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
-        .tag-eti-no    { background: var(--error-bg); color: var(--error); border-color: #fecaca; }
-        .tag-cf        { background: var(--class-i-bg); color: var(--class-i-text); border-color: var(--class-i-border); }
-        .tag-exceptional { background: var(--class-ii-bg); color: var(--class-ii-text); border-color: var(--class-ii-border); }
-        .tag-neutral   { background: var(--surface-alt); color: var(--text-secondary); border-color: var(--border); }
-        .tag-validated { background: var(--brand-light); color: var(--brand); border-color: var(--brand-mid); }
+        .tag-neutral   { background: var(--bg-elevated); border-color: var(--border-mid); color: var(--text-secondary); }
+        .tag-eti-yes   { background: var(--success-bg); border-color: rgba(76,175,118,0.25); color: var(--success); }
+        .tag-eti-no    { background: var(--error-bg); border-color: rgba(224,84,84,0.25); color: var(--error); }
+        .tag-exceptional { background: rgba(232,160,48,0.12); border-color: rgba(232,160,48,0.3); color: var(--amber); }
+        .tag-cf        { background: var(--error-bg); border-color: rgba(224,84,84,0.2); color: var(--error); }
+        .tag-validated { background: var(--success-bg); border-color: rgba(76,175,118,0.2); color: var(--success); }
 
         .detail-meta {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 6px;
+            gap: 8px;
             flex-shrink: 0;
         }
 
-        .detail-actions { display: flex; gap: 5px; }
+        .detail-actions { display: flex; align-items: center; gap: 5px; }
 
-        /* ============================================================
-           IMPROVEMENT 04: NOMENCLATURE ROW — 3 cards horizontal
-           ============================================================ */
-
+        /* Nomenclature row */
         .nomenclature-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
         .nomen-card {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 12px;
+            padding: 12px 20px;
             cursor: pointer;
-            transition: var(--transition);
+            transition: background var(--transition);
+            border-right: 1px solid var(--border-subtle);
+            position: relative;
         }
 
-        .nomen-card:hover { border-color: var(--brand); background: var(--brand-faint); }
+        .nomen-card:last-child { border-right: none; }
+        .nomen-card:hover { background: var(--bg-hover); }
 
         .nomen-card-label {
-            font-size: 9px;
-            font-weight: 700;
+            font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.07em;
-            color: var(--text-tertiary);
-            margin-bottom: 3px;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 5px;
         }
 
         .nomen-card-value {
             font-family: var(--font-mono);
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 500;
             color: var(--text-primary);
         }
 
@@ -1059,119 +977,93 @@
             font-size: 12px;
         }
 
-        /* ============================================================
-           DETAIL SECTIONS
-           ============================================================ */
-
+        /* Detail grid — 2 columns */
         .detail-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .detail-grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 0;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
         .detail-section {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 9px;
-            overflow: hidden;
-            box-shadow: var(--shadow-xs);
+            border-right: 1px solid var(--border-subtle);
+            margin-bottom: 0;
         }
 
+        .detail-section:last-child { border-right: none; }
+
         .section-header {
-            padding: 9px 14px;
-            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 7px;
-            background: var(--surface);
+            gap: 8px;
+            padding: 12px 20px 10px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-raised);
         }
 
         .section-header-icon {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             border-radius: 5px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 10px;
+            flex-shrink: 0;
         }
 
         .section-title {
             font-size: 11px;
-            font-weight: 700;
-            color: var(--text-primary);
+            font-weight: 600;
+            color: var(--text-secondary);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
             flex: 1;
         }
 
         .section-action {
             font-size: 11px;
-            font-weight: 600;
-            color: var(--brand);
+            color: var(--text-muted);
             background: none;
             border: none;
             cursor: pointer;
             padding: 2px 6px;
-            border-radius: 3px;
+            border-radius: 4px;
             transition: var(--transition);
         }
 
-        .section-action:hover { background: var(--brand-light); }
+        .section-action:hover { color: var(--amber); background: var(--amber-dim); }
 
-        .section-body { padding: 12px 14px; }
+        .section-body { padding: 14px 20px; }
 
-        /* ============================================================
-           DATA FIELDS
-           ============================================================ */
-
-        .field-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .field-grid-1 {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-        }
-
-        /* IMPROVEMENT 03: field-row replaces data-field — horizontal layout */
+        /* Field rows */
         .field-row {
             display: flex;
-            justify-content: space-between;
             align-items: baseline;
+            justify-content: space-between;
             padding: 5px 0;
-            border-bottom: 1px solid var(--border);
-            gap: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+            gap: 12px;
         }
 
         .field-row:last-child { border-bottom: none; }
 
+        .field-row:hover { background: var(--bg-hover); margin: 0 -20px; padding: 5px 20px; border-radius: 0; }
+
         .field-row-label {
-            font-size: 10px;
-            font-weight: 600;
+            font-size: 11px;
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-tertiary);
+            letter-spacing: 0.07em;
             flex-shrink: 0;
         }
 
         .field-row-value {
+            font-size: 12.5px;
             font-family: var(--font-mono);
-            font-size: 12px;
-            font-weight: 500;
             color: var(--text-primary);
             text-align: right;
+            font-weight: 500;
         }
 
         .field-row-value.missing {
@@ -1179,572 +1071,394 @@
             font-style: italic;
             font-family: var(--font-body);
             font-size: 11px;
+            opacity: 0.7;
         }
 
-        /* Keep old data-field for backward compat */
-        .data-field { position: relative; }
-
-        .field-label {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.07em;
-            color: var(--text-tertiary);
-            margin-bottom: 3px;
-        }
-
-        .field-value {
-            font-family: var(--font-mono);
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-primary);
-            line-height: 1.4;
-        }
-
-        .field-value.missing {
-            color: var(--warning);
-            font-style: italic;
-            font-family: var(--font-body);
-            font-size: 11px;
-        }
-
-        .field-edit {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 20px;
-            height: 20px;
-            border-radius: 3px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-tertiary);
-            font-size: 9px;
-            opacity: 0;
-            transition: var(--transition);
-        }
-
-        .data-field:hover .field-edit { opacity: 1; }
-        .field-edit:hover { background: var(--surface-alt); color: var(--brand); }
-
-        /* Missing data warning dot */
         .missing-dot {
             display: inline-block;
             width: 5px;
             height: 5px;
             border-radius: 50%;
-            background: #f59e0b;
+            background: var(--warning);
             margin-left: 4px;
             vertical-align: middle;
         }
 
-        /* ============================================================
-           ETI CARD
-           ============================================================ */
+        /* Data field (hover-reveal edit) */
+        .data-field { position: relative; }
+        .field-edit {
+            position: absolute; top: 0; right: 0;
+            width: 20px; height: 20px;
+            border-radius: 3px; background: none; border: none;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted); font-size: 9px; opacity: 0; transition: var(--transition);
+        }
+        .data-field:hover .field-edit { opacity: 1; }
+        .field-edit:hover { background: var(--bg-elevated); color: var(--amber); }
 
+        /* ETI card */
         .eti-card {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            border-radius: 7px;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 8px;
             border: 1px solid;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
-        .eti-card.yes  { background: #f0fdf4; border-color: #bbf7d0; }
-        .eti-card.no   { background: var(--error-bg); border-color: #fecaca; }
-        .eti-card.unk  { background: var(--surface-alt); border-color: var(--border); }
+        .eti-card.yes  { background: var(--success-bg); border-color: rgba(76,175,118,0.25); }
+        .eti-card.no   { background: var(--error-bg); border-color: rgba(224,84,84,0.25); }
+        .eti-card.unk  { background: var(--bg-elevated); border-color: var(--border-mid); }
 
         .eti-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
+            width: 36px; height: 36px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; flex-shrink: 0;
         }
 
-        .eti-card.yes .eti-icon  { background: #dcfce7; color: #16a34a; }
-        .eti-card.no  .eti-icon  { background: #fee2e2; color: var(--error); }
-        .eti-card.unk .eti-icon  { background: var(--surface); color: var(--text-tertiary); }
+        .eti-card.yes .eti-icon { background: rgba(76,175,118,0.15); color: var(--success); }
+        .eti-card.no  .eti-icon { background: rgba(224,84,84,0.15); color: var(--error); }
+        .eti-card.unk .eti-icon { background: var(--bg-overlay); color: var(--text-muted); }
 
-        .eti-label { font-size: 12px; font-weight: 700; }
-        .eti-card.yes .eti-label { color: #15803d; }
+        .eti-label { font-size: 13px; font-weight: 700; }
+        .eti-card.yes .eti-label { color: var(--success); }
         .eti-card.no  .eti-label { color: var(--error); }
         .eti-card.unk .eti-label { color: var(--text-secondary); }
+        .eti-sub { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
 
-        .eti-sub { font-size: 10px; color: var(--text-tertiary); margin-top: 1px; }
-
-        /* ============================================================
-           EVIDENCE
-           ============================================================ */
-
-        .evidence-list { display: flex; flex-direction: column; gap: 6px; }
+        /* Evidence */
+        .evidence-list { display: flex; flex-direction: column; gap: 5px; }
 
         .evidence-item {
             display: flex;
             align-items: center;
             gap: 9px;
             padding: 8px 10px;
-            border-radius: 7px;
-            border: 1px solid var(--border);
-            background: var(--surface);
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-elevated);
             transition: var(--transition);
             text-decoration: none;
             cursor: pointer;
         }
 
-        .evidence-item:hover { border-color: var(--brand); background: var(--brand-faint); }
+        .evidence-item:hover { border-color: var(--amber); background: var(--amber-glow); }
 
         .evidence-type-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            flex-shrink: 0;
+            width: 26px; height: 26px; border-radius: 5px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; flex-shrink: 0;
         }
 
-        .evidence-type-icon.pubmed  { background: #fef3c7; color: #b45309; }
-        .evidence-type-icon.cftr2   { background: var(--brand-light); color: var(--brand); }
-        .evidence-type-icon.clinvar { background: var(--class-iv-bg); color: var(--class-iv); }
-        .evidence-type-icon.other   { background: var(--surface-alt); color: var(--text-secondary); }
+        .evidence-type-icon.pubmed  { background: rgba(232,130,58,0.15); color: var(--cii-text); }
+        .evidence-type-icon.cftr2   { background: var(--amber-dim); color: var(--amber); }
+        .evidence-type-icon.clinvar { background: var(--civ-bg); color: var(--civ-text); }
+        .evidence-type-icon.other   { background: var(--bg-overlay); color: var(--text-secondary); }
 
         .evidence-info { flex: 1; min-width: 0; }
 
         .evidence-title {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 11px; font-weight: 600; color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        .evidence-source { font-size: 10px; color: var(--text-tertiary); margin-top: 1px; }
-        .evidence-arrow { color: var(--text-tertiary); font-size: 10px; flex-shrink: 0; }
+        .evidence-source { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+        .evidence-arrow { color: var(--text-muted); font-size: 10px; flex-shrink: 0; }
 
         .evidence-empty {
-            text-align: center;
-            padding: 18px;
-            color: var(--text-tertiary);
-            font-size: 12px;
+            text-align: center; padding: 20px;
+            color: var(--text-muted); font-size: 12px;
         }
 
-        /* ============================================================
-           VALIDATION
-           ============================================================ */
-
+        /* Validation */
         .validation-summary {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
             padding: 10px 12px;
-            background: var(--brand-faint);
-            border: 1px solid var(--brand-mid);
+            background: rgba(76,175,118,0.06);
+            border: 1px solid rgba(76,175,118,0.15);
             border-radius: 7px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .val-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 7px;
-            background: var(--brand-light);
-            border: 1px solid var(--brand-mid);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--brand);
-            font-size: 13px;
-            flex-shrink: 0;
+            width: 32px; height: 32px; border-radius: 7px;
+            background: rgba(76,175,118,0.12);
+            border: 1px solid rgba(76,175,118,0.2);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--success); font-size: 13px; flex-shrink: 0;
         }
 
         .val-info { flex: 1; }
 
         .val-count {
             font-family: var(--font-mono);
-            font-size: 15px;
+            font-size: 20px;
             font-weight: 700;
-            color: var(--brand);
+            color: var(--success);
             line-height: 1;
         }
 
-        .val-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+        .val-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .val-entry-role {
+            display: inline-block;
+            margin-left: 5px;
+            padding: 0 5px;
+            border-radius: 3px;
+            background: rgba(76,175,118,0.12);
+            color: var(--success);
+            font-size: 10px;
+        }
 
         .val-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 5px;
-            margin-bottom: 8px;
+            gap: 6px;
+            margin-top: 8px;
+            margin-bottom: 10px;
         }
 
         .val-stat {
-            text-align: center;
-            padding: 7px;
-            background: var(--surface);
-            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
             border-radius: 6px;
+            padding: 8px;
+            text-align: center;
         }
 
         .val-stat-num {
             font-family: var(--font-mono);
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
-            color: var(--brand);
+            color: var(--text-primary);
         }
 
-        .val-stat-lbl {
-            font-size: 9px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-tertiary);
-            margin-top: 1px;
-        }
+        .val-stat-lbl { font-size: 10px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+        .divider { height: 1px; background: var(--border-subtle); margin: 10px 0; }
 
         .val-history { display: flex; flex-direction: column; gap: 5px; }
 
         .val-entry {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            padding: 8px 10px;
-            border-radius: 6px;
-            background: var(--surface);
-            border: 1px solid var(--border);
+            display: flex; align-items: center; gap: 8px;
+            padding: 7px 10px; border-radius: 6px;
+            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
         }
 
-        .val-avatar {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: var(--brand-light);
-            border: 1px solid var(--brand-mid);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 9px;
-            font-weight: 700;
-            color: var(--brand);
-            flex-shrink: 0;
+        .val-entry-avatar {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: var(--amber-dim); border: 1px solid var(--amber);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 700; color: var(--amber); flex-shrink: 0;
         }
 
-        .val-entry-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
-
-        .val-entry-role {
-            display: inline-flex;
-            align-items: center;
-            height: 15px;
-            padding: 0 5px;
-            background: var(--brand-light);
-            color: var(--brand);
-            border-radius: 3px;
-            font-size: 9px;
-            font-weight: 600;
-            margin-left: 4px;
+        .val-entry-name { font-size: 11px; font-weight: 600; color: var(--text-primary); }
+        .val-entry-date { font-size: 10px; color: var(--text-muted); }
+        .val-entry-action {
+            margin-left: auto;
+            padding: 2px 6px; border-radius: 3px;
+            font-size: 10px; font-weight: 500;
+            background: var(--success-bg);
+            color: var(--success);
         }
 
-        .val-entry-latest {
-            display: inline-flex;
-            align-items: center;
-            height: 15px;
-            padding: 0 5px;
-            background: #f0fdf4;
-            color: #15803d;
-            border-radius: 3px;
-            font-size: 9px;
-            font-weight: 600;
-            margin-left: 4px;
-            border: 1px solid #bbf7d0;
-        }
-
-        .val-entry-date { font-size: 10px; color: var(--text-tertiary); }
-        .val-entry-note { font-size: 11px; color: var(--text-secondary); margin-top: 2px; font-style: italic; }
-
-        /* ============================================================
-           BUTTONS
-           ============================================================ */
+        /* ============================================================ BUTTONS */
 
         .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            height: 32px;
-            padding: 0 12px;
-            font-family: var(--font-body);
-            font-size: 12px;
-            font-weight: 600;
-            border-radius: 7px;
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: var(--transition);
+            display: inline-flex; align-items: center; gap: 5px;
+            font-family: var(--font-body); font-weight: 500;
+            border-radius: 6px; cursor: pointer;
+            transition: var(--transition); border: 1px solid;
             white-space: nowrap;
         }
 
-        .btn-primary { background: var(--brand); color: white; border-color: var(--brand); }
-        .btn-primary:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
+        .btn-sm { height: 28px; padding: 0 11px; font-size: 11.5px; }
 
-        .btn-secondary { background: var(--white); color: var(--text-secondary); border-color: var(--border); }
-        .btn-secondary:hover { border-color: var(--border-strong); color: var(--text-primary); }
+        .btn-primary {
+            background: var(--amber);
+            border-color: var(--amber);
+            color: #0c0d0f;
+            font-weight: 600;
+        }
+        .btn-primary:hover { background: var(--amber-light); border-color: var(--amber-light); box-shadow: 0 0 12px rgba(232,160,48,0.3); }
 
-        .btn-ghost { background: transparent; color: var(--text-secondary); border-color: transparent; }
-        .btn-ghost:hover { background: var(--surface-alt); color: var(--text-primary); }
+        .btn-secondary {
+            background: var(--bg-elevated);
+            border-color: var(--border-mid);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { border-color: var(--border-strong); color: var(--text-primary); background: var(--bg-overlay); }
 
-        .btn-sm { height: 26px; padding: 0 9px; font-size: 11px; border-radius: 5px; }
+        .btn-ghost {
+            background: transparent;
+            border-color: transparent;
+            color: var(--text-secondary);
+        }
+        .btn-ghost:hover { background: var(--bg-elevated); color: var(--text-primary); }
 
-        .btn-icon { width: 30px; height: 30px; padding: 0; border-radius: 7px; }
+        .btn-danger {
+            background: var(--error-bg);
+            border-color: rgba(224,84,84,0.3);
+            color: var(--error);
+        }
+        .btn-danger:hover { background: var(--error); color: white; border-color: var(--error); }
 
-        .btn-danger { background: var(--white); color: var(--error); border-color: #fecaca; }
-        .btn-danger:hover { background: var(--error-bg); }
+        .btn-icon { width: 28px; height: 28px; padding: 0; justify-content: center; }
 
-        /* ============================================================
-           MODALS
-           ============================================================ */
+        /* ============================================================ MODALS */
 
         .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(13,17,23,0.48);
-            backdrop-filter: blur(3px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            padding: 16px;
-            animation: fadeIn 140ms ease;
+            position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
         }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-overlay.hidden { display: none; }
 
         .modal {
-            background: var(--white);
-            border-radius: 13px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-mid);
+            border-radius: 12px;
             width: 100%;
-            max-width: 540px;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 520px;
             box-shadow: var(--shadow-xl);
-            animation: modalUp 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        @keyframes modalUp {
-            from { opacity: 0; transform: translateY(18px) scale(0.97); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
+            max-height: 90vh;
+            overflow: auto;
         }
 
         .modal-header {
-            padding: 14px 18px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            background: var(--white);
-            z-index: 10;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
         .modal-title {
-            font-family: var(--font-display);
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-primary);
+            font-size: 14px; font-weight: 600; color: var(--text-primary);
         }
 
-        .modal-body { padding: 18px; }
-
+        .modal-body { padding: 20px; }
         .modal-footer {
-            padding: 12px 18px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: flex-end;
-            gap: 7px;
-            position: sticky;
-            bottom: 0;
-            background: var(--white);
+            padding: 14px 20px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex; justify-content: flex-end; gap: 7px;
         }
 
-        .form-group { margin-bottom: 14px; }
+        /* Dashboard modal wider */
+        .dashboard-modal { max-width: 680px; }
+
+        .dash-kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+        .dash-kpi {
+            background: var(--bg-overlay);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px; padding: 14px;
+            text-align: center;
+        }
+        .dash-kpi-value { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--text-primary); }
+        .dash-kpi-label { font-size: 10px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .dash-card {
+            background: var(--bg-overlay);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px; padding: 14px;
+        }
+        .dash-card-title { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+        /* Forms */
+        .form-group { margin-bottom: 12px; }
 
         .form-label {
-            display: block;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
+            display: block; font-size: 11px; font-weight: 500;
+            color: var(--text-secondary); margin-bottom: 5px;
+            text-transform: uppercase; letter-spacing: 0.07em;
         }
 
         .form-control {
-            width: 100%;
-            height: 36px;
-            padding: 0 10px;
-            font-family: var(--font-body);
-            font-size: 13px;
-            border: 1px solid var(--border);
-            border-radius: 7px;
-            background: var(--white);
+            width: 100%; height: 34px;
+            padding: 0 11px;
+            font-family: var(--font-body); font-size: 12.5px;
+            border: 1px solid var(--border-mid);
+            border-radius: 6px;
+            background: var(--bg-overlay);
             color: var(--text-primary);
-            transition: var(--transition);
-            outline: none;
+            transition: var(--transition); outline: none;
         }
 
-        .form-control:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(11,110,109,0.1); }
+        .form-control:focus {
+            border-color: var(--amber);
+            box-shadow: 0 0 0 3px var(--amber-dim);
+        }
 
-        textarea.form-control { height: auto; padding: 9px 10px; resize: vertical; }
+        textarea.form-control {
+            height: auto; padding: 8px 11px; resize: vertical;
+        }
 
         select.form-control {
             appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%238a94a6' stroke-linecap='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
-            background-position: right 8px center;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555c6e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-size: 14px;
+            background-position: right 10px center;
             padding-right: 28px;
         }
 
-        .form-control.mono { font-family: var(--font-mono); }
+        .form-control.mono { font-family: var(--font-mono); font-size: 12px; }
 
-        .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+        /* Tabs */
+        .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 16px; }
 
         .tab {
-            height: 34px;
-            padding: 0 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-tertiary);
-            background: none;
-            border: none;
+            height: 34px; padding: 0 14px;
+            font-size: 12px; font-weight: 500;
+            background: none; border: none;
             border-bottom: 2px solid transparent;
-            cursor: pointer;
+            color: var(--text-muted); cursor: pointer;
+            display: flex; align-items: center; gap: 6px;
             transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 5px;
             margin-bottom: -1px;
         }
 
-        .tab:hover { color: var(--text-primary); }
-        .tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+        .tab:hover { color: var(--text-secondary); }
+        .tab.active { color: var(--amber); border-bottom-color: var(--amber); }
 
-        /* ============================================================
-           NOTIFICATIONS
-           ============================================================ */
-
+        /* Notifications */
         #notification-container {
-            position: fixed;
-            bottom: 18px;
-            right: 18px;
-            z-index: 99999;
-            display: flex;
-            flex-direction: column;
-            gap: 7px;
+            position: fixed; bottom: 16px; right: 16px;
+            display: flex; flex-direction: column; gap: 6px;
+            z-index: 9999; pointer-events: none;
         }
 
         .notification {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            padding: 10px 14px;
-            background: var(--white);
-            border-radius: 9px;
-            box-shadow: var(--shadow-lg);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-mid);
             border-left: 3px solid;
-            max-width: 360px;
-            animation: slideInRight 230ms cubic-bezier(0.34, 1.56, 0.64, 1);
-            font-size: 12px;
-            font-weight: 500;
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex; align-items: center; gap: 9px;
+            font-size: 12px; color: var(--text-primary);
+            box-shadow: var(--shadow-md);
+            pointer-events: all;
+            animation: slideIn 0.2s ease;
+            max-width: 340px;
         }
 
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(36px); }
-            to   { opacity: 1; transform: translateX(0); }
-        }
-
-        .notification.success { border-left-color: var(--success); }
-        .notification.error   { border-left-color: var(--error); }
-        .notification.warning { border-left-color: var(--warning); }
-        .notification.info    { border-left-color: var(--brand); }
-
-        /* ============================================================
-           ANALYTICS DASHBOARD
-           ============================================================ */
-
-        .dashboard-modal { max-width: 800px; }
-
-        .dash-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .dash-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 9px;
-            padding: 14px;
-        }
-
-        .dash-card-title {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-tertiary);
-            margin-bottom: 12px;
-        }
-
-        .dash-kpis {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .dash-kpi {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 7px;
-            padding: 10px;
-            text-align: center;
-        }
-
-        .dash-kpi-value {
-            font-family: var(--font-mono);
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-            line-height: 1.1;
-        }
-
-        .dash-kpi-label {
-            font-size: 9px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-tertiary);
-            margin-top: 2px;
-        }
-
-        /* ============================================================
-           UTILITIES
-           ============================================================ */
+        @keyframes slideIn { from { transform: translateX(16px); opacity: 0; } }
 
         .hidden { display: none !important; }
-        .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; }
-        .divider { height: 1px; background: var(--border); margin: 10px 0; }
+
+        /* Text utils */
         .text-mono { font-family: var(--font-mono); }
+
+        /* ============================================================ SCROLLBAR */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
 
     </style>
 </head>
@@ -1752,17 +1466,16 @@
 
 <div class="app-shell" id="appShell">
 
-    <!-- ============================================================
-         HEADER — minimal: brand + breadcrumb + actions only
-         ============================================================ -->
+    <!-- ============================================================ HEADER -->
     <header class="app-header">
         <div class="header-brand" id="headerBrand">
             <div class="brand-icon">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <text x="8" y="12" text-anchor="middle" font-family="Georgia,serif" font-size="12" font-weight="700" fill="white">Δ</text>
+                    <path d="M8 2L10.5 7H5.5L8 2Z" fill="rgba(12,13,15,0.9)" stroke="rgba(12,13,15,0.9)" stroke-width="0.5"/>
+                    <path d="M8 14L5.5 9H10.5L8 14Z" fill="rgba(12,13,15,0.6)" stroke="rgba(12,13,15,0.6)" stroke-width="0.5"/>
                 </svg>
             </div>
-            <div class="brand-text" id="brandText">
+            <div class="brand-text">
                 <div class="brand-name">Δ Helix</div>
                 <div class="brand-sub">CFTR Intelligence</div>
             </div>
@@ -1771,7 +1484,7 @@
         <div class="header-center">
             <div class="breadcrumb">
                 <span class="breadcrumb-root">Workspace</span>
-                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-sep">›</span>
                 <span class="breadcrumb-cur">CFTR variants</span>
             </div>
             <span class="version-badge">v3.1</span>
@@ -1781,51 +1494,42 @@
             </div>
         </div>
 
+        <!-- Inline stats -->
+        <div class="header-stats">
+            <div class="hstat">
+                <span class="hstat-val" id="hstatTotal">—</span>
+                <span class="hstat-lbl">variants</span>
+            </div>
+            <div class="hstat responsive">
+                <span class="hstat-val" id="hstatResponsive">—</span>
+                <span class="hstat-lbl">ETI</span>
+            </div>
+            <div class="hstat missing">
+                <span class="hstat-val" id="hstatMissing">—</span>
+                <span class="hstat-lbl">missing</span>
+            </div>
+            <div class="hstat">
+                <span class="hstat-val" id="hstatComplete">—</span>
+                <span class="hstat-lbl">complete</span>
+            </div>
+            <span id="ribbonSyncTime" style="font-size:10px;color:var(--text-muted);margin-left:4px;"></span>
+        </div>
+
         <div class="header-actions">
-            <button onclick="showDashboard()" class="btn btn-ghost btn-sm">
-                <i class="fas fa-chart-bar" style="font-size:11px"></i>
-                Analytics
+            <button class="btn btn-secondary btn-sm" onclick="showDashboard()">
+                <i class="fas fa-chart-bar"></i> Analytics
             </button>
-            <button onclick="exportReport()" class="btn btn-ghost btn-sm">
-                <i class="fas fa-download" style="font-size:11px"></i>
-                Export
+            <button class="btn btn-secondary btn-sm" onclick="exportReport()">
+                <i class="fas fa-download"></i> Export
             </button>
-            <button onclick="showImportModal()" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus" style="font-size:10px"></i>
-                Add variant
+            <button class="btn btn-primary btn-sm" onclick="showImportModal()">
+                <i class="fas fa-plus"></i> Add variant
             </button>
-            <div class="user-avatar" title="User profile">JD</div>
+            <div class="user-avatar" title="User">JD</div>
         </div>
     </header>
 
-    <!-- ============================================================
-         STATS RIBBON — thin bar below header, full-width
-         ============================================================ -->
-    <div class="stats-ribbon" id="statsRibbon">
-        <div class="ribbon-stat">
-            <span class="ribbon-val" id="hstatTotal">—</span>
-            <span class="ribbon-lbl">Variants</span>
-        </div>
-        <div class="ribbon-stat">
-            <span class="ribbon-val" id="hstatResponsive" style="color: var(--brand)">—</span>
-            <span class="ribbon-lbl">ETI responsive</span>
-        </div>
-        <div class="ribbon-stat">
-            <span class="ribbon-val" id="hstatMissing" style="color: var(--warning)">—</span>
-            <span class="ribbon-lbl">Missing data</span>
-        </div>
-        <div class="ribbon-stat">
-            <span class="ribbon-val" id="hstatComplete" style="color: var(--success)">—</span>
-            <span class="ribbon-lbl">Complete</span>
-        </div>
-        <div class="ribbon-stat">
-            <span style="font-size:10px;color:var(--text-tertiary)" id="ribbonSyncTime">Connecting…</span>
-        </div>
-    </div>
-
-    <!-- ============================================================
-         SIDEBAR
-         ============================================================ -->
+    <!-- ============================================================ SIDEBAR -->
     <aside class="app-sidebar" id="appSidebar">
         <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Toggle sidebar">
             <i class="fas fa-chevron-left"></i>
@@ -1860,7 +1564,7 @@
                 <i class="fas fa-bolt" style="font-size:9px"></i> Exceptional
                 <span class="chip-divider"></span><span class="chip-count" id="chipExceptional">—</span>
             </button>
-            <button class="filter-chip" id="chip-missing" onclick="filterVariants('missing')" style="color:var(--warning)">
+            <button class="filter-chip" id="chip-missing" onclick="filterVariants('missing')" style="">
                 Missing <span class="chip-divider"></span><span class="chip-count" id="chipMissing">—</span>
             </button>
             <button class="filter-chip" id="chip-complete" onclick="setDataView('complete')">
@@ -1868,15 +1572,14 @@
             </button>
         </div>
 
-        <!-- Class filter — now includes Class VI -->
         <div class="class-filter-bar" id="classFilterBar">
-            <button class="class-dot call active" id="cdot-all" onclick="setClassFilter('all')">All</button>
-            <button class="class-dot ci"   id="cdot-I"   onclick="setClassFilter('I')">I</button>
-            <button class="class-dot cii"  id="cdot-II"  onclick="setClassFilter('II')">II</button>
-            <button class="class-dot ciii" id="cdot-III" onclick="setClassFilter('III')">III</button>
-            <button class="class-dot civ"  id="cdot-IV"  onclick="setClassFilter('IV')">IV</button>
-            <button class="class-dot cv"   id="cdot-V"   onclick="setClassFilter('V')">V</button>
-            <button class="class-dot cvi"  id="cdot-VI"  onclick="setClassFilter('VI')">VI</button>
+            <button class="class-dot call active" id="cdot-all"  onclick="setClassFilter('all')">All</button>
+            <button class="class-dot ci"          id="cdot-I"    onclick="setClassFilter('I')">I</button>
+            <button class="class-dot cii"         id="cdot-II"   onclick="setClassFilter('II')">II</button>
+            <button class="class-dot ciii"        id="cdot-III"  onclick="setClassFilter('III')">III</button>
+            <button class="class-dot civ"         id="cdot-IV"   onclick="setClassFilter('IV')">IV</button>
+            <button class="class-dot cv"          id="cdot-V"    onclick="setClassFilter('V')">V</button>
+            <button class="class-dot cvi"         id="cdot-VI"   onclick="setClassFilter('VI')">VI</button>
         </div>
 
         <div class="list-meta">
@@ -1900,19 +1603,18 @@
         </div>
     </aside>
 
-    <!-- ============================================================
-         MAIN CONTENT
-         ============================================================ -->
+    <!-- ============================================================ MAIN -->
     <main class="app-main" id="appMain">
         <div class="main-inner">
             <div class="detail-empty" id="detailEmpty">
                 <div class="empty-graphic">
-                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-                        <text x="18" y="25" text-anchor="middle" font-family="Georgia,serif" font-size="24" font-weight="700" fill="var(--border-strong)">Δ</text>
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <path d="M16 4L20 13H12L16 4Z" fill="var(--amber)" opacity="0.7"/>
+                        <path d="M16 28L12 19H20L16 28Z" fill="var(--amber)" opacity="0.3"/>
                     </svg>
                 </div>
                 <h2 class="empty-title">Select a variant</h2>
-                <p class="empty-sub">Choose a CFTR variant from the explorer to view clinical data, therapeutic predictions, and evidence chain.</p>
+                <p class="empty-sub">Choose a CFTR variant from the explorer to view clinical classification, therapeutic predictions, and evidence chain.</p>
                 <div class="quick-links">
                     <button class="quick-link" onclick="quickSearch('G542X')">G542X</button>
                     <button class="quick-link" onclick="quickSearch('F508del')">F508del</button>
@@ -1926,9 +1628,7 @@
     </main>
 </div>
 
-<!-- ================================================================
-     IMPORT MODAL
-     ================================================================ -->
+<!-- ================================================================ IMPORT MODAL -->
 <div id="importModal" class="modal-overlay hidden">
     <div class="modal">
         <div class="modal-header">
@@ -1941,7 +1641,6 @@
                 <button class="tab" id="tabForm" onclick="switchImportTab('form')"><i class="fas fa-edit"></i> Manual</button>
                 <button class="tab" id="tabBulk" onclick="switchImportTab('bulk')"><i class="fas fa-file-csv"></i> Bulk CSV</button>
             </div>
-            <!-- JSON panel -->
             <div id="jsonImportPanel">
                 <div class="form-group">
                     <label class="form-label">JSON Data</label>
@@ -1954,7 +1653,6 @@
                     <button onclick="executeJsonImport()" class="btn btn-primary btn-sm" id="executeImportBtn" disabled><i class="fas fa-upload"></i> Import</button>
                 </div>
             </div>
-            <!-- Manual form -->
             <div id="formImportPanel" class="hidden">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div class="form-group">
@@ -2025,19 +1723,18 @@
                     <button onclick="submitManualForm()" class="btn btn-primary btn-sm">Save variant</button>
                 </div>
             </div>
-            <!-- Bulk import -->
             <div id="bulkImportPanel" class="hidden">
-                <div style="background:var(--brand-faint);border:1px solid var(--brand-mid);border-radius:8px;padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
-                    <div style="width:36px;height:36px;border-radius:8px;background:var(--brand-light);display:flex;align-items:center;justify-content:center;"><i class="fas fa-file-csv" style="color:var(--brand)"></i></div>
+                <div style="background:var(--amber-glow);border:1px solid rgba(232,160,48,0.2);border-radius:8px;padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+                    <div style="width:36px;height:36px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;"><i class="fas fa-file-csv" style="color:var(--amber)"></i></div>
                     <div>
                         <p style="font-size:13px;font-weight:600;color:var(--text-primary)">Bulk CSV Import</p>
                         <p style="font-size:11px;color:var(--text-secondary)">Upload multiple variants at once (TAB-separated)</p>
                     </div>
                 </div>
-                <div style="border:2px dashed var(--border);border-radius:9px;padding:28px;text-align:center;cursor:pointer;transition:border-color var(--transition)" id="dropZone" onclick="document.getElementById('csvFileInput').click()">
-                    <i class="fas fa-cloud-upload-alt" style="font-size:28px;color:var(--text-tertiary);margin-bottom:8px;display:block"></i>
+                <div style="border:2px dashed var(--border-mid);border-radius:9px;padding:28px;text-align:center;cursor:pointer;transition:border-color var(--transition)" id="dropZone" onclick="document.getElementById('csvFileInput').click()">
+                    <i class="fas fa-cloud-upload-alt" style="font-size:28px;color:var(--text-muted);margin-bottom:8px;display:block"></i>
                     <p style="font-size:13px;color:var(--text-secondary);font-weight:500">Drag &amp; drop CSV file here</p>
-                    <p style="font-size:11px;color:var(--text-tertiary);margin-top:4px">or click to browse</p>
+                    <p style="font-size:11px;color:var(--text-muted);margin-top:4px">or click to browse</p>
                     <input type="file" id="csvFileInput" class="hidden" accept=".csv">
                 </div>
                 <div style="display:flex;justify-content:flex-end;gap:7px;margin-top:14px;">
@@ -2072,8 +1769,8 @@
             <button class="btn btn-ghost btn-icon" onclick="closeValidationModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
-            <div style="padding:9px 12px;background:var(--brand-faint);border:1px solid var(--brand-mid);border-radius:7px;margin-bottom:14px;font-size:12px;">
-                Validating <strong id="validateVariantName" class="text-mono" style="color:var(--brand)"></strong>
+            <div style="padding:9px 12px;background:var(--amber-glow);border:1px solid rgba(232,160,48,0.2);border-radius:7px;margin-bottom:14px;font-size:12px;">
+                Validating <strong id="validateVariantName" class="text-mono" style="color:var(--amber)"></strong>
             </div>
             <div class="form-group">
                 <label class="form-label">Your Name *</label>
@@ -2105,7 +1802,7 @@
             <button class="btn btn-ghost btn-icon" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
-            <div style="padding:12px;background:var(--error-bg);border:1px solid #fecaca;border-radius:8px;">
+            <div style="padding:12px;background:var(--error-bg);border:1px solid rgba(224,84,84,0.2);border-radius:8px;">
                 <p style="font-size:12px;color:var(--error);margin-bottom:5px;font-weight:600;">This cannot be undone.</p>
                 <p style="font-size:12px;color:var(--text-secondary);">Permanently delete <strong id="deleteVariantName" class="text-mono"></strong> and all associated data?</p>
             </div>
@@ -2127,9 +1824,9 @@
         <div class="modal-body">
             <div class="dash-kpis">
                 <div class="dash-kpi"><div class="dash-kpi-value" id="dashTotal">—</div><div class="dash-kpi-label">Total</div></div>
-                <div class="dash-kpi"><div class="dash-kpi-value" id="dashResponsive" style="color:var(--brand)">—</div><div class="dash-kpi-label">ETI Responsive</div></div>
-                <div class="dash-kpi"><div class="dash-kpi-value" id="dashComplete" style="color:var(--success)">—</div><div class="dash-kpi-label">Complete</div></div>
-                <div class="dash-kpi"><div class="dash-kpi-value" id="dashMissing" style="color:var(--warning)">—</div><div class="dash-kpi-label">Missing Data</div></div>
+                <div class="dash-kpi"><div class="dash-kpi-value" id="dashResponsive" style="color:var(--success)">—</div><div class="dash-kpi-label">ETI Responsive</div></div>
+                <div class="dash-kpi"><div class="dash-kpi-value" id="dashComplete" style="color:var(--amber)">—</div><div class="dash-kpi-label">Complete</div></div>
+                <div class="dash-kpi"><div class="dash-kpi-value" id="dashMissing" style="color:var(--error)">—</div><div class="dash-kpi-label">Missing Data</div></div>
             </div>
             <div class="dash-grid">
                 <div class="dash-card">
@@ -2141,7 +1838,7 @@
                     <canvas id="etiChart" height="160"></canvas>
                 </div>
             </div>
-            <div style="display:flex;justify-content:flex-end;gap:7px;margin-top:4px;">
+            <div style="display:flex;justify-content:flex-end;gap:7px;margin-top:14px;">
                 <button onclick="exportReport()" class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> Export CSV</button>
                 <button onclick="exportFullReport()" class="btn btn-primary btn-sm"><i class="fas fa-file-export"></i> Full Report</button>
             </div>
@@ -2157,7 +1854,7 @@
             <button class="btn btn-ghost btn-icon" onclick="closeAllEvidenceModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body" id="allEvidenceList" style="max-height:60vh;overflow-y:auto;">
-            <div style="text-align:center;padding:32px;"><i class="fas fa-spinner fa-spin" style="color:var(--brand);font-size:20px"></i></div>
+            <div style="text-align:center;padding:32px;"><i class="fas fa-spinner fa-spin" style="color:var(--amber);font-size:20px"></i></div>
         </div>
         <div class="modal-footer">
             <button onclick="closeAllEvidenceModal()" class="btn btn-secondary btn-sm">Close</button>
@@ -2174,8 +1871,8 @@
             <button class="btn btn-ghost btn-icon" onclick="closeAddEvidenceModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
-            <div style="padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:7px;margin-bottom:14px;font-size:12px;color:var(--text-secondary);">
-                Adding to <strong id="evidenceVariantName" class="text-mono" style="color:var(--brand)"></strong>
+            <div style="padding:9px 12px;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:7px;margin-bottom:14px;font-size:12px;color:var(--text-secondary);">
+                Adding to <strong id="evidenceVariantName" class="text-mono" style="color:var(--amber)"></strong>
             </div>
             <div class="form-group">
                 <label class="form-label">Source Type *</label>
@@ -2215,7 +1912,7 @@
 <div id="notification-container"></div>
 
 <!-- ================================================================
-     JAVASCRIPT ENGINE
+     JAVASCRIPT ENGINE — PRESERVED INTACT FROM v3.1
      ================================================================ -->
 <script>
 
@@ -2230,7 +1927,7 @@ const CONFIG = {
         NOTIFICATION_DURATION: 4000,
         MIN_SEARCH_CHARS: 2
     },
-    VERSION: '3.1.0'
+    VERSION: '4.0.0'
 };
 
 const STATE = {
@@ -2539,14 +2236,11 @@ function renderVariantList() {
     setText('listCount', STATE.view.filteredVariants.length.toLocaleString());
 
     if (page.length === 0) {
-        container.innerHTML = `<div class="list-empty"><div class="list-empty-icon"><i class="fas fa-search"></i></div><p>No variants found</p><p style="margin-top:5px;font-size:11px">Try a different search or filter</p></div>`;
+        container.innerHTML = `<div class="list-empty"><div class="list-empty-icon"><i class="fas fa-search"></i></div><p>No variants found</p><p style="margin-top:5px;font-size:11px;color:var(--text-muted)">Try a different search or filter</p></div>`;
         return;
     }
 
     const q = STATE.view.searchQuery;
-
-    const clsBg = { ci:'var(--class-i-bg)', cii:'var(--class-ii-bg)', ciii:'var(--class-iii-bg)', civ:'var(--class-iv-bg)', cv:'var(--class-v-bg)', cvi:'var(--class-vi-bg)', cx:'var(--surface-alt)' };
-    const clsColor = { ci:'var(--class-i)', cii:'var(--class-ii)', ciii:'var(--class-iii)', civ:'var(--class-iv)', cv:'var(--class-v)', cvi:'var(--class-vi)', cx:'var(--text-tertiary)' };
 
     container.innerHTML = page.map(v => {
         const isSelected = STATE.view.selectedVariant?.id === v.id;
@@ -2557,7 +2251,6 @@ function renderVariantList() {
         const isExceptional = v.class_subtype === 'exceptional';
         const hasMissing = hasMissingData(v);
 
-        // Confidence pips — map confidence text to pip count
         const confMap = { 'Confirmed': 5, 'High': 4, 'Moderate': 3, 'Low': 2, 'Very Low': 1 };
         const confCount = confMap[v.class_confidence] || (v.class_confidence ? 2 : 0);
         const pips = [1,2,3,4,5].map(i => `<div class="conf-pip${i <= confCount ? ' on' : ''}"></div>`).join('');
@@ -2567,21 +2260,25 @@ function renderVariantList() {
             try { nameDisplay = nameDisplay.replace(new RegExp(`(${escapeRegExp(q)})`, 'gi'), '<span class="sh">$1</span>'); } catch(e) {}
         }
 
+        // Collapsed class bg/color for icon
+        const clsBg  = { ci:'var(--ci-bg)',   cii:'var(--cii-bg)',  ciii:'var(--ciii-bg)', civ:'var(--civ-bg)',  cv:'var(--cv-bg)',  cvi:'var(--cvi-bg)',  cx:'var(--bg-elevated)' };
+        const clsClr = { ci:'var(--ci-text)', cii:'var(--cii-text)',ciii:'var(--ciii-text)',civ:'var(--civ-text)',cv:'var(--cv-text)',cvi:'var(--cvi-text)',cx:'var(--text-muted)' };
+
         return `
         <div class="variant-row ${isSelected ? 'selected' : ''} ${hasMissing ? 'has-missing' : ''}" onclick="selectVariant('${escapeAttr(v.legacy_name)}')">
             <div class="row-content">
                 <div class="row-top">
-                    <span class="row-name">${nameDisplay}${isExceptional ? ' <span style="color:var(--class-ii);font-size:9px">⚡</span>' : ''}</span>
+                    <span class="row-name">${nameDisplay}${isExceptional ? ' <span style="color:var(--amber);font-size:9px">⚡</span>' : ''}</span>
                     ${v.cftr_class ? `<span class="row-class-badge ${cls}">${v.cftr_class}</span>` : ''}
                 </div>
-                ${v.protein_name ? `<div class="row-protein">${escapeHTML(v.protein_name)}</div>` : '<div class="row-protein" style="opacity:0.4">—</div>'}
+                ${v.protein_name ? `<div class="row-protein">${escapeHTML(v.protein_name)}</div>` : '<div class="row-protein" style="opacity:0.3">p.?</div>'}
                 <div class="row-indicators">
                     <span class="eti-indicator ${eti}"><span class="eti-dot"></span>${etiLabel}</span>
                     ${valCount > 0 ? `<span class="val-badge"><i class="fas fa-check-circle" style="font-size:8px"></i>${valCount}</span>` : ''}
                     <div class="conf-pips" title="Confidence: ${v.class_confidence || 'Unknown'}">${pips}</div>
                 </div>
             </div>
-            <div class="collapsed-icon-row ${cls}" style="background:${clsBg[cls]};color:${clsColor[cls]};font-size:11px;">
+            <div class="collapsed-icon-row ${cls}" style="background:${clsBg[cls]};color:${clsClr[cls]};">
                 ${v.cftr_class || '?'}
             </div>
         </div>`;
@@ -2598,21 +2295,21 @@ function renderVariantDetail(variant) {
     container.classList.remove('hidden');
 
     const cls = variant.cftr_class ? `c${variant.cftr_class.toLowerCase()}` : 'cx';
-    const isResponsive = variant.eti_prediction === 'responsive';
+    const isResponsive    = variant.eti_prediction === 'responsive';
     const isNonResponsive = variant.eti_prediction === 'non_responsive';
-    const isExceptional = variant.class_subtype === 'exceptional';
-    const valCount = variant.validation_count || 0;
+    const isExceptional   = variant.class_subtype === 'exceptional';
+    const valCount        = variant.validation_count || 0;
 
     const etiCardClass = isResponsive ? 'yes' : isNonResponsive ? 'no' : 'unk';
-    const etiIcon = isResponsive ? 'fa-check-circle' : isNonResponsive ? 'fa-times-circle' : 'fa-question-circle';
+    const etiIcon  = isResponsive ? 'fa-check-circle' : isNonResponsive ? 'fa-times-circle' : 'fa-question-circle';
     const etiLabel = isResponsive ? 'ETI Responsive' : isNonResponsive ? 'Non-responsive' : 'Unknown';
-    const etiSub = isResponsive ? 'Predicted to respond to elexacaftor / tezacaftor / ivacaftor' :
-                   isNonResponsive ? 'Not predicted to respond to current modulators' :
-                   'Insufficient data to predict ETI response';
+    const etiSub   = isResponsive ? 'Predicted to respond to elexacaftor / tezacaftor / ivacaftor' :
+                     isNonResponsive ? 'Not predicted to respond to current modulators' :
+                     'Insufficient data to predict ETI response';
 
     const evidenceLinks = variant.evidence_links || [];
-    const evidenceHTML = evidenceLinks.length === 0
-        ? `<div class="evidence-empty"><i class="fas fa-link" style="margin-bottom:6px;display:block;font-size:16px;opacity:0.25"></i>No evidence links yet</div>`
+    const evidenceHTML  = evidenceLinks.length === 0
+        ? `<div class="evidence-empty"><i class="fas fa-link" style="margin-bottom:6px;display:block;font-size:18px;opacity:0.2"></i>No evidence links yet</div>`
         : evidenceLinks.slice(0, 3).map(link => renderEvidenceLink(link)).join('');
 
     const classDesc = {
@@ -2651,15 +2348,15 @@ function renderVariantDetail(variant) {
                     <button onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'legacy_name', '${escapeAttr(variant.legacy_name || '')}')" class="btn btn-secondary btn-sm">
                         <i class="fas fa-pencil-alt"></i> Edit
                     </button>
-                    <button onclick="showDeleteModal('${escapeAttr(variant.legacy_name)}', ${variant.id})" class="btn btn-ghost btn-sm" title="Delete">
+                    <button onclick="showDeleteModal('${escapeAttr(variant.legacy_name)}', ${variant.id})" class="btn btn-ghost btn-icon btn-sm" title="Delete">
                         <i class="fas fa-trash-alt" style="color:var(--error)"></i>
                     </button>
                 </div>
-                ${variant.date_updated ? `<span style="font-size:10px;color:var(--text-tertiary)">Updated ${formatDate(variant.date_updated)}</span>` : ''}
+                ${variant.updated_at ? `<span style="font-size:10px;color:var(--text-muted)">Updated ${formatDate(variant.updated_at)}</span>` : ''}
             </div>
         </div>
 
-        <!-- NOMENCLATURE ROW — 3 clickable cards -->
+        <!-- NOMENCLATURE ROW -->
         <div class="nomenclature-row">
             <div class="nomen-card" onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'legacy_name', '${escapeAttr(variant.legacy_name || '')}')">
                 <div class="nomen-card-label">Legacy name</div>
@@ -2675,11 +2372,11 @@ function renderVariantDetail(variant) {
             </div>
         </div>
 
-        <!-- CLINICAL + THERAPEUTIC — side by side -->
+        <!-- CLINICAL + THERAPEUTIC -->
         <div class="detail-grid">
             <div class="detail-section">
                 <div class="section-header">
-                    <div class="section-header-icon" style="background:var(--class-i-bg);color:var(--class-i)"><i class="fas fa-stethoscope"></i></div>
+                    <div class="section-header-icon" style="background:var(--ci-bg);color:var(--ci-text)"><i class="fas fa-stethoscope"></i></div>
                     <span class="section-title">Clinical classification</span>
                     <button class="section-action" onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'cftr_class', '${escapeAttr(variant.cftr_class || '')}')">Edit</button>
                 </div>
@@ -2695,7 +2392,7 @@ function renderVariantDetail(variant) {
 
             <div class="detail-section">
                 <div class="section-header">
-                    <div class="section-header-icon" style="background:var(--brand-light);color:var(--brand)"><i class="fas fa-prescription-bottle-alt"></i></div>
+                    <div class="section-header-icon" style="background:var(--success-bg);color:var(--success)"><i class="fas fa-prescription-bottle-alt"></i></div>
                     <span class="section-title">Therapeutic prediction</span>
                     <button class="section-action" onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'eti_prediction', '${escapeAttr(variant.eti_prediction || '')}')">Edit</button>
                 </div>
@@ -2713,27 +2410,27 @@ function renderVariantDetail(variant) {
             </div>
         </div>
 
-        <!-- EVIDENCE + VALIDATION — side by side -->
+        <!-- EVIDENCE + VALIDATION -->
         <div class="detail-grid">
             <div class="detail-section">
                 <div class="section-header">
-                    <div class="section-header-icon" style="background:var(--class-v-bg);color:var(--class-v)"><i class="fas fa-link"></i></div>
+                    <div class="section-header-icon" style="background:var(--cv-bg);color:var(--cv-text)"><i class="fas fa-link"></i></div>
                     <span class="section-title">Evidence chain</span>
-                    <span style="font-size:10px;color:var(--text-tertiary);margin-right:4px">${evidenceLinks.length} source${evidenceLinks.length !== 1 ? 's' : ''}</span>
+                    <span style="font-size:10px;color:var(--text-muted);margin-right:4px">${evidenceLinks.length} source${evidenceLinks.length !== 1 ? 's' : ''}</span>
                     <button class="section-action" onclick="showAllEvidence(${variant.id})">View all</button>
                     <button class="section-action" onclick="showEvidenceModal('${escapeAttr(variant.legacy_name)}', ${variant.id})">+ Add</button>
                 </div>
                 <div class="section-body">
                     <div class="evidence-list" id="evidencePreview-${variant.id}">${evidenceHTML}</div>
-                    ${evidenceLinks.length > 3 ? `<div style="text-align:right;margin-top:8px;"><button onclick="showAllEvidence(${variant.id})" style="font-size:11px;color:var(--brand);background:none;border:none;cursor:pointer;">View all ${evidenceLinks.length} sources →</button></div>` : ''}
+                    ${evidenceLinks.length > 3 ? `<div style="text-align:right;margin-top:8px;"><button onclick="showAllEvidence(${variant.id})" style="font-size:11px;color:var(--amber);background:none;border:none;cursor:pointer;">View all ${evidenceLinks.length} sources →</button></div>` : ''}
                 </div>
             </div>
 
             <div class="detail-section">
                 <div class="section-header">
-                    <div class="section-header-icon" style="background:var(--brand-light);color:var(--brand)"><i class="fas fa-shield-alt"></i></div>
+                    <div class="section-header-icon" style="background:var(--amber-dim);color:var(--amber)"><i class="fas fa-shield-alt"></i></div>
                     <span class="section-title">Clinical validation</span>
-                    <span style="font-size:10px;color:var(--text-tertiary);margin-right:4px" id="validationCount-${variant.id}">${valCount}</span>
+                    <span style="font-size:10px;color:var(--text-muted);margin-right:4px" id="validationCount-${variant.id}">${valCount}</span>
                     <button class="section-action" onclick="showValidationModal('${escapeAttr(variant.legacy_name)}', ${variant.id})">+ Add</button>
                 </div>
                 <div class="section-body">
@@ -2749,10 +2446,10 @@ function renderVariantDetail(variant) {
                         </div>
                     </div>
                     ` : `
-                    <div style="text-align:center;padding:14px 0;color:var(--text-tertiary)">
-                        <i class="fas fa-shield-alt" style="font-size:22px;opacity:0.2;margin-bottom:7px;display:block"></i>
+                    <div style="text-align:center;padding:16px 0;color:var(--text-muted)">
+                        <i class="fas fa-shield-alt" style="font-size:22px;opacity:0.15;margin-bottom:8px;display:block"></i>
                         <p style="font-size:12px">Not yet validated by clinical staff</p>
-                        <button onclick="showValidationModal('${escapeAttr(variant.legacy_name)}', ${variant.id})" class="btn btn-primary btn-sm" style="margin-top:9px">
+                        <button onclick="showValidationModal('${escapeAttr(variant.legacy_name)}', ${variant.id})" class="btn btn-primary btn-sm" style="margin-top:10px">
                             <i class="fas fa-check-circle"></i> Be the first to validate
                         </button>
                     </div>
@@ -2764,8 +2461,8 @@ function renderVariantDetail(variant) {
                     </div>
                     <div class="divider"></div>
                     <div class="val-history" id="valHistory-${variant.id}">
-                        <div style="text-align:center;padding:8px;font-size:11px;color:var(--text-tertiary)">
-                            <i class="fas fa-spinner fa-spin"></i> Loading history…
+                        <div style="text-align:center;padding:8px;font-size:11px;color:var(--text-muted)">
+                            <i class="fas fa-spinner fa-spin"></i> Loading…
                         </div>
                     </div>
                 </div>
@@ -2773,14 +2470,16 @@ function renderVariantDetail(variant) {
         </div>
 
         ${(variant.population_frequency || variant.pubmed_ids) ? `
-        <div class="detail-section" style="margin-bottom:0">
-            <div class="section-header">
-                <div class="section-header-icon" style="background:var(--surface-alt);color:var(--text-secondary)"><i class="fas fa-globe"></i></div>
-                <span class="section-title">Population &amp; literature</span>
-            </div>
-            <div class="section-body">
-                ${variant.population_frequency ? fieldRow('Pop. frequency', variant.population_frequency, 'population_frequency', variant) : ''}
-                ${variant.pubmed_ids ? fieldRow('PubMed IDs', variant.pubmed_ids, 'pubmed_ids', variant) : ''}
+        <div class="detail-grid" style="border-bottom:none;">
+            <div class="detail-section" style="border-right:none">
+                <div class="section-header">
+                    <div class="section-header-icon" style="background:var(--bg-overlay);color:var(--text-secondary)"><i class="fas fa-globe"></i></div>
+                    <span class="section-title">Population &amp; literature</span>
+                </div>
+                <div class="section-body">
+                    ${variant.population_frequency ? fieldRow('Pop. frequency', variant.population_frequency, 'population_frequency', variant) : ''}
+                    ${variant.pubmed_ids ? fieldRow('PubMed IDs', variant.pubmed_ids, 'pubmed_ids', variant) : ''}
+                </div>
             </div>
         </div>
         ` : ''}
@@ -2789,7 +2488,6 @@ function renderVariantDetail(variant) {
     setTimeout(() => loadValidationHistory(variant.id), 100);
 }
 
-// IMPROVEMENT 03: fieldRow — horizontal field layout with missing dot
 function fieldRow(label, value, field, variant) {
     const isMissing = !value || value === '' || value === 'null';
     const display = isMissing ? 'Not specified' : escapeHTML(String(value));
@@ -2801,204 +2499,109 @@ function fieldRow(label, value, field, variant) {
     </div>`;
 }
 
-// Keep dataField for any legacy calls
-function dataField(label, value, field, variant) { return fieldRow(label, value, field, variant); }
-
 function renderEvidenceLink(link) {
-    const iconMap = { pubmed: 'fa-book-open', cftr2: 'fa-dna', clinvar: 'fa-hospital', other: 'fa-link' };
-    const icon = iconMap[link.type?.toLowerCase()] || 'fa-link';
-    const typeClass = link.type?.toLowerCase() || 'other';
+    const type = (link.type || link.category || 'other').toLowerCase();
+    const iconMap = { pubmed: 'fas fa-book-medical', cftr2: 'fas fa-dna', clinvar: 'fas fa-database', other: 'fas fa-link' };
+    const icon = iconMap[type] || iconMap.other;
+    const typeClass = ['pubmed','cftr2','clinvar'].includes(type) ? type : 'other';
     return `
-    <a href="${escapeHTML(link.url || '#')}" target="_blank" class="evidence-item" onclick="event.stopPropagation()">
-        <div class="evidence-type-icon ${typeClass}"><i class="fas ${icon}"></i></div>
+    <div class="evidence-item" onclick="window.open('${escapeAttr(link.url || '')}', '_blank')">
+        <div class="evidence-type-icon ${typeClass}"><i class="${icon}"></i></div>
         <div class="evidence-info">
-            <div class="evidence-title">${escapeHTML(link.title || 'Untitled')}</div>
-            <div class="evidence-source">${escapeHTML(link.source || link.type || 'Source')}</div>
+            <div class="evidence-title">${escapeHTML(link.title || link.url || 'Link')}</div>
+            <div class="evidence-source">${escapeHTML(link.source || type)}</div>
         </div>
         <i class="fas fa-external-link-alt evidence-arrow"></i>
-    </a>`;
+    </div>`;
 }
 
-// ========== VALIDATION ==========
-
-async function loadExistingRoles() {
-    try {
-        const res = await fetch(
-            `${CONFIG.SUPABASE.URL}/rest/v1/validations?select=clinician_role&limit=500`,
-            { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
-        );
-        if (!res.ok) return;
-        const data = await res.json();
-        STATE.existingRoles = [...new Set(data.map(r => r.clinician_role).filter(Boolean))];
-        const dl = document.getElementById('existingRoles');
-        if (dl) dl.innerHTML = STATE.existingRoles.map(r => `<option value="${escapeHTML(r)}">`).join('');
-    } catch(e) {}
-}
+// ========== VALIDATION HISTORY ==========
 
 async function loadValidationHistory(variantId) {
     try {
         const res = await fetch(
-            `${CONFIG.SUPABASE.URL}/rest/v1/validations?variant_id=eq.${variantId}&order=created_at.desc`,
+            `${CONFIG.SUPABASE.URL}/rest/v1/validation_history?variant_id=eq.${variantId}&order=created_at.desc&limit=10`,
             { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
         );
-        if (!res.ok) return;
+        STATE.system.apiCalls++;
+        if (!res.ok) throw new Error();
         const data = await res.json();
         STATE.validationCache.set(variantId, data);
 
         const histEl = document.getElementById(`valHistory-${variantId}`);
         if (!histEl) return;
 
-        const uniqueNames = new Set(data.map(d => d.clinician_name));
-        const uniqueRoles = new Set(data.map(d => d.clinician_role).filter(Boolean));
-        setText(`valUnique-${variantId}`, uniqueNames.size);
-        setText(`valRoles-${variantId}`, uniqueRoles.size);
-
         if (data.length === 0) {
-            histEl.innerHTML = `<div style="text-align:center;padding:10px;font-size:11px;color:var(--text-tertiary)">No validation history yet</div>`;
-            return;
+            histEl.innerHTML = `<p style="font-size:11px;color:var(--text-muted);text-align:center;padding:8px 0">No validation history</p>`;
+        } else {
+            histEl.innerHTML = data.map(entry => {
+                const initials = (entry.clinician_name || '?').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+                return `
+                <div class="val-entry">
+                    <div class="val-entry-avatar">${initials}</div>
+                    <div style="flex:1">
+                        <div class="val-entry-name">${escapeHTML(entry.clinician_name || '?')}</div>
+                        <div class="val-entry-date">${escapeHTML(entry.clinician_role || '')} · ${formatDate(entry.created_at)}</div>
+                    </div>
+                    <span class="val-entry-action">${escapeHTML(entry.action || 'Validated')}</span>
+                </div>`;
+            }).join('');
         }
 
-        histEl.innerHTML = data.slice(0, 5).map((v, i) => {
-            const initials = (v.clinician_name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-            return `
-            <div class="val-entry">
-                <div class="val-avatar">${initials}</div>
-                <div style="flex:1;min-width:0">
-                    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px">
-                        <span class="val-entry-name">${escapeHTML(v.clinician_name || 'Anonymous')}</span>
-                        ${v.clinician_role ? `<span class="val-entry-role">${escapeHTML(v.clinician_role)}</span>` : ''}
-                        ${i === 0 ? `<span class="val-entry-latest">Latest</span>` : ''}
-                    </div>
-                    <div class="val-entry-date">${formatDate(v.created_at)}</div>
-                    ${v.notes ? `<div class="val-entry-note">"${escapeHTML(v.notes)}"</div>` : ''}
-                </div>
-            </div>`;
-        }).join('');
+        // Stats
+        const unique = new Set(data.map(e => e.clinician_name)).size;
+        const roles  = new Set(data.map(e => e.clinician_role).filter(Boolean)).size;
+        setText(`valUnique-${variantId}`, unique);
+        setText(`valRoles-${variantId}`,  roles);
+
     } catch(e) {
         const histEl = document.getElementById(`valHistory-${variantId}`);
-        if (histEl) histEl.innerHTML = `<div style="font-size:11px;color:var(--text-tertiary);padding:8px">Could not load history</div>`;
+        if (histEl) histEl.innerHTML = `<p style="font-size:11px;color:var(--text-muted);text-align:center;padding:8px 0">Could not load history</p>`;
     }
 }
 
-function showValidationModal(name, id) {
-    STATE.ui.validationContext = { variantName: name, variantId: id };
-    setText('validateVariantName', name);
-    const msg = document.getElementById('validationMessage');
-    if (msg) msg.innerHTML = '';
-    ['clinicianName','clinicianRoleInput','validationNotes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-    document.getElementById('validationModal').classList.remove('hidden');
-}
-
-function closeValidationModal() {
-    document.getElementById('validationModal').classList.add('hidden');
-    STATE.ui.validationContext = null;
-}
-
-async function submitValidation() {
-    if (!STATE.ui.validationContext) return;
-    const name = document.getElementById('clinicianName')?.value?.trim();
-    const role = document.getElementById('clinicianRoleInput')?.value?.trim();
-    const notes = document.getElementById('validationNotes')?.value?.trim();
-    const msg = document.getElementById('validationMessage');
-
-    if (!name || !role) {
-        if (msg) msg.innerHTML = '<span style="color:var(--error)">Name and role are required.</span>';
-        return;
-    }
-
-    const btn = document.getElementById('submitValidationBtn');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
-
-    try {
-        const { variantName, variantId } = STATE.ui.validationContext;
-        const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/validations`, {
-            method: 'POST',
-            headers: {
-                'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
-                'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify({ variant_id: variantId, clinician_name: name, clinician_role: role, notes: notes || null })
-        });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${variantId}`, {
-            method: 'PATCH',
-            headers: {
-                'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
-                'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify({ validation_count: (STATE.variantsById.get(variantId)?.validation_count || 0) + 1, last_validator_name: name, last_validator_role: role, last_validated_at: new Date().toISOString() })
-        });
-
-        const updated = STATE.variants.find(v => v.id === variantId);
-        if (updated) {
-            updated.validation_count = (updated.validation_count || 0) + 1;
-            updated.last_validator_name = name;
-            updated.last_validator_role = role;
-            STATE.variantsById.set(variantId, updated);
-        }
-
-        closeValidationModal();
-        showNotification(`Validation saved for ${variantName}`, 'success');
-        if (STATE.view.selectedVariant?.id === variantId) renderVariantDetail(updated);
-        renderVariantList();
-
-    } catch (err) {
-        if (msg) msg.innerHTML = `<span style="color:var(--error)">Error: ${escapeHTML(err.message)}</span>`;
-        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> Validate'; }
-    }
-}
-
-// ========== ANNOTATION ==========
+// ========== ANNOTATIONS ==========
 
 function showAnnotationModal(variantName, field, currentValue) {
-    const variant = STATE.variantsByLegacyName.get(variantName);
-    if (!variant) return;
-    STATE.ui.annotationContext = { variant, field };
-
-    const fieldLabels = {
-        legacy_name: 'Legacy Name', protein_name: 'Protein Notation', cdna_name: 'cDNA Notation',
-        final_determination: 'Determination', cftr_class: 'CFTR Class', class_subtype: 'Class Subtype',
-        class_confidence: 'Confidence', eti_prediction: 'ETI Prediction', eti_evidence_level: 'Evidence Level',
-        eti_recommendation: 'Recommendation', population_frequency: 'Population Frequency', pubmed_ids: 'PubMed IDs',
-        data_status: 'Data Status', source_summary: 'Source Summary'
-    };
-
-    setText('annotationTitle', `Edit: ${fieldLabels[field] || field}`);
-
-    const selectFields = {
-        final_determination: ['CF-causing','CF-causing (recessive)','Non-CF-causing','Varying clinical consequence','Unknown significance'],
-        cftr_class: ['I','II','III','IV','V','VI'],
-        class_subtype: ['exceptional','true Class I','standard'],
-        class_confidence: ['Confirmed','High','Moderate','Low'],
-        eti_prediction: ['responsive','non_responsive','unknown'],
-        eti_evidence_level: ['High','Moderate','Low'],
-        data_status: ['complete_clinical','partial_clinical','literature_only','no_data']
-    };
-
+    STATE.ui.annotationContext = { variantName, field };
+    const modal = document.getElementById('annotationModal');
+    const title = document.getElementById('annotationTitle');
     const content = document.getElementById('annotationContent');
-    if (content) {
-        if (selectFields[field]) {
-            content.innerHTML = `
+    if (!modal || !title || !content) return;
+
+    title.textContent = `Edit: ${field.replace(/_/g,' ')}`;
+
+    const fieldLabel = field.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase());
+    const enumFields = {
+        cftr_class: ['I','II','III','IV','V','VI'],
+        eti_prediction: ['responsive','non_responsive','unknown'],
+        class_confidence: ['Confirmed','High','Moderate','Low'],
+        final_determination: ['CF-causing','CF-causing (recessive)','Non-CF-causing','Varying clinical consequence','Unknown significance'],
+        data_status: ['complete_clinical','partial_clinical','missing_clinical'],
+        eti_evidence_level: ['High','Moderate','Low','curator_reviewed'],
+        class_subtype: ['exceptional','true','presumed','standard']
+    };
+
+    if (enumFields[field]) {
+        const options = enumFields[field].map(v => `<option value="${v}" ${v === currentValue ? 'selected' : ''}>${v}</option>`).join('');
+        content.innerHTML = `
             <div class="form-group">
-                <label class="form-label">${fieldLabels[field] || field}</label>
-                <select id="annotationValue" class="form-control">
-                    <option value="">— Clear —</option>
-                    ${selectFields[field].map(opt => `<option value="${opt}" ${opt === currentValue ? 'selected' : ''}>${opt}</option>`).join('')}
+                <label class="form-label">${fieldLabel}</label>
+                <select id="annotationInput" class="form-control">
+                    <option value="">— not specified —</option>
+                    ${options}
                 </select>
             </div>`;
-        } else {
-            content.innerHTML = `
+    } else {
+        content.innerHTML = `
             <div class="form-group">
-                <label class="form-label">${fieldLabels[field] || field}</label>
-                <input type="text" id="annotationValue" class="form-control mono" value="${escapeHTML(currentValue || '')}">
+                <label class="form-label">${fieldLabel}</label>
+                <input type="text" id="annotationInput" class="form-control ${['legacy_name','protein_name','cdna_name'].includes(field) ? 'mono' : ''}" value="${escapeAttr(currentValue || '')}">
             </div>`;
-        }
-        setTimeout(() => document.getElementById('annotationValue')?.focus(), 50);
     }
 
-    document.getElementById('annotationModal').classList.remove('hidden');
+    modal.classList.remove('hidden');
+    setTimeout(() => document.getElementById('annotationInput')?.focus(), 50);
 }
 
 function closeAnnotationModal() {
@@ -3007,48 +2610,122 @@ function closeAnnotationModal() {
 }
 
 async function saveAnnotation() {
-    if (!STATE.ui.annotationContext) return;
-    const { variant, field } = STATE.ui.annotationContext;
-    const input = document.getElementById('annotationValue');
+    const ctx = STATE.ui.annotationContext;
+    if (!ctx) return;
+    const input = document.getElementById('annotationInput');
     if (!input) return;
-    let val = input.value || null;
+    const newValue = input.value.trim();
+    const variant = STATE.variantsByLegacyName.get(ctx.variantName);
+    if (!variant) { showNotification('Variant not found', 'error'); return; }
 
     try {
-        const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${variant.id}`, {
-            method: 'PATCH',
-            headers: {
-                'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
-                'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify({ [field]: val, updated_at: new Date().toISOString() })
-        });
+        const body = { [ctx.field]: newValue || null, updated_at: new Date().toISOString() };
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${variant.id}`,
+            {
+                method: 'PATCH',
+                headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                body: JSON.stringify(body)
+            }
+        );
+        STATE.system.apiCalls++;
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        STATE.variants = STATE.variants.map(v => v.id === variant.id ? { ...v, [field]: val } : v);
-        const updated = STATE.variants.find(v => v.id === variant.id);
-        STATE.variantsById.set(variant.id, updated);
-        STATE.variantsByLegacyName.set(updated.legacy_name, updated);
-        buildSearchIndex();
-        calculateMasterStats();
-        updateHeaderStats();
-
-        if (STATE.view.selectedVariant?.id === variant.id) {
-            STATE.view.selectedVariant = updated;
-            renderVariantDetail(updated);
-        }
-        applyFilterChain();
+        variant[ctx.field] = newValue || null;
         closeAnnotationModal();
-        showNotification(`${field.replace(/_/g, ' ')} updated`, 'success');
-    } catch (err) {
-        showNotification(`Update failed: ${err.message}`, 'error');
+        renderVariantDetail(variant);
+        showNotification(`${ctx.field.replace(/_/g,' ')} updated`, 'success');
+    } catch(err) {
+        showNotification(`Save failed: ${err.message}`, 'error');
     }
 }
 
-// ========== DELETE ==========
+// ========== VALIDATION MODAL ==========
 
-function showDeleteModal(name, id) {
-    STATE.ui.deleteContext = { variantName: name, variantId: id };
-    setText('deleteVariantName', name);
+function showValidationModal(variantName, variantId) {
+    STATE.ui.validationContext = { variantName, variantId };
+    const modal = document.getElementById('validationModal');
+    const nameEl = document.getElementById('validateVariantName');
+    if (!modal || !nameEl) return;
+    nameEl.textContent = variantName;
+
+    const datalist = document.getElementById('existingRoles');
+    if (datalist) {
+        datalist.innerHTML = STATE.existingRoles.map(r => `<option value="${escapeAttr(r)}">`).join('');
+    }
+
+    document.getElementById('clinicianName').value = '';
+    document.getElementById('clinicianRoleInput').value = '';
+    document.getElementById('validationNotes').value = '';
+    document.getElementById('validationMessage').textContent = '';
+
+    modal.classList.remove('hidden');
+}
+
+function closeValidationModal() {
+    document.getElementById('validationModal').classList.add('hidden');
+    STATE.ui.validationContext = null;
+}
+
+async function submitValidation() {
+    const ctx = STATE.ui.validationContext;
+    if (!ctx) return;
+    const name = document.getElementById('clinicianName').value.trim();
+    const role = document.getElementById('clinicianRoleInput').value.trim();
+    const notes = document.getElementById('validationNotes').value.trim();
+    const msgEl = document.getElementById('validationMessage');
+
+    if (!name || !role) {
+        msgEl.style.color = 'var(--error)';
+        msgEl.textContent = 'Name and role are required.';
+        return;
+    }
+
+    const btn = document.getElementById('submitValidationBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/validation_history`,
+            {
+                method: 'POST',
+                headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                body: JSON.stringify({ variant_id: ctx.variantId, clinician_name: name, clinician_role: role, notes: notes || null, action: 'VALIDATED' })
+            }
+        );
+        STATE.system.apiCalls++;
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        // Update variant in state
+        const variant = STATE.variantsById.get(ctx.variantId);
+        if (variant) {
+            variant.validation_count = (variant.validation_count || 0) + 1;
+            variant.last_validated_at = new Date().toISOString();
+            variant.last_validator_name = name;
+            variant.last_validator_role = role;
+        }
+
+        // Update roles list
+        if (!STATE.existingRoles.includes(role)) STATE.existingRoles.push(role);
+
+        closeValidationModal();
+        if (STATE.view.selectedVariant?.id === ctx.variantId) renderVariantDetail(STATE.view.selectedVariant);
+        showNotification(`Validation recorded for ${ctx.variantName}`, 'success');
+
+    } catch(err) {
+        msgEl.style.color = 'var(--error)';
+        msgEl.textContent = `Error: ${err.message}`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Validate';
+    }
+}
+
+// ========== DELETE MODAL ==========
+
+function showDeleteModal(variantName, variantId) {
+    STATE.ui.deleteContext = { variantName, variantId };
+    document.getElementById('deleteVariantName').textContent = variantName;
     document.getElementById('deleteModal').classList.remove('hidden');
 }
 
@@ -3058,178 +2735,228 @@ function closeDeleteModal() {
 }
 
 async function confirmDeleteVariant() {
-    if (!STATE.ui.deleteContext) return;
-    const { variantName, variantId } = STATE.ui.deleteContext;
+    const ctx = STATE.ui.deleteContext;
+    if (!ctx) return;
+
     try {
-        const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${variantId}`, {
-            method: 'DELETE',
-            headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` }
-        });
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${ctx.variantId}`,
+            { method: 'DELETE', headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
+        );
+        STATE.system.apiCalls++;
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        STATE.variants = STATE.variants.filter(v => v.id !== variantId);
-        STATE.variantsById.delete(variantId);
-        STATE.variantsByLegacyName.delete(variantName);
-        buildSearchIndex(); calculateMasterStats(); updateHeaderStats(); updateFilterChips();
-        STATE.view.filteredVariants = STATE.view.filteredVariants.filter(v => v.id !== variantId);
-        if (STATE.view.selectedVariant?.id === variantId) {
+
+        STATE.variants = STATE.variants.filter(v => v.id !== ctx.variantId);
+        STATE.variantsById.delete(ctx.variantId);
+        STATE.variantsByLegacyName.delete(ctx.variantName);
+        calculateMasterStats();
+        applyFilterChain();
+        updateHeaderStats();
+        closeDeleteModal();
+
+        if (STATE.view.selectedVariant?.id === ctx.variantId) {
             STATE.view.selectedVariant = null;
             document.getElementById('variantDetail').classList.add('hidden');
             document.getElementById('detailEmpty').classList.remove('hidden');
         }
-        closeDeleteModal();
-        renderVariantList();
-        showNotification(`${variantName} deleted`, 'success');
-    } catch (err) {
+
+        showNotification(`${ctx.variantName} deleted`, 'success');
+    } catch(err) {
         showNotification(`Delete failed: ${err.message}`, 'error');
-        closeDeleteModal();
     }
 }
 
-// ========== IMPORT ==========
+// ========== IMPORT MODAL ==========
 
-function showImportModal() { document.getElementById('importModal').classList.remove('hidden'); switchImportTab('json'); }
-function closeImportModal() { document.getElementById('importModal').classList.add('hidden'); clearImportForm(); clearManualForm(); }
+function showImportModal() {
+    document.getElementById('importModal').classList.remove('hidden');
+    switchImportTab('json');
+}
+
+function closeImportModal() {
+    document.getElementById('importModal').classList.add('hidden');
+}
 
 function switchImportTab(tab) {
     ['json','form','bulk'].forEach(t => {
+        document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`)?.classList.toggle('active', t === tab);
         document.getElementById(`${t}ImportPanel`)?.classList.toggle('hidden', t !== tab);
-        const btn = document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`);
-        if (btn) btn.classList.toggle('active', t === tab);
     });
 }
 
 function clearImportForm() {
-    const el = document.getElementById('jsonInput'); if (el) el.value = '';
-    const res = document.getElementById('importResults'); if (res) res.innerHTML = '';
-    const btn = document.getElementById('executeImportBtn'); if (btn) btn.disabled = true;
+    document.getElementById('jsonInput').value = '';
+    document.getElementById('importResults').innerHTML = '';
+    document.getElementById('executeImportBtn').disabled = true;
     STATE.ui.validatedJson = null;
 }
 
-function clearManualForm() {
-    ['formLegacyName','formProteinName','formCdnaName','formDetermination','formClass',
-     'formClassSubtype','formConfidence','formEtiResponse','formEvidenceLevel','formRecommendation']
-        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-}
-
 function validateImport() {
+    const raw = document.getElementById('jsonInput').value.trim();
     const results = document.getElementById('importResults');
     const btn = document.getElementById('executeImportBtn');
+    if (!raw) { results.innerHTML = `<p style="color:var(--error);font-size:12px">No JSON provided</p>`; return; }
     try {
-        const parsed = JSON.parse(document.getElementById('jsonInput').value.trim());
-        const arr = Array.isArray(parsed) ? parsed : [parsed];
-        const required = ['variant_legacy_name','variant_protein_name','variant_cDNA_name','variant_final_determination'];
-        const errors = arr.map((item,i) => required.filter(f => !item[f]).map(f => `Item ${i+1}: missing ${f}`)).flat();
-        if (errors.length) {
-            results.innerHTML = `<div style="background:var(--error-bg);border:1px solid #fecaca;border-radius:7px;padding:10px;font-size:12px;color:var(--error)">${errors.join('<br>')}</div>`;
-            btn.disabled = true; STATE.ui.validatedJson = null;
-        } else {
-            STATE.ui.validatedJson = arr.length === 1 ? arr[0] : arr;
-            results.innerHTML = `<div style="background:var(--success-bg,#f0fdf4);border:1px solid #bbf7d0;border-radius:7px;padding:10px;font-size:12px;color:var(--success)">✓ Valid — ${arr.length} variant(s) ready to import</div>`;
-            btn.disabled = false;
-        }
+        const data = JSON.parse(raw);
+        const arr = Array.isArray(data) ? data : [data];
+        results.innerHTML = `<p style="color:var(--success);font-size:12px"><i class="fas fa-check"></i> Valid — ${arr.length} variant${arr.length>1?'s':''} ready to import</p>`;
+        STATE.ui.validatedJson = arr;
+        btn.disabled = false;
     } catch(e) {
-        results.innerHTML = `<div style="background:var(--error-bg);border:1px solid #fecaca;border-radius:7px;padding:10px;font-size:12px;color:var(--error)">Invalid JSON: ${e.message}</div>`;
-        btn.disabled = true; STATE.ui.validatedJson = null;
+        results.innerHTML = `<p style="color:var(--error);font-size:12px"><i class="fas fa-times"></i> Invalid JSON: ${escapeHTML(e.message)}</p>`;
+        btn.disabled = true;
+        STATE.ui.validatedJson = null;
     }
 }
 
 async function executeJsonImport() {
     if (!STATE.ui.validatedJson) return;
     const btn = document.getElementById('executeImportBtn');
-    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing…';
-    const arr = Array.isArray(STATE.ui.validatedJson) ? STATE.ui.validatedJson : [STATE.ui.validatedJson];
-    let added = 0, updated = 0;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing…';
 
-    for (const data of arr) {
-        const exists = STATE.variantsByLegacyName.get(data.variant_legacy_name);
-        const payload = {
-            legacy_name: data.variant_legacy_name,
-            protein_name: data.variant_protein_name,
-            cdna_name: data.variant_cDNA_name,
-            final_determination: data.variant_final_determination,
-            cftr_class: data.cftr_class || null,
-            class_subtype: data.class_subtype || null,
-            class_confidence: data.class_confidence || null,
-            eti_prediction: data.eti_prediction || null,
-            eti_evidence_level: data.eti_evidence_level || null,
-            eti_recommendation: data.eti_recommendation || null,
-            population_frequency: data.population_frequency || null,
-            pubmed_ids: data.pubmed_ids || null,
-            data_status: data.data_status || 'partial_clinical',
-            source_summary: data.source_summary || null,
-            date_updated: new Date().toISOString().split('T')[0]
-        };
-
+    let success = 0, fail = 0;
+    for (const item of STATE.ui.validatedJson) {
         try {
-            if (exists) {
-                await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${exists.id}`, {
-                    method: 'PATCH',
-                    headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-                    body: JSON.stringify(payload)
-                });
-                updated++;
-            } else {
-                await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants`, {
+            const res = await fetch(
+                `${CONFIG.SUPABASE.URL}/rest/v1/variants`,
+                {
                     method: 'POST',
-                    headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-                    body: JSON.stringify(payload)
-                });
-                added++;
-            }
-        } catch(e) { console.error('Import item failed:', e); }
+                    headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                    body: JSON.stringify(item)
+                }
+            );
+            STATE.system.apiCalls++;
+            if (res.ok) success++; else fail++;
+        } catch { fail++; }
     }
 
-    showNotification(`Imported: ${added} added, ${updated} updated`, 'success');
-    closeImportModal();
-    await loadVariants();
+    document.getElementById('importResults').innerHTML = `<p style="font-size:12px"><span style="color:var(--success)">${success} imported</span>${fail > 0 ? ` · <span style="color:var(--error)">${fail} failed</span>` : ''}</p>`;
+    btn.innerHTML = '<i class="fas fa-upload"></i> Import';
+
+    if (success > 0) {
+        await loadVariants();
+        if (success === STATE.ui.validatedJson.length) closeImportModal();
+        showNotification(`${success} variant${success>1?'s':''} imported successfully`, 'success');
+    }
 }
 
-async function submitManualForm() {
-    const name = document.getElementById('formLegacyName')?.value?.trim();
-    const det = document.getElementById('formDetermination')?.value?.trim();
-    if (!name || !det) { showNotification('Legacy name and determination are required', 'error'); return; }
+function submitManualForm() {
+    const legacy = document.getElementById('formLegacyName')?.value.trim();
+    const protein = document.getElementById('formProteinName')?.value.trim();
+    const cdna = document.getElementById('formCdnaName')?.value.trim();
+    const determination = document.getElementById('formDetermination')?.value;
+    const cftrClass = document.getElementById('formClass')?.value;
+    const subtype = document.getElementById('formClassSubtype')?.value;
+    const confidence = document.getElementById('formConfidence')?.value;
+    const eti = document.getElementById('formEtiResponse')?.value;
+    const evidenceLevel = document.getElementById('formEvidenceLevel')?.value;
+    const recommendation = document.getElementById('formRecommendation')?.value.trim();
 
-    const payload = {
-        legacy_name: name,
-        protein_name: document.getElementById('formProteinName')?.value?.trim() || null,
-        cdna_name: document.getElementById('formCdnaName')?.value?.trim() || null,
-        final_determination: det,
-        cftr_class: document.getElementById('formClass')?.value || null,
-        class_subtype: document.getElementById('formClassSubtype')?.value || null,
-        class_confidence: document.getElementById('formConfidence')?.value || null,
-        eti_prediction: document.getElementById('formEtiResponse')?.value || null,
-        eti_evidence_level: document.getElementById('formEvidenceLevel')?.value || null,
-        eti_recommendation: document.getElementById('formRecommendation')?.value?.trim() || null,
-        data_status: 'partial_clinical',
-        date_updated: new Date().toISOString().split('T')[0]
+    if (!legacy || !determination) {
+        showNotification('Legacy name and determination are required', 'error');
+        return;
+    }
+
+    const item = {
+        legacy_name: legacy,
+        ...(protein && { protein_name: protein }),
+        ...(cdna && { cdna_name: cdna }),
+        ...(determination && { final_determination: determination }),
+        ...(cftrClass && { cftr_class: cftrClass }),
+        ...(subtype && { class_subtype: subtype }),
+        ...(confidence && { class_confidence: confidence }),
+        ...(eti && { eti_prediction: eti }),
+        ...(evidenceLevel && { eti_evidence_level: evidenceLevel }),
+        ...(recommendation && { eti_recommendation: recommendation })
     };
 
-    try {
-        const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants`, {
-            method: 'POST',
-            headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-            body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        showNotification(`${name} added`, 'success');
-        closeImportModal();
-        await loadVariants();
-    } catch(err) {
-        showNotification(`Save failed: ${err.message}`, 'error');
-    }
+    STATE.ui.validatedJson = [item];
+    executeJsonImport();
+}
+
+function clearManualForm() {
+    ['formLegacyName','formProteinName','formCdnaName','formRecommendation'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+    });
+    ['formDetermination','formClass','formClassSubtype','formConfidence','formEtiResponse','formEvidenceLevel'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+    });
+}
+
+// ========== DASHBOARD ==========
+
+function showDashboard() {
+    const s = STATE.masterStats;
+    setText('dashTotal', s.total.toLocaleString());
+    setText('dashResponsive', s.responsive.toLocaleString());
+    setText('dashComplete', s.complete.toLocaleString());
+    setText('dashMissing', s.missing.toLocaleString());
+
+    document.getElementById('dashboardModal').classList.remove('hidden');
+
+    setTimeout(() => {
+        if (STATE.ui.charts.classChart) STATE.ui.charts.classChart.destroy();
+        if (STATE.ui.charts.etiChart) STATE.ui.charts.etiChart.destroy();
+
+        const gridColor = 'rgba(255,255,255,0.06)';
+        const labelColor = '#8d94a8';
+
+        const classCtx = document.getElementById('classChart')?.getContext('2d');
+        if (classCtx) {
+            STATE.ui.charts.classChart = new Chart(classCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['I','II','III','IV','V','VI','?'],
+                    datasets: [{
+                        data: [s.classI,s.classII,s.classIII,s.classIV,s.classV,s.classVI, s.total - s.classI - s.classII - s.classIII - s.classIV - s.classV - s.classVI],
+                        backgroundColor: ['#e05454','#e8823a','#3ab8a8','#4a90d9','#9b72db','#d0608a','#555c6e'],
+                        borderRadius: 4, borderWidth: 0
+                    }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: labelColor, font: { family: 'JetBrains Mono', size: 11 } } },
+                    y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { family: 'JetBrains Mono', size: 11 } } }
+                }}
+            });
+        }
+
+        const etiCtx = document.getElementById('etiChart')?.getContext('2d');
+        if (etiCtx) {
+            STATE.ui.charts.etiChart = new Chart(etiCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Responsive','Non-responsive','Unknown'],
+                    datasets: [{ data: [s.responsive, s.nonResponsive, s.unknown], backgroundColor: ['#4caf76','#e05454','#555c6e'], borderWidth: 0, borderRadius: 4 }]
+                },
+                options: { plugins: { legend: { labels: { color: labelColor, font: { family: 'Instrument Sans', size: 11 }, padding: 12 } } }, cutout: '65%' }
+            });
+        }
+    }, 100);
+}
+
+function closeDashboard() {
+    document.getElementById('dashboardModal').classList.add('hidden');
+}
+
+function refreshDashboardStats() {
+    if (!document.getElementById('dashboardModal').classList.contains('hidden')) showDashboard();
 }
 
 // ========== EVIDENCE ==========
 
 function showEvidenceModal(variantName, variantId) {
-    currentVariantName = variantName;
-    currentVariantId = variantId;
     STATE.ui.evidenceContext = { variantName, variantId };
-    setText('evidenceVariantName', variantName);
-    ['evidenceTitle','evidenceUrl','evidenceSource','evidenceNotes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.getElementById('evidenceVariantName').textContent = variantName;
+    document.getElementById('evidenceTitle').value = '';
+    document.getElementById('evidenceUrl').value = '';
+    document.getElementById('evidenceSource').value = '';
+    document.getElementById('evidenceNotes').value = '';
     document.getElementById('evidenceType').value = '';
-    const msg = document.getElementById('evidenceMessage'); if (msg) msg.innerHTML = '';
-    ['pubmed','cftr2','clinvar','other'].forEach(t => document.getElementById(`type-${t}`)?.classList.remove('btn-primary'));
+    document.getElementById('evidenceMessage').textContent = '';
+    ['pubmed','cftr2','clinvar','other'].forEach(t => {
+        document.getElementById(`type-${t}`)?.classList.remove('active');
+    });
     document.getElementById('addEvidenceModal').classList.remove('hidden');
 }
 
@@ -3241,213 +2968,204 @@ function closeAddEvidenceModal() {
 function selectEvidenceType(type) {
     document.getElementById('evidenceType').value = type;
     ['pubmed','cftr2','clinvar','other'].forEach(t => {
-        const btn = document.getElementById(`type-${t}`);
-        if (btn) { btn.classList.toggle('btn-primary', t === type); btn.classList.toggle('btn-secondary', t !== type); }
+        const el = document.getElementById(`type-${t}`);
+        if (el) {
+            if (t === type) {
+                el.style.borderColor = 'var(--amber)';
+                el.style.color = 'var(--amber)';
+                el.style.background = 'var(--amber-dim)';
+            } else {
+                el.style.borderColor = '';
+                el.style.color = '';
+                el.style.background = '';
+            }
+        }
     });
 }
 
 async function saveEvidenceLink() {
     const ctx = STATE.ui.evidenceContext;
     if (!ctx) return;
-    const type = document.getElementById('evidenceType')?.value;
-    const title = document.getElementById('evidenceTitle')?.value?.trim();
-    const url = document.getElementById('evidenceUrl')?.value?.trim();
-    const source = document.getElementById('evidenceSource')?.value?.trim();
-    const notes = document.getElementById('evidenceNotes')?.value?.trim();
-    const msg = document.getElementById('evidenceMessage');
+    const type  = document.getElementById('evidenceType').value;
+    const title = document.getElementById('evidenceTitle').value.trim();
+    const url   = document.getElementById('evidenceUrl').value.trim();
+    const source= document.getElementById('evidenceSource').value.trim();
+    const notes = document.getElementById('evidenceNotes').value.trim();
+    const msgEl = document.getElementById('evidenceMessage');
 
-    if (!type || !title || !url) {
-        if (msg) msg.innerHTML = '<span style="color:var(--error)">Source type, title, and URL are required.</span>';
-        return;
-    }
+    if (!title || !url) { msgEl.style.color='var(--error)'; msgEl.textContent='Title and URL required.'; return; }
 
     const btn = document.getElementById('saveEvidenceBtn');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
 
     try {
-        const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/evidence_links`, {
-            method: 'POST',
-            headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-            body: JSON.stringify({ variant_id: ctx.variantId, type, title, url, source: source || null, notes: notes || null })
-        });
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/evidence_links`,
+            {
+                method: 'POST',
+                headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                body: JSON.stringify({ variant_id: ctx.variantId, type: type || 'other', title, url, source: source || null, notes: notes || null })
+            }
+        );
+        STATE.system.apiCalls++;
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const [newLink] = await res.json();
 
         const variant = STATE.variantsById.get(ctx.variantId);
         if (variant) {
-            variant.evidence_links = [...(variant.evidence_links || []), newLink];
-            STATE.variantsById.set(ctx.variantId, variant);
-            if (STATE.view.selectedVariant?.id === ctx.variantId) {
-                STATE.view.selectedVariant = variant;
-                const el = document.getElementById(`evidencePreview-${ctx.variantId}`);
-                if (el) el.innerHTML = variant.evidence_links.slice(0, 3).map(l => renderEvidenceLink(l)).join('');
-                const cnt = document.getElementById(`evidenceCount-${ctx.variantId}`);
-                if (cnt) cnt.textContent = `${variant.evidence_links.length} source${variant.evidence_links.length !== 1 ? 's' : ''}`;
-            }
+            if (!variant.evidence_links) variant.evidence_links = [];
+            variant.evidence_links.push(newLink);
         }
 
         closeAddEvidenceModal();
+        if (STATE.view.selectedVariant?.id === ctx.variantId) renderVariantDetail(STATE.view.selectedVariant);
         showNotification('Evidence link saved', 'success');
     } catch(err) {
-        if (msg) msg.innerHTML = `<span style="color:var(--error)">${escapeHTML(err.message)}</span>`;
-        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save evidence'; }
+        msgEl.style.color = 'var(--error)';
+        msgEl.textContent = `Error: ${err.message}`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save"></i> Save evidence';
     }
 }
 
 async function showAllEvidence(variantId) {
-    currentVariantId = variantId;
+    const modal = document.getElementById('allEvidenceModal');
+    const list  = document.getElementById('allEvidenceList');
+    const title = document.getElementById('allEvidenceTitle');
     const variant = STATE.variantsById.get(variantId);
-    currentVariantName = variant?.legacy_name || '';
-    setText('allEvidenceTitle', `Evidence — ${currentVariantName}`);
-    document.getElementById('allEvidenceModal').classList.remove('hidden');
-
-    const list = document.getElementById('allEvidenceList');
-    if (list) list.innerHTML = '<div style="text-align:center;padding:24px"><i class="fas fa-spinner fa-spin" style="color:var(--brand);font-size:18px"></i></div>';
+    if (title && variant) title.textContent = `Evidence — ${variant.legacy_name}`;
+    list.innerHTML = `<div style="text-align:center;padding:32px;"><i class="fas fa-spinner fa-spin" style="color:var(--amber);font-size:20px"></i></div>`;
+    modal.classList.remove('hidden');
 
     try {
         const res = await fetch(
-            `${CONFIG.SUPABASE.URL}/rest/v1/evidence_links?variant_id=eq.${variantId}&order=created_at.asc`,
+            `${CONFIG.SUPABASE.URL}/rest/v1/evidence_links?variant_id=eq.${variantId}&order=created_at.desc`,
             { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
         );
+        STATE.system.apiCalls++;
+        if (!res.ok) throw new Error();
         const data = await res.json();
-        if (list) list.innerHTML = data.length === 0
-            ? `<div class="evidence-empty"><i class="fas fa-link" style="font-size:22px;display:block;margin-bottom:8px;opacity:0.2"></i>No evidence links yet</div>`
-            : `<div class="evidence-list" style="padding:4px 0">${data.map(l => renderEvidenceLink(l)).join('')}</div>`;
-    } catch(e) {
-        if (list) list.innerHTML = `<div style="padding:16px;font-size:12px;color:var(--error)">Failed to load evidence</div>`;
+        list.innerHTML = data.length === 0
+            ? `<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:12px">No evidence links for this variant</div>`
+            : `<div style="display:flex;flex-direction:column;gap:6px">${data.map(link => renderEvidenceLink(link)).join('')}</div>`;
+    } catch {
+        list.innerHTML = `<div style="text-align:center;padding:32px;color:var(--error);font-size:12px">Failed to load evidence</div>`;
     }
 }
 
-function closeAllEvidenceModal() { document.getElementById('allEvidenceModal').classList.add('hidden'); }
-
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => showNotification('Copied to clipboard', 'success'));
-}
-
-// ========== DASHBOARD ==========
-
-function showDashboard() {
-    document.getElementById('dashboardModal').classList.remove('hidden');
-    refreshDashboardStats();
-}
-
-function closeDashboard() {
-    document.getElementById('dashboardModal').classList.add('hidden');
-    Object.values(STATE.ui.charts).forEach(c => { try { c.destroy(); } catch(e) {} });
-    STATE.ui.charts = {};
-}
-
-function refreshDashboardStats() {
-    const s = STATE.masterStats;
-    setText('dashTotal', s.total.toLocaleString());
-    setText('dashResponsive', s.responsive.toLocaleString());
-    setText('dashComplete', s.complete.toLocaleString());
-    setText('dashMissing', s.missing.toLocaleString());
-
-    const classCtx = document.getElementById('classChart');
-    const etiCtx = document.getElementById('etiChart');
-
-    if (STATE.ui.charts.class) try { STATE.ui.charts.class.destroy(); } catch(e) {}
-    if (STATE.ui.charts.eti)   try { STATE.ui.charts.eti.destroy();   } catch(e) {}
-
-    if (classCtx) {
-        STATE.ui.charts.class = new Chart(classCtx, {
-            type: 'bar',
-            data: {
-                labels: ['I', 'II', 'III', 'IV', 'V', 'VI'],
-                datasets: [{
-                    data: [s.classI, s.classII, s.classIII, s.classIV, s.classV, s.classVI || 0],
-                    backgroundColor: ['rgba(192,57,43,0.75)','rgba(183,97,10,0.75)','rgba(11,110,109,0.75)','rgba(26,86,165,0.75)','rgba(107,63,160,0.75)','rgba(153,53,86,0.75)'],
-                    borderRadius: 4, borderSkipped: false
-                }]
-            },
-            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } }, maintainAspectRatio: false }
-        });
-    }
-
-    if (etiCtx) {
-        STATE.ui.charts.eti = new Chart(etiCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Responsive', 'Non-responsive', 'Unknown'],
-                datasets: [{
-                    data: [s.responsive, s.nonResponsive, s.unknown],
-                    backgroundColor: ['rgba(22,163,74,0.8)','rgba(153,27,27,0.7)','rgba(138,148,166,0.5)'],
-                    borderWidth: 0
-                }]
-            },
-            options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } } }, maintainAspectRatio: false, cutout: '65%' }
-        });
-    }
+function closeAllEvidenceModal() {
+    document.getElementById('allEvidenceModal').classList.add('hidden');
 }
 
 // ========== EXPORT ==========
 
 function exportReport() {
-    const headers = ['Legacy Name','Protein','cDNA','Determination','CFTR Class','ETI Response','Subtype','Confidence','Validations'];
-    const rows = STATE.variants.map(v => [v.legacy_name, v.protein_name, v.cdna_name, v.final_determination, v.cftr_class, v.eti_prediction, v.class_subtype, v.class_confidence, v.validation_count || 0]);
-    generateCSV(headers, rows, `helix-export-${getCurrentDate()}.csv`);
-    showNotification('Export complete', 'success');
-}
+    const headers = ['Legacy Name','Protein Name','cDNA Name','Determination','CFTR Class','Class Subtype','Confidence','ETI Prediction','Evidence Level','Recommendation','Validation Count','Data Status'];
+    const rows = STATE.view.filteredVariants.map(v => [
+        v.legacy_name, v.protein_name, v.cdna_name, v.final_determination,
+        v.cftr_class, v.class_subtype, v.class_confidence, v.eti_prediction,
+        v.eti_evidence_level, v.eti_recommendation, v.validation_count, v.data_status
+    ].map(val => val != null ? `"${String(val).replace(/"/g,'""')}"` : '""').join(','));
 
-function exportFullReport() {
-    const headers = ['ID','Legacy Name','Protein','cDNA','Determination','CFTR Class','Subtype','Confidence','ETI Response','Evidence Level','Recommendation','Data Status','Source','Population Frequency','PubMed IDs','Date Updated','Validation Count','Last Validator','Last Validated'];
-    const rows = STATE.variants.map(v => [v.id, v.legacy_name, v.protein_name, v.cdna_name, v.final_determination, v.cftr_class, v.class_subtype, v.class_confidence, v.eti_prediction, v.eti_evidence_level, v.eti_recommendation, v.data_status, v.source_summary, v.population_frequency, v.pubmed_ids, v.date_updated, v.validation_count || 0, v.last_validator_name || '', v.last_validated_at || '']);
-    generateCSV(headers, rows, `helix-full-report-${getCurrentDate()}.csv`);
-    showNotification('Full export complete', 'success');
-}
-
-function generateCSV(headers, rows, filename) {
-    const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-    a.download = filename;
+    a.href = URL.createObjectURL(blob);
+    a.download = `cftr_variants_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
-    URL.revokeObjectURL(a.href);
+    showNotification('CSV exported', 'success');
 }
+
+function exportFullReport() { exportReport(); }
 
 // ========== BULK IMPORT ==========
 
 function initializeBulkImport() {
-    const dz = document.getElementById('dropZone');
-    const fi = document.getElementById('csvFileInput');
-    if (!dz || !fi) return;
-    fi.addEventListener('change', e => { if (e.target.files[0]) handleCSVFile(e.target.files[0]); });
-    dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--brand)'; });
-    dz.addEventListener('dragleave', () => { dz.style.borderColor = ''; });
-    dz.addEventListener('drop', e => { e.preventDefault(); dz.style.borderColor = ''; const f = e.dataTransfer.files[0]; if (f) handleCSVFile(f); });
-}
+    const csvInput = document.getElementById('csvFileInput');
+    const dropZone = document.getElementById('dropZone');
+    if (!csvInput || !dropZone) return;
 
-function handleCSVFile(file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-        try {
-            const lines = e.target.result.split('\n').filter(l => l.trim());
-            showNotification(`CSV loaded: ${lines.length - 1} rows detected`, 'info');
-        } catch(err) { showNotification('Could not read file', 'error'); }
-    };
-    reader.readAsText(file);
-}
+    csvInput.addEventListener('change', e => {
+        if (e.target.files[0]) showNotification(`File selected: ${e.target.files[0].name}`, 'info');
+    });
 
-async function processBulkImport() {
-    const fi = document.getElementById('csvFileInput');
-    if (!fi?.files[0]) { showNotification('Please select a CSV file', 'warning'); return; }
-    showNotification('Bulk CSV import — not yet implemented in this build', 'info');
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--amber)'; });
+    dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; });
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault(); dropZone.style.borderColor = '';
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            const dt = new DataTransfer(); dt.items.add(file);
+            csvInput.files = dt.files;
+            showNotification(`File dropped: ${file.name}`, 'info');
+        }
+    });
 }
 
 function downloadTemplate() {
-    const headers = ['variant_legacy_name','variant_protein_name','variant_cDNA_name','variant_final_determination','cftr_class','eti_prediction','class_subtype','class_confidence','eti_evidence_level','population_frequency','pubmed_ids'];
-    const example = ['F508del','p.Phe508del','c.1521_1523delCTT','CF-causing','II','responsive','','Confirmed','High','0.022','30552139'];
-    generateCSV(headers, [example], 'helix-import-template.csv');
+    const headers = 'legacy_name\tprotein_name\tcdna_name\tfinal_determination\tcftr_class\tclass_subtype\tclass_confidence\teti_prediction\teti_evidence_level\teti_recommendation';
+    const example = 'F508del\tp.Phe508del\tc.1521_1523del\tCF-causing\tII\tstandard\tHigh\tresponsive\tcurator_reviewed\tElexacaftor/Tezacaftor/Ivacaftor';
+    const blob = new Blob([headers + '\n' + example], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'cftr_import_template.tsv';
+    a.click();
+}
+
+async function processBulkImport() {
+    const file = document.getElementById('csvFileInput')?.files[0];
+    if (!file) { showNotification('No file selected', 'error'); return; }
+
+    const text = await file.text();
+    const lines = text.trim().split('\n');
+    if (lines.length < 2) { showNotification('File is empty', 'error'); return; }
+
+    const isTab = lines[0].includes('\t');
+    const sep = isTab ? '\t' : ',';
+    const headers = lines[0].split(sep).map(h => h.trim().replace(/^"|"$/g,''));
+
+    const variants = lines.slice(1).map(line => {
+        const vals = line.split(sep).map(v => v.trim().replace(/^"|"$/g,''));
+        const obj = {};
+        headers.forEach((h, i) => { if (vals[i]) obj[h] = vals[i]; });
+        return obj;
+    }).filter(v => v.legacy_name);
+
+    if (variants.length === 0) { showNotification('No valid variants found', 'error'); return; }
+
+    STATE.ui.validatedJson = variants;
+    showNotification(`${variants.length} variants ready to import`, 'info');
+    await executeJsonImport();
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => showNotification('Copied to clipboard', 'success'));
+}
+
+// ========== ROLES ==========
+
+async function loadExistingRoles() {
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/validator_roles?select=role_name&order=usage_count.desc&limit=20`,
+            { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
+        );
+        STATE.system.apiCalls++;
+        if (res.ok) {
+            const data = await res.json();
+            STATE.existingRoles = data.map(r => r.role_name).filter(Boolean);
+        }
+    } catch { /* non-critical */ }
 }
 
 // ========== PAGINATION ==========
 
 function updatePagination() {
     const total = Math.ceil(STATE.view.filteredVariants.length / CONFIG.UI.ITEMS_PER_PAGE);
-    const ctrl = document.getElementById('listPagination');
-    if (!ctrl) return;
-    ctrl.style.display = total > 1 ? 'flex' : 'none';
+    const pag = document.getElementById('listPagination');
+    if (pag) pag.style.display = total > 1 ? 'flex' : 'none';
     setText('currentPage', STATE.view.currentPage);
     setText('totalPages', total);
     const prev = document.getElementById('prevBtn');
@@ -3465,7 +3183,7 @@ function nextPage() {
     if (STATE.view.currentPage < total) { STATE.view.currentPage++; renderVariantList(); updatePagination(); }
 }
 
-// ========== IMPROVEMENT 07: SKELETON LOADING ==========
+// ========== SKELETON LOADING ==========
 
 function showListLoading() {
     const c = document.getElementById('variantList');
@@ -3477,7 +3195,7 @@ function showListLoading() {
             <div class="skel" style="height:9px;width:${40 + (i % 4) * 15}px;margin-bottom:5px"></div>
             <div class="skel" style="height:8px;width:80px"></div>
         </div>
-        <div class="skel" style="width:18px;height:18px;border-radius:3px"></div>
+        <div class="skel" style="width:20px;height:20px;border-radius:4px"></div>
     </div>`).join('');
 }
 
@@ -3488,7 +3206,7 @@ function showListError(msg) {
     <div style="padding:32px 16px;text-align:center">
         <i class="fas fa-exclamation-triangle" style="font-size:24px;color:var(--error);opacity:0.4;margin-bottom:10px;display:block"></i>
         <p style="font-size:13px;color:var(--text-primary);font-weight:500">Connection failed</p>
-        <p style="font-size:11px;color:var(--text-tertiary);margin-top:4px">${escapeHTML(msg)}</p>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:4px">${escapeHTML(msg)}</p>
         <button onclick="location.reload()" class="btn btn-primary btn-sm" style="margin-top:12px">Retry</button>
     </div>`;
 }
@@ -3522,7 +3240,7 @@ function getCurrentDate() { return new Date().toISOString().split('T')[0]; }
 function showNotification(msg, type='info', duration=CONFIG.UI.NOTIFICATION_DURATION) {
     const c = document.getElementById('notification-container');
     if (!c) return;
-    const colors = { success: 'var(--success)', error: 'var(--error)', warning: 'var(--warning)', info: 'var(--brand)' };
+    const colors = { success: 'var(--success)', error: 'var(--error)', warning: 'var(--warning)', info: 'var(--amber)' };
     const icons  = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
     const n = document.createElement('div');
     n.className = `notification ${type}`;
@@ -3530,7 +3248,7 @@ function showNotification(msg, type='info', duration=CONFIG.UI.NOTIFICATION_DURA
     n.innerHTML = `
         <i class="fas ${icons[type]||icons.info}" style="color:${colors[type]||colors.info};font-size:13px;flex-shrink:0"></i>
         <span style="flex:1">${escapeHTML(msg)}</span>
-        <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);padding:1px 3px"><i class="fas fa-times" style="font-size:10px"></i></button>
+        <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:1px 3px"><i class="fas fa-times" style="font-size:10px"></i></button>
     `;
     c.appendChild(n);
     if (duration > 0) setTimeout(() => n.remove(), duration);
