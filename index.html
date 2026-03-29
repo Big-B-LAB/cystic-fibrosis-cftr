@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Δ Helix | CFTR Variant Explorer</title>
+    <title>Δ Helix | CFTR Clinical Intelligence Platform</title>
 
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,293 +13,4074 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Main Styles -->
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ============================================================
+           Δ HELIX v3 — COMPLETE CLINICAL INTELLIGENCE PLATFORM
+           Architecture: Collapsible sidebar + full-width detail
+           Features: Full CRUD, Validation, Evidence, Import/Export, Analytics
+           ============================================================ */
+
+        :root {
+            --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-display: 'Syne', sans-serif;
+            --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+
+            /* Core palette — clinical white system */
+            --white: #ffffff;
+            --surface: #f8f9fb;
+            --surface-alt: #f1f4f8;
+            --border: #e4e8ef;
+            --border-strong: #cdd3de;
+            --text-primary: #0d1117;
+            --text-secondary: #4a5568;
+            --text-tertiary: #8a94a6;
+            --text-inverse: #ffffff;
+
+            /* Brand — refined teal */
+            --brand: #0b6e6d;
+            --brand-light: #e6f5f5;
+            --brand-mid: #d0eded;
+            --brand-dark: #085857;
+            --brand-faint: #f2fafa;
+
+            /* CFTR Class system — precise, accessible */
+            --class-i: #c0392b;
+            --class-i-bg: #fdf2f2;
+            --class-i-border: #f5c6c6;
+            --class-i-text: #922b21;
+
+            --class-ii: #b7610a;
+            --class-ii-bg: #fef8f0;
+            --class-ii-border: #f9d4a0;
+            --class-ii-text: #8a4800;
+
+            --class-iii: #0b6e6d;
+            --class-iii-bg: #f2fafa;
+            --class-iii-border: #a8dada;
+            --class-iii-text: #085857;
+
+            --class-iv: #1a56a5;
+            --class-iv-bg: #f0f5fd;
+            --class-iv-border: #b3cef0;
+            --class-iv-text: #133d80;
+
+            --class-v: #6b3fa0;
+            --class-v-bg: #f6f2fd;
+            --class-v-border: #cdb8ee;
+            --class-v-text: #512d7a;
+
+            /* Semantic */
+            --success: #166534;
+            --success-bg: #f0fdf4;
+            --warning: #854d0e;
+            --warning-bg: #fefce8;
+            --error: #991b1b;
+            --error-bg: #fef2f2;
+            --info: #1e3a8a;
+            --info-bg: #eff6ff;
+
+            /* Layout */
+            --sidebar-width: 320px;
+            --sidebar-collapsed: 56px;
+            --header-height: 56px;
+            --transition: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Shadow system */
+            --shadow-xs: 0 1px 2px rgba(13,17,23,0.04);
+            --shadow-sm: 0 1px 4px rgba(13,17,23,0.06), 0 1px 2px rgba(13,17,23,0.04);
+            --shadow-md: 0 4px 12px rgba(13,17,23,0.08), 0 2px 4px rgba(13,17,23,0.04);
+            --shadow-lg: 0 12px 32px rgba(13,17,23,0.10), 0 4px 8px rgba(13,17,23,0.06);
+            --shadow-xl: 0 24px 48px rgba(13,17,23,0.12), 0 8px 16px rgba(13,17,23,0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-body);
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background: var(--surface);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============================================================
+           APP SHELL — FULL VIEWPORT LAYOUT
+           ============================================================ */
+
+        .app-shell {
+            display: grid;
+            grid-template-rows: var(--header-height) 1fr;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+            transition: grid-template-columns var(--transition-slow);
+        }
+
+        .app-shell.sidebar-collapsed {
+            grid-template-columns: var(--sidebar-collapsed) 1fr;
+        }
+
+        /* ============================================================
+           HEADER — UNIFIED TOP BAR
+           ============================================================ */
+
+        .app-header {
+            grid-column: 1 / -1;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px 0 0;
+            gap: 0;
+            box-shadow: var(--shadow-xs);
+            z-index: 100;
+            position: relative;
+        }
+
+        .header-brand {
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 16px;
+            border-right: 1px solid var(--border);
+            height: 100%;
+            transition: width var(--transition-slow), min-width var(--transition-slow);
+            overflow: hidden;
+        }
+
+        .sidebar-collapsed .header-brand {
+            width: var(--sidebar-collapsed);
+            min-width: var(--sidebar-collapsed);
+            padding: 0 12px;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .brand-icon svg { display: block; }
+
+        .brand-text { overflow: hidden; }
+        .brand-name {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+        }
+        .brand-sub {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+
+        .header-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-left: 8px;
+        }
+
+        .hstat {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .hstat + .hstat::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 24px;
+            background: var(--border);
+        }
+
+        .hstat-value {
+            font-family: var(--font-mono);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .hstat-label {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .hstat-divider {
+            display: none;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        /* ============================================================
+           SIDEBAR — COLLAPSIBLE EXPLORER
+           ============================================================ */
+
+        .app-sidebar {
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            top: 12px;
+            right: -12px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 50;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: white;
+        }
+
+        .sidebar-toggle i {
+            font-size: 9px;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .sidebar-toggle:hover i { color: white; }
+
+        .sidebar-collapsed .sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+
+        /* Search zone */
+        .sidebar-search {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .search-field {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 36px;
+            padding: 0 32px 0 34px;
+            font-family: var(--font-body);
+            font-size: 13px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text-primary);
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--brand);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(11,110,109,0.12);
+        }
+
+        .search-input::placeholder { color: var(--text-tertiary); }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .search-clear:hover { color: var(--text-primary); }
+
+        /* Filter chips */
+        .sidebar-filters {
+            padding: 8px 12px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .filter-chip {
+            height: 26px;
+            padding: 0 8px 0 10px;
+            border-radius: 13px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .filter-chip:hover { border-color: var(--brand); color: var(--brand); }
+
+        .filter-chip.active {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: white;
+        }
+
+        .chip-divider {
+            width: 1px;
+            height: 12px;
+            background: currentColor;
+            opacity: 0.25;
+            margin-left: 2px;
+            flex-shrink: 0;
+        }
+
+        .chip-count {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 600;
+            opacity: 0.75;
+            min-width: 14px;
+            text-align: right;
+        }
+
+        /* Loading shimmer for chip counts */
+        .chip-count.loading {
+            display: inline-block;
+            width: 18px;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, currentColor 25%, transparent 50%, currentColor 75%);
+            background-size: 200% 100%;
+            animation: chipShimmer 1.2s ease infinite;
+            opacity: 0.15;
+            vertical-align: middle;
+        }
+
+        @keyframes chipShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Class filter bar */
+        .class-filter-bar {
+            padding: 8px 12px;
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .class-dot {
+            flex: 1;
+            height: 28px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1.5px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .class-dot.ci   { background: var(--class-i-bg);   color: var(--class-i-text);   border-color: var(--class-i-border); }
+        .class-dot.cii  { background: var(--class-ii-bg);  color: var(--class-ii-text);  border-color: var(--class-ii-border); }
+        .class-dot.ciii { background: var(--class-iii-bg); color: var(--class-iii-text); border-color: var(--class-iii-border); }
+        .class-dot.civ  { background: var(--class-iv-bg);  color: var(--class-iv-text);  border-color: var(--class-iv-border); }
+        .class-dot.cv   { background: var(--class-v-bg);   color: var(--class-v-text);   border-color: var(--class-v-border); }
+        .class-dot.call { background: var(--surface-alt);  color: var(--text-secondary); border-color: var(--border); }
+
+        .class-dot { opacity: 1; }
+        .class-dot:not(.active) { opacity: 0.55; border-style: dashed; }
+        .class-dot:not(.active):hover { opacity: 1; border-style: solid; }
+        .class-dot.active { opacity: 1; border-style: solid; border-width: 2px; box-shadow: 0 0 0 2px rgba(0,0,0,0.04); }
+
+        /* Variant list meta */
+        .list-meta {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .list-meta-count {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .list-meta-sort {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* ============================================================
+           VARIANT LIST — RICH ROWS
+           ============================================================ */
+
+        .variant-list {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .variant-list::-webkit-scrollbar { width: 4px; }
+        .variant-list::-webkit-scrollbar-track { background: transparent; }
+        .variant-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+        .variant-list::-webkit-scrollbar-thumb:hover { background: var(--brand); }
+
+        .variant-row {
+            display: flex;
+            align-items: stretch;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background var(--transition);
+            position: relative;
+        }
+
+        .variant-row:hover { background: var(--surface); }
+
+        .variant-row.selected {
+            background: var(--brand-faint);
+        }
+
+        .variant-row.selected::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--brand);
+        }
+
+        /* Class accent bar — left edge */
+        .row-accent {
+            width: 3px;
+            flex-shrink: 0;
+        }
+
+        .row-accent.ci   { background: var(--class-i); }
+        .row-accent.cii  { background: var(--class-ii); }
+        .row-accent.ciii { background: var(--class-iii); }
+        .row-accent.civ  { background: var(--class-iv); }
+        .row-accent.cv   { background: var(--class-v); }
+        .row-accent.cx   { background: var(--border-strong); }
+
+        /* Row content */
+        .row-content {
+            flex: 1;
+            padding: 10px 12px 10px 10px;
+            min-width: 0;
+        }
+
+        .row-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .row-name {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .row-class-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            line-height: 1.4;
+        }
+
+        .row-class-badge.ci   { background: var(--class-i-bg);   color: var(--class-i-text);   border: 1px solid var(--class-i-border); }
+        .row-class-badge.cii  { background: var(--class-ii-bg);  color: var(--class-ii-text);  border: 1px solid var(--class-ii-border); }
+        .row-class-badge.ciii { background: var(--class-iii-bg); color: var(--class-iii-text); border: 1px solid var(--class-iii-border); }
+        .row-class-badge.civ  { background: var(--class-iv-bg);  color: var(--class-iv-text);  border: 1px solid var(--class-iv-border); }
+        .row-class-badge.cv   { background: var(--class-v-bg);   color: var(--class-v-text);   border: 1px solid var(--class-v-border); }
+
+        .row-protein {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-family: var(--font-mono);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 6px;
+        }
+
+        .row-indicators {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .eti-indicator {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .eti-indicator.responsive {
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        .eti-indicator.non_responsive {
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid #fecaca;
+        }
+
+        .eti-indicator.unknown {
+            background: var(--surface-alt);
+            color: var(--text-tertiary);
+            border: 1px solid var(--border);
+        }
+
+        .eti-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+        }
+
+        .eti-indicator.responsive .eti-dot { background: #16a34a; }
+        .eti-indicator.non_responsive .eti-dot { background: var(--error); }
+        .eti-indicator.unknown .eti-dot { background: var(--text-tertiary); }
+
+        .val-badge {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--brand);
+            background: var(--brand-light);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--brand-mid);
+        }
+
+        .exceptional-pip {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--class-ii);
+            flex-shrink: 0;
+        }
+
+        /* Missing data indicator */
+        .missing-pip {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #f59e0b;
+            flex-shrink: 0;
+        }
+
+        /* Search highlight */
+        .sh {
+            background: rgba(11,110,109,0.12);
+            color: var(--brand-dark);
+            font-weight: 700;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+
+        /* Empty state */
+        .list-empty {
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .list-empty-icon {
+            font-size: 28px;
+            color: var(--border-strong);
+            margin-bottom: 12px;
+        }
+
+        .list-empty p {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        /* Collapsed sidebar — icon-only mode */
+        .sidebar-collapsed .sidebar-search,
+        .sidebar-collapsed .sidebar-filters,
+        .sidebar-collapsed .class-filter-bar,
+        .sidebar-collapsed .list-meta,
+        .sidebar-collapsed .row-content,
+        .sidebar-collapsed .row-class-badge {
+            display: none;
+        }
+
+        .sidebar-collapsed .variant-row {
+            justify-content: center;
+            padding: 8px 0;
+        }
+
+        .sidebar-collapsed .row-accent {
+            display: none;
+        }
+
+        .collapsed-icon-row {
+            display: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .sidebar-collapsed .collapsed-icon-row {
+            display: flex;
+        }
+
+        .sidebar-collapsed .variant-row.selected .collapsed-icon-row {
+            box-shadow: 0 0 0 2px var(--brand);
+        }
+
+        /* ============================================================
+           PAGINATION
+           ============================================================ */
+
+        .list-pagination {
+            border-top: 1px solid var(--border);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            background: var(--white);
+        }
+
+        .page-btn {
+            height: 28px;
+            padding: 0 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            background: var(--white);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .page-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+        .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        .page-info {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-family: var(--font-mono);
+        }
+
+        /* ============================================================
+           MAIN CONTENT — DETAIL PANEL
+           ============================================================ */
+
+        .app-main {
+            overflow-y: auto;
+            background: var(--surface);
+            position: relative;
+        }
+
+        .app-main::-webkit-scrollbar { width: 6px; }
+        .app-main::-webkit-scrollbar-track { background: var(--surface); }
+        .app-main::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; }
+
+        .main-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* ============================================================
+           EMPTY STATE
+           ============================================================ */
+
+        .detail-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - var(--header-height) - 48px);
+            text-align: center;
+        }
+
+        .empty-graphic {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .empty-graphic i { font-size: 28px; color: var(--border-strong); }
+
+        .empty-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-sub {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            max-width: 360px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .quick-link {
+            height: 32px;
+            padding: 0 14px;
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: var(--white);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .quick-link:hover {
+            border-color: var(--brand);
+            color: var(--brand);
+            background: var(--brand-faint);
+        }
+
+        /* ============================================================
+           DETAIL HEADER
+           ============================================================ */
+
+        .detail-header {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .detail-class-block {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .detail-class-block .class-roman {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .detail-class-block .class-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            opacity: 0.7;
+        }
+
+        .detail-class-block.ci   { background: var(--class-i-bg);   color: var(--class-i-text);   border: 1px solid var(--class-i-border); }
+        .detail-class-block.cii  { background: var(--class-ii-bg);  color: var(--class-ii-text);  border: 1px solid var(--class-ii-border); }
+        .detail-class-block.ciii { background: var(--class-iii-bg); color: var(--class-iii-text); border: 1px solid var(--class-iii-border); }
+        .detail-class-block.civ  { background: var(--class-iv-bg);  color: var(--class-iv-text);  border: 1px solid var(--class-iv-border); }
+        .detail-class-block.cv   { background: var(--class-v-bg);   color: var(--class-v-text);   border: 1px solid var(--class-v-border); }
+        .detail-class-block.cx   { background: var(--surface-alt);  color: var(--text-secondary); border: 1px solid var(--border); }
+
+        .detail-names { flex: 1; min-width: 0; }
+
+        .detail-legacy {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin-bottom: 4px;
+        }
+
+        .detail-protein {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .detail-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .detail-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            height: 24px;
+            padding: 0 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid;
+        }
+
+        .tag-eti-yes  { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .tag-eti-no   { background: var(--error-bg); color: var(--error); border-color: #fecaca; }
+        .tag-cf       { background: var(--class-i-bg); color: var(--class-i-text); border-color: var(--class-i-border); }
+        .tag-exceptional { background: var(--class-ii-bg); color: var(--class-ii-text); border-color: var(--class-ii-border); }
+        .tag-neutral  { background: var(--surface-alt); color: var(--text-secondary); border-color: var(--border); }
+        .tag-validated { background: var(--brand-light); color: var(--brand); border-color: var(--brand-mid); }
+
+        .detail-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* ============================================================
+           DETAIL CONTENT — GRID SECTIONS
+           ============================================================ */
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .detail-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .detail-section {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .section-header {
+            padding: 11px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+        }
+
+        .section-header-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            flex: 1;
+        }
+
+        .section-action {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--brand);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .section-action:hover { background: var(--brand-light); }
+
+        .section-body {
+            padding: 14px 16px;
+        }
+
+        /* ============================================================
+           DATA FIELDS — CLINICAL STYLE
+           ============================================================ */
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .field-grid-1 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .data-field {
+            position: relative;
+        }
+
+        .field-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-tertiary);
+            margin-bottom: 3px;
+        }
+
+        .field-value {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .field-value.missing {
+            color: var(--warning);
+            font-style: italic;
+            font-family: var(--font-body);
+            font-size: 12px;
+        }
+
+        .field-edit {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+            font-size: 10px;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .data-field:hover .field-edit { opacity: 1; }
+        .field-edit:hover { background: var(--surface-alt); color: var(--brand); }
+
+        /* ============================================================
+           ETI PREDICTION DISPLAY
+           ============================================================ */
+
+        .eti-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid;
+            margin-bottom: 10px;
+        }
+
+        .eti-card.yes  { background: #f0fdf4; border-color: #bbf7d0; }
+        .eti-card.no   { background: var(--error-bg); border-color: #fecaca; }
+        .eti-card.unk  { background: var(--surface-alt); border-color: var(--border); }
+
+        .eti-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .eti-card.yes .eti-icon  { background: #dcfce7; color: #16a34a; }
+        .eti-card.no  .eti-icon  { background: #fee2e2; color: var(--error); }
+        .eti-card.unk .eti-icon  { background: var(--surface); color: var(--text-tertiary); }
+
+        .eti-label {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .eti-card.yes .eti-label  { color: #15803d; }
+        .eti-card.no  .eti-label  { color: var(--error); }
+        .eti-card.unk .eti-label  { color: var(--text-secondary); }
+
+        .eti-sub {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: 1px;
+        }
+
+        /* ============================================================
+           EVIDENCE LINKS
+           ============================================================ */
+
+        .evidence-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .evidence-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            transition: var(--transition);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .evidence-item:hover {
+            border-color: var(--brand);
+            background: var(--brand-faint);
+        }
+
+        .evidence-type-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .evidence-type-icon.pubmed  { background: #fef3c7; color: #b45309; }
+        .evidence-type-icon.cftr2   { background: var(--brand-light); color: var(--brand); }
+        .evidence-type-icon.clinvar { background: var(--class-iv-bg); color: var(--class-iv); }
+        .evidence-type-icon.other   { background: var(--surface-alt); color: var(--text-secondary); }
+
+        .evidence-info { flex: 1; min-width: 0; }
+
+        .evidence-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .evidence-source {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            margin-top: 1px;
+        }
+
+        .evidence-arrow {
+            color: var(--text-tertiary);
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .evidence-empty {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-tertiary);
+            font-size: 12px;
+        }
+
+        /* ============================================================
+           VALIDATION SECTION
+           ============================================================ */
+
+        .validation-summary {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--brand-faint);
+            border: 1px solid var(--brand-mid);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .val-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--brand-light);
+            border: 1px solid var(--brand-mid);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--brand);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .val-info { flex: 1; }
+
+        .val-count {
+            font-family: var(--font-mono);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--brand);
+            line-height: 1;
+        }
+
+        .val-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .val-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .val-stat {
+            text-align: center;
+            padding: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+        }
+
+        .val-stat-num {
+            font-family: var(--font-mono);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--brand);
+        }
+
+        .val-stat-lbl {
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            margin-top: 1px;
+        }
+
+        /* Validation history entries */
+        .val-history { display: flex; flex-direction: column; gap: 6px; }
+
+        .val-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 7px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+
+        .val-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--brand-light);
+            border: 1px solid var(--brand-mid);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--brand);
+            flex-shrink: 0;
+        }
+
+        .val-entry-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .val-entry-role {
+            display: inline-flex;
+            align-items: center;
+            height: 16px;
+            padding: 0 6px;
+            background: var(--brand-light);
+            color: var(--brand);
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .val-entry-date {
+            font-size: 10px;
+            color: var(--text-tertiary);
+        }
+
+        .val-entry-note {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 3px;
+            font-style: italic;
+        }
+
+        /* ============================================================
+           NOMENCLATURE CARDS
+           ============================================================ */
+
+        .nomenclature-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .nomen-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .nomen-card-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+        }
+
+        .nomen-card-value {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* ============================================================
+           BUTTONS — CLINICAL SYSTEM
+           ============================================================ */
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 34px;
+            padding: 0 14px;
+            font-family: var(--font-body);
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1.5px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--brand);
+            color: white;
+            border-color: var(--brand);
+        }
+
+        .btn-primary:hover {
+            background: var(--brand-dark);
+            border-color: var(--brand-dark);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border-color: transparent;
+        }
+
+        .btn-ghost:hover {
+            background: var(--surface-alt);
+            color: var(--text-primary);
+        }
+
+        .btn-sm {
+            height: 28px;
+            padding: 0 10px;
+            font-size: 11px;
+            border-radius: 6px;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border-radius: 8px;
+        }
+
+        .btn-danger {
+            background: var(--white);
+            color: var(--error);
+            border-color: #fecaca;
+        }
+
+        .btn-danger:hover { background: var(--error-bg); }
+
+        /* ============================================================
+           MODALS
+           ============================================================ */
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(13,17,23,0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 16px;
+            animation: fadeIn 150ms ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal {
+            background: var(--white);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            animation: modalUp 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: var(--white);
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .modal-body { padding: 20px; }
+
+        .modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            position: sticky;
+            bottom: 0;
+            background: var(--white);
+        }
+
+        /* Form elements */
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 38px;
+            padding: 0 12px;
+            font-family: var(--font-body);
+            font-size: 13px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: var(--white);
+            color: var(--text-primary);
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(11,110,109,0.1);
+        }
+
+        textarea.form-control {
+            height: auto;
+            padding: 10px 12px;
+            resize: vertical;
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%238a94a6' stroke-linecap='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+            background-position: right 10px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        .form-control.mono { font-family: var(--font-mono); }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            height: 36px;
+            padding: 0 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: -1px;
+        }
+
+        .tab:hover { color: var(--text-primary); }
+
+        .tab.active {
+            color: var(--brand);
+            border-bottom-color: var(--brand);
+        }
+
+        /* ============================================================
+           NOTIFICATIONS
+           ============================================================ */
+
+        #notification-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .notification {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            border-left: 3px solid;
+            max-width: 380px;
+            animation: slideInRight 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .notification.success { border-left-color: var(--success); }
+        .notification.error   { border-left-color: var(--error); }
+        .notification.warning { border-left-color: var(--warning); }
+        .notification.info    { border-left-color: var(--brand); }
+
+        /* ============================================================
+           ANALYTICS DASHBOARD
+           ============================================================ */
+
+        .dashboard-modal { max-width: 820px; }
+
+        .dash-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .dash-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .dash-card-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            margin-bottom: 14px;
+        }
+
+        .dash-kpis {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .dash-kpi {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .dash-kpi-value {
+            font-family: var(--font-mono);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.1;
+        }
+
+        .dash-kpi-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            margin-top: 3px;
+        }
+
+        /* ============================================================
+           UTILITIES
+           ============================================================ */
+
+        .hidden { display: none !important; }
+        .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 12px 0;
+        }
+
+        .text-mono { font-family: var(--font-mono); }
+
+        /* Missing data pip on field */
+        .missing-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #f59e0b;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        /* ============================================================
+           SCROLLBAR COLLAPSED
+           ============================================================ */
+
+        .sidebar-collapsed .list-pagination { display: none; }
+        .sidebar-collapsed .list-meta { display: none; }
+
+    </style>
 </head>
 <body>
 
+<!-- ================================================================
+     APP SHELL
+     ================================================================ -->
 <div class="app-shell" id="appShell">
 
-    <!-- HEADER -->
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
     <header class="app-header">
         <div class="header-brand" id="headerBrand">
             <div class="brand-icon">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                    <text x="16" y="21" text-anchor="middle" font-family="Georgia" font-size="20" font-weight="700" fill="white">Δ</text>
-                    <path d="M6 25 Q9 22 12 25 Q15 28 18 25 Q21 22 24 25 Q27 28 26 25" stroke="rgba(255,255,255,0.55)" stroke-width="1.5" fill="none"/>
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Delta glyph -->
+                    <text x="16" y="21" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="20" font-weight="700" fill="white">Δ</text>
+                    <!-- Sine-wave underline -->
+                    <path d="M6 25 Q9 22 12 25 Q15 28 18 25 Q21 22 24 25 Q27 28 26 25" stroke="rgba(255,255,255,0.55)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
                 </svg>
             </div>
-            <div class="brand-text">
+            <div class="brand-text" id="brandText">
                 <div class="brand-name">Δ Helix</div>
-                <div class="brand-sub" data-i18n="appTitle">CFTR Variant Explorer</div>
+                <div class="brand-sub">CFTR Clinical Intelligence</div>
             </div>
         </div>
 
         <div class="header-content">
-            <div class="header-stats">
+            <div class="header-stats" id="headerStats">
                 <div class="hstat">
                     <span class="hstat-value" id="hstatTotal">—</span>
-                    <span class="hstat-label" data-i18n="variants">Variants</span>
+                    <span class="hstat-label">Variants</span>
                 </div>
                 <div class="hstat">
-                    <span class="hstat-value" id="hstatResponsive">—</span>
-                    <span class="hstat-label" data-i18n="etiResponsive">ETI Responsive</span>
+                    <span class="hstat-value" style="color: var(--class-iii)" id="hstatResponsive">—</span>
+                    <span class="hstat-label">ETI Responsive</span>
                 </div>
                 <div class="hstat">
-                    <span class="hstat-value" id="hstatMissing">—</span>
-                    <span class="hstat-label" data-i18n="missingData">Missing Data</span>
+                    <span class="hstat-value" style="color: var(--warning)" id="hstatMissing">—</span>
+                    <span class="hstat-label">Missing Data</span>
                 </div>
             </div>
 
             <div class="header-actions">
-                <button id="langToggle" class="btn btn-ghost btn-sm">
-                    <i class="fas fa-globe"></i>
-                    <span id="langLabel">ES</span>
-                </button>
-                <button id="analyticsBtn" class="btn btn-ghost">
+                <button onclick="showDashboard()" class="btn btn-ghost" title="Analytics">
                     <i class="fas fa-chart-bar"></i>
-                    <span data-i18n="analytics">Analytics</span>
+                    <span>Analytics</span>
                 </button>
-                <button id="exportBtn" class="btn btn-ghost">
+                <button onclick="exportReport()" class="btn btn-ghost" title="Export">
                     <i class="fas fa-download"></i>
-                    <span data-i18n="export">Export</span>
+                    <span>Export</span>
                 </button>
-                <button id="addVariantBtn" class="btn btn-primary">
+                <button onclick="showImportModal()" class="btn btn-primary">
                     <i class="fas fa-plus"></i>
-                    <span data-i18n="addVariant">Add Variant</span>
+                    <span>Add Variant</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- SIDEBAR -->
+    <!-- ============================================================
+         SIDEBAR
+         ============================================================ -->
     <aside class="app-sidebar" id="appSidebar">
-        <button class="sidebar-toggle" id="sidebarToggle">
+        <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Toggle sidebar">
             <i class="fas fa-chevron-left"></i>
         </button>
 
+        <!-- Search -->
         <div class="sidebar-search">
             <div class="search-field">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" class="search-input" data-i18n-placeholder="searchPlaceholder" placeholder="Search variants, cDNA, protein…" autocomplete="off">
-                <button class="search-clear hidden" id="searchClear"><i class="fas fa-times"></i></button>
+                <input
+                    type="text"
+                    id="searchInput"
+                    class="search-input"
+                    placeholder="Search variants, cDNA, protein…"
+                    autocomplete="off"
+                >
+                <button class="search-clear hidden" id="searchClear" onclick="clearSearch()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         </div>
 
+        <!-- View filters -->
         <div class="sidebar-filters">
-            <button class="filter-chip active" data-view="all">
-                <span data-i18n="all">All</span> <span class="chip-divider"></span><span class="chip-count" id="chipAll">—</span>
+            <button class="filter-chip active" id="chip-all" onclick="setDataView('all')">
+                All <span class="chip-divider"></span><span class="chip-count" id="chipAll">—</span>
             </button>
-            <button class="filter-chip" data-view="responsive">
-                <i class="fas fa-check" style="font-size:9px"></i> <span data-i18n="etiResponsive">ETI</span>
+            <button class="filter-chip" id="chip-responsive" onclick="setDataView('responsive')">
+                <i class="fas fa-check" style="font-size:9px"></i> ETI
                 <span class="chip-divider"></span><span class="chip-count" id="chipResponsive">—</span>
             </button>
-            <button class="filter-chip" data-view="exceptional">
-                <i class="fas fa-bolt" style="font-size:9px"></i> <span data-i18n="exceptional">Exceptional</span>
+            <button class="filter-chip" id="chip-exceptional" onclick="setDataView('exceptional')">
+                <i class="fas fa-bolt" style="font-size:9px"></i> Exceptional
                 <span class="chip-divider"></span><span class="chip-count" id="chipExceptional">—</span>
             </button>
-            <button class="filter-chip" data-view="missing">
-                <span data-i18n="missing">Missing</span>
+            <button class="filter-chip" id="chip-missing" onclick="filterVariants('missing')">
+                Missing
                 <span class="chip-divider"></span><span class="chip-count" id="chipMissing">—</span>
             </button>
-            <button class="filter-chip" data-view="complete">
-                <span data-i18n="complete">Complete</span>
+            <button class="filter-chip" id="chip-complete" onclick="setDataView('complete')">
+                Complete
                 <span class="chip-divider"></span><span class="chip-count" id="chipComplete">—</span>
             </button>
         </div>
 
-        <!-- Class Filter Bar with Class VI -->
-        <div class="class-filter-bar">
-            <button class="class-dot call active" data-class="all"><span data-i18n="all">All</span></button>
-            <button class="class-dot ci" data-class="I">I</button>
-            <button class="class-dot cii" data-class="II">II</button>
-            <button class="class-dot ciii" data-class="III">III</button>
-            <button class="class-dot civ" data-class="IV">IV</button>
-            <button class="class-dot cv" data-class="V">V</button>
-            <button class="class-dot cvi" data-class="VI">VI</button>
+        <!-- Class filter -->
+        <div class="class-filter-bar" id="classFilterBar">
+            <button class="class-dot call active" id="cdot-all" onclick="setClassFilter('all')">All</button>
+            <button class="class-dot ci"   id="cdot-I"   onclick="setClassFilter('I')">I</button>
+            <button class="class-dot cii"  id="cdot-II"  onclick="setClassFilter('II')">II</button>
+            <button class="class-dot ciii" id="cdot-III" onclick="setClassFilter('III')">III</button>
+            <button class="class-dot civ"  id="cdot-IV"  onclick="setClassFilter('IV')">IV</button>
+            <button class="class-dot cv"   id="cdot-V"   onclick="setClassFilter('V')">V</button>
         </div>
 
+        <!-- List meta -->
         <div class="list-meta">
-            <span class="list-meta-count"><span id="listCount">—</span> <span data-i18n="variantsCount">variants</span></span>
-            <button class="list-meta-sort" id="sortBtn">
+            <span class="list-meta-count"><span id="listCount">—</span> variants</span>
+            <button class="list-meta-sort" onclick="toggleSort()">
                 <i class="fas fa-sort-alpha-down" id="sortIcon"></i>
-                <span id="sortLabel" data-i18n="az">A–Z</span>
+                <span id="sortLabel">A–Z</span>
             </button>
         </div>
 
+        <!-- Variant list -->
         <div class="variant-list" id="variantList"></div>
 
+        <!-- Pagination -->
         <div class="list-pagination" id="listPagination" style="display:none">
-            <button class="page-btn" id="prevBtn" disabled>
-                <i class="fas fa-chevron-left"></i> <span data-i18n="prev">Prev</span>
+            <button class="page-btn" id="prevBtn" onclick="previousPage()" disabled>
+                <i class="fas fa-chevron-left"></i> Prev
             </button>
             <span class="page-info">
                 <span id="currentPage">1</span> / <span id="totalPages">1</span>
             </span>
-            <button class="page-btn" id="nextBtn">
-                <span data-i18n="next">Next</span> <i class="fas fa-chevron-right"></i>
+            <button class="page-btn" id="nextBtn" onclick="nextPage()">
+                Next <i class="fas fa-chevron-right"></i>
             </button>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
+    <!-- ============================================================
+         MAIN CONTENT
+         ============================================================ -->
     <main class="app-main" id="appMain">
         <div class="main-inner">
+            <!-- Empty state -->
             <div class="detail-empty" id="detailEmpty">
                 <div class="empty-graphic">
-                    <svg width="40" height="40" viewBox="0 0 40 40">
-                        <text x="20" y="27" text-anchor="middle" font-family="Georgia" font-size="26" fill="var(--border-strong)">Δ</text>
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <text x="20" y="27" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="26" font-weight="700" fill="var(--border-strong)">Δ</text>
+                        <path d="M8 32 Q11.5 28.5 15 32 Q18.5 35.5 22 32 Q25.5 28.5 29 32 Q32.5 35.5 32 32" stroke="var(--border-strong)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.6"/>
                     </svg>
                 </div>
-                <h2 class="empty-title" data-i18n="selectVariant">Select a variant</h2>
-                <p class="empty-sub" data-i18n="emptySub">Choose a CFTR variant from the explorer to view comprehensive clinical data, therapeutic predictions, and evidence chain.</p>
+                <h2 class="empty-title">Select a variant</h2>
+                <p class="empty-sub">
+                    Choose a CFTR variant from the explorer to view comprehensive clinical data,
+                    therapeutic predictions, and evidence chain.
+                </p>
                 <div class="quick-links">
-                    <button class="quick-link" data-quick="G542X">G542X</button>
-                    <button class="quick-link" data-quick="F508del">F508del</button>
-                    <button class="quick-link" data-quick="W1282X">W1282X</button>
-                    <button class="quick-link" data-quick="G551D">G551D</button>
-                    <button class="quick-link" data-quick="N1303K">N1303K</button>
+                    <button class="quick-link" onclick="quickSearch('G542X')">G542X</button>
+                    <button class="quick-link" onclick="quickSearch('F508del')">F508del</button>
+                    <button class="quick-link" onclick="quickSearch('W1282X')">W1282X</button>
+                    <button class="quick-link" onclick="quickSearch('G551D')">G551D</button>
+                    <button class="quick-link" onclick="quickSearch('N1303K')">N1303K</button>
                 </div>
             </div>
+
+            <!-- Variant detail (populated by JS) -->
             <div id="variantDetail" class="hidden"></div>
         </div>
     </main>
 </div>
 
-<!-- Notification Container -->
+<!-- ================================================================
+     IMPORT MODAL
+     ================================================================ -->
+<div id="importModal" class="modal-overlay hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <span class="modal-title">Add / Import Variant</span>
+            <button class="btn btn-ghost btn-icon" onclick="closeImportModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="tabs">
+                <button class="tab active" id="tabJson" onclick="switchImportTab('json')">
+                    <i class="fas fa-code"></i> JSON
+                </button>
+                <button class="tab" id="tabForm" onclick="switchImportTab('form')">
+                    <i class="fas fa-edit"></i> Manual
+                </button>
+                <button class="tab" id="tabBulk" onclick="switchImportTab('bulk')">
+                    <i class="fas fa-layer-group"></i> Bulk CSV
+                </button>
+            </div>
+
+            <!-- JSON panel -->
+            <div id="jsonImportPanel">
+                <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:14px; font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">
+{
+  "variant_legacy_name": "G542X",
+  "variant_protein_name": "p.Gly542X",
+  "variant_cDNA_name": "c.1624G>T",
+  "variant_final_determination": "CF-causing",
+  "cftr_class": "I",
+  "eti_prediction": "responsive"
+}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">JSON Data</label>
+                    <textarea id="jsonInput" class="form-control mono" rows="7" placeholder="Paste JSON here…" spellcheck="false"></textarea>
+                </div>
+                <div id="importResults"></div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+                    <button onclick="validateImport()" class="btn btn-secondary">Validate</button>
+                    <button onclick="executeJsonImport()" class="btn btn-primary" id="executeImportBtn" disabled>
+                        <i class="fas fa-plus"></i> Import
+                    </button>
+                </div>
+            </div>
+
+            <!-- Manual form panel -->
+            <div id="formImportPanel" class="hidden">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div class="form-group">
+                        <label class="form-label">Legacy Name *</label>
+                        <input type="text" id="formLegacyName" class="form-control mono" placeholder="G542X">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Protein Name *</label>
+                        <input type="text" id="formProteinName" class="form-control mono" placeholder="p.Gly542X">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">cDNA Name *</label>
+                        <input type="text" id="formCdnaName" class="form-control mono" placeholder="c.1624G>T">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Determination *</label>
+                        <select id="formDetermination" class="form-control">
+                            <option value="">Select…</option>
+                            <option value="CF-causing">CF-causing</option>
+                            <option value="Probably responsive to ETI">Probably responsive to ETI</option>
+                            <option value="Variant of unknown significance">VUS</option>
+                            <option value="Likely CF-causing">Likely CF-causing</option>
+                            <option value="Non CF-causing">Non CF-causing</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CFTR Class</label>
+                        <select id="formClass" class="form-control">
+                            <option value="">—</option>
+                            <option>I</option><option>II</option><option>III</option>
+                            <option>IV</option><option>V</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Class Subtype</label>
+                        <select id="formClassSubtype" class="form-control">
+                            <option value="">—</option>
+                            <option value="standard">Standard</option>
+                            <option value="exceptional">Exceptional</option>
+                            <option value="true">True Class I</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confidence</label>
+                        <select id="formConfidence" class="form-control">
+                            <option value="">—</option>
+                            <option>Confirmed</option><option>High</option><option>Moderate</option><option>Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ETI Response</label>
+                        <select id="formEtiResponse" class="form-control">
+                            <option value="">—</option>
+                            <option value="responsive">Responsive</option>
+                            <option value="non_responsive">Non-responsive</option>
+                            <option value="unknown">Unknown</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Evidence Level</label>
+                        <select id="formEvidenceLevel" class="form-control">
+                            <option value="">—</option>
+                            <option>High</option><option>Moderate</option><option>Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Recommendation</label>
+                        <input type="text" id="formRecommendation" class="form-control" placeholder="e.g., Consider ETI">
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+                    <button onclick="clearManualForm()" class="btn btn-secondary">Clear</button>
+                    <button onclick="submitManualForm()" class="btn btn-primary">Save Variant</button>
+                </div>
+            </div>
+
+            <!-- Bulk Import Panel -->
+            <div id="bulkImportPanel" class="hidden">
+                <div class="bg-[var(--brand-faint)] rounded-xl p-5 border border-[var(--brand-mid)] mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[var(--brand-light)] flex items-center justify-center">
+                            <i class="fas fa-file-csv text-[var(--brand)]"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900">Bulk CSV Import</p>
+                            <p class="text-xs text-gray-600">Upload multiple variants at once (TAB-separated)</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[var(--brand)] transition-colors cursor-pointer" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-700 font-medium">Drag & drop CSV file here</p>
+                    <p class="text-xs text-gray-500 mt-1">or click to browse</p>
+                    <input type="file" id="csvFileInput" class="hidden" accept=".csv">
+                </div>
+                
+                <div class="flex justify-end gap-3 mt-6">
+                    <button onclick="downloadTemplate()" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Template
+                    </button>
+                    <button onclick="processBulkImport()" class="btn btn-primary">
+                        <i class="fas fa-cloud-upload-alt"></i> Import CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     ANNOTATION MODAL
+     ================================================================ -->
+<div id="annotationModal" class="modal-overlay hidden">
+    <div class="modal" style="max-width:480px">
+        <div class="modal-header">
+            <span class="modal-title" id="annotationTitle">Edit Field</span>
+            <button class="btn btn-ghost btn-icon" onclick="closeAnnotationModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="annotationContent"></div>
+        <div class="modal-footer">
+            <button onclick="closeAnnotationModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="saveAnnotation()" class="btn btn-primary">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     VALIDATION MODAL
+     ================================================================ -->
+<div id="validationModal" class="modal-overlay hidden">
+    <div class="modal" style="max-width:440px">
+        <div class="modal-header">
+            <span class="modal-title">Validate Variant</span>
+            <button class="btn btn-ghost btn-icon" onclick="closeValidationModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div style="padding:10px 12px; background:var(--brand-faint); border:1px solid var(--brand-mid); border-radius:8px; margin-bottom:16px; font-size:13px;">
+                Validating <strong id="validateVariantName" class="text-mono" style="color:var(--brand)"></strong>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Your Name *</label>
+                <input type="text" id="clinicianName" class="form-control" placeholder="Dr. Sarah Chen">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Your Role *</label>
+                <input type="text" id="clinicianRoleInput" class="form-control" placeholder="e.g. Pulmonologist" list="existingRoles" autocomplete="off">
+                <datalist id="existingRoles"></datalist>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes (optional)</label>
+                <textarea id="validationNotes" class="form-control" rows="2" placeholder="Comments…"></textarea>
+            </div>
+            <div id="validationMessage" style="font-size:12px; margin-top:8px;"></div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeValidationModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="submitValidation()" class="btn btn-primary" id="submitValidationBtn">
+                <i class="fas fa-check"></i> Validate
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     DELETE MODAL
+     ================================================================ -->
+<div id="deleteModal" class="modal-overlay hidden">
+    <div class="modal" style="max-width:420px">
+        <div class="modal-header">
+            <span class="modal-title" style="color:var(--error)">Delete Variant</span>
+            <button class="btn btn-ghost btn-icon" onclick="closeDeleteModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div style="padding:14px; background:var(--error-bg); border:1px solid #fecaca; border-radius:8px;">
+                <p style="font-size:13px; color:var(--error); margin-bottom:6px; font-weight:600;">This cannot be undone.</p>
+                <p style="font-size:13px; color:var(--text-secondary);">
+                    Permanently delete <strong id="deleteVariantName" class="text-mono"></strong> and all associated data?
+                </p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="confirmDeleteVariant()" class="btn btn-danger">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     DASHBOARD MODAL
+     ================================================================ -->
+<div id="dashboardModal" class="modal-overlay hidden">
+    <div class="modal dashboard-modal">
+        <div class="modal-header">
+            <span class="modal-title">Analytics Dashboard</span>
+            <button class="btn btn-ghost btn-icon" onclick="closeDashboard()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="dash-kpis">
+                <div class="dash-kpi">
+                    <div class="dash-kpi-value" id="dkTotal">—</div>
+                    <div class="dash-kpi-label">Total Variants</div>
+                </div>
+                <div class="dash-kpi">
+                    <div class="dash-kpi-value" style="color:var(--success)" id="dkResponsive">—</div>
+                    <div class="dash-kpi-label">ETI Responsive</div>
+                </div>
+                <div class="dash-kpi">
+                    <div class="dash-kpi-value" style="color:var(--class-ii)" id="dkExceptional">—</div>
+                    <div class="dash-kpi-label">Exceptional</div>
+                </div>
+                <div class="dash-kpi">
+                    <div class="dash-kpi-value" style="color:var(--brand)" id="dkValidated">—</div>
+                    <div class="dash-kpi-label">Validated</div>
+                </div>
+            </div>
+            <div class="dash-grid">
+                <div class="dash-card">
+                    <div class="dash-card-title">Class Distribution</div>
+                    <canvas id="classChart" height="200"></canvas>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-title">ETI Response</div>
+                    <canvas id="responseChart" height="200"></canvas>
+                </div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-title">Data Completeness</div>
+                <canvas id="completionChart" height="100"></canvas>
+            </div>
+            <div class="dash-card mt-4">
+                <div class="dash-card-title">Exceptional Cases</div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-3xl font-bold text-[var(--class-ii)]" id="dashboardExceptional">—</p>
+                        <p class="text-xs text-gray-600 mt-1">Class I responsive to ETI</p>
+                    </div>
+                    <div class="w-16 h-16 rounded-full bg-[var(--class-ii-bg)] flex items-center justify-center">
+                        <i class="fas fa-star text-2xl text-[var(--class-ii)]"></i>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">
+                        <span id="exceptionalPercentile">—</span>% of Class I variants show exceptional response
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="exportFullReport()" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Export Full Report
+            </button>
+            <button onclick="closeDashboard()" class="btn btn-primary">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     EVIDENCE MODALS
+     ================================================================ -->
+
+<!-- All Evidence Modal -->
+<div id="allEvidenceModal" class="modal-overlay hidden">
+    <div class="modal" style="max-width: 600px;">
+        <div class="modal-header">
+            <span class="modal-title">All Evidence Sources</span>
+            <button class="btn btn-ghost btn-icon" onclick="closeAllEvidenceModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body max-h-[60vh] overflow-y-auto" id="allEvidenceList">
+            <div class="text-center py-10">
+                <i class="fas fa-spinner fa-spin text-[var(--brand)] text-2xl"></i>
+                <p class="text-sm text-gray-500 mt-2">Loading evidence...</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeAllEvidenceModal()" class="btn btn-secondary">Close</button>
+            <button onclick="showEvidenceModal(currentVariantName, currentVariantId)" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Link
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Evidence Modal -->
+<div id="addEvidenceModal" class="modal-overlay hidden">
+    <div class="modal" style="max-width: 550px;">
+        <div class="modal-header">
+            <span class="modal-title">Add Evidence Link</span>
+            <button class="btn btn-ghost btn-icon" onclick="closeAddEvidenceModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div style="padding:10px 12px; background:var(--surface); border:1px solid var(--border); border-radius:8px; margin-bottom:16px; font-size:13px; color:var(--text-secondary);">
+                Adding to <strong id="evidenceVariantName" class="text-mono" style="color:var(--brand)"></strong>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Source Type *</label>
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px;">
+                    <button type="button" onclick="selectEvidenceType('pubmed')" id="type-pubmed" class="btn btn-secondary btn-sm">PubMed</button>
+                    <button type="button" onclick="selectEvidenceType('cftr2')" id="type-cftr2" class="btn btn-secondary btn-sm">CFTR2</button>
+                    <button type="button" onclick="selectEvidenceType('clinvar')" id="type-clinvar" class="btn btn-secondary btn-sm">ClinVar</button>
+                    <button type="button" onclick="selectEvidenceType('other')" id="type-other" class="btn btn-secondary btn-sm">Other</button>
+                </div>
+                <input type="hidden" id="evidenceType" value="">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Title *</label>
+                <input type="text" id="evidenceTitle" class="form-control" placeholder="Smith et al. 2023">
+            </div>
+            <div class="form-group">
+                <label class="form-label">URL *</label>
+                <input type="url" id="evidenceUrl" class="form-control" placeholder="https://pubmed.ncbi.nlm.nih.gov/…">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Source Name</label>
+                <input type="text" id="evidenceSource" class="form-control" placeholder="PubMed, CFTR2…">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes (optional)</label>
+                <textarea id="evidenceNotes" class="form-control" rows="2" placeholder="Additional notes..."></textarea>
+            </div>
+            <div id="evidenceMessage" style="font-size:12px; margin-top:8px;"></div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeAddEvidenceModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="saveEvidenceLink()" class="btn btn-primary" id="saveEvidenceBtn">
+                <i class="fas fa-save"></i> Save Evidence
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Notification container -->
 <div id="notification-container"></div>
 
-<!-- MODALS (to be implemented) -->
-<div id="validationModal" class="modal-overlay hidden">...</div>
-<div id="editModal" class="modal-overlay hidden">...</div>
-<div id="deleteModal" class="modal-overlay hidden">...</div>
-<div id="evidenceModal" class="modal-overlay hidden">...</div>
-<div id="importModal" class="modal-overlay hidden">...</div>
-<div id="dashboardModal" class="modal-overlay hidden">...</div>
+<!-- ================================================================
+     JAVASCRIPT ENGINE — COMPLETE PRODUCTION BUILD
+     ================================================================ -->
+<script>
+/* ================================================================
+   Δ HELIX v3 — COMPLETE CLINICAL INTELLIGENCE PLATFORM
+   Features: Full CRUD, Validation, Evidence, Import/Export, Analytics
+   Architecture: Collapsible sidebar + full-width detail
+   Design: Clean & Clinical (IBM Plex)
+   ================================================================ */
 
-<!-- Scripts -->
-<script type="module">
-    import { state, actions, t } from './store.js';
-    import { ui, renderVariantList, updateHeaderStats } from './ui.js';
+// ========== CONFIGURATION ==========
+const CONFIG = {
+    SUPABASE: {
+        URL: 'https://oxlkisjwfarseyqgeyuw.supabase.co',
+        // IMPORTANT: In production, this should be moved to a backend proxy
+        // This is a publishable key with Row Level Security enabled
+        KEY: 'sb_publishable_vKCe5bc1Qr20_LI_awKIYw_CqSFrblh'
+    },
+    UI: {
+        ITEMS_PER_PAGE: 25,
+        SEARCH_DELAY: 180,
+        NOTIFICATION_DURATION: 4000,
+        MIN_SEARCH_CHARS: 2
+    },
+    VERSION: '3.0.0-PRODUCTION'
+};
+
+// ========== STATE MANAGEMENT ==========
+const STATE = {
+    variants: [],
+    variantsById: new Map(),
+    variantsByLegacyName: new Map(),
     
-    // Make handlers available globally
-    window.toggleLanguage = () => actions.toggleLanguage();
-    window.handleSelectVariant = (name) => {
-        const variant = state.variantsByLegacyName.get(name);
+    searchIndex: {
+        termMap: new Map(),
+        stats: {}
+    },
+    
+    masterStats: {
+        total: 0,
+        complete: 0,
+        clinical: 0,
+        classI: 0, classII: 0, classIII: 0, classIV: 0, classV: 0,
+        exceptional: 0,
+        responsive: 0, nonResponsive: 0, unknown: 0,
+        validated: 0
+    },
+    
+    existingRoles: [],
+    validationCache: new Map(),
+    
+    view: {
+        filteredVariants: [],
+        selectedVariant: null,
+        dataViewMode: 'all',
+        classFilter: 'all',
+        currentPage: 1,
+        searchQuery: '',
+        sortAsc: true
+    },
+    
+    ui: {
+        charts: {},
+        sidebarCollapsed: false,
+        annotationContext: null,
+        deleteContext: null,
+        validationContext: null,
+        evidenceContext: null,
+        validatedJson: null,
+        searchTimeout: null,
+        renderTimeout: null
+    },
+    
+    system: {
+        initialized: false,
+        initStartTime: null,
+        initEndTime: null,
+        errorCount: 0,
+        lastError: null,
+        apiCalls: 0
+    }
+};
+
+// Global variables for evidence modals
+let currentVariantId = null;
+let currentVariantName = '';
+
+// ========== DATABASE OPERATIONS ==========
+
+async function loadVariants() {
+    const startTime = performance.now();
+    STATE.system.initStartTime = new Date();
+    
+    try {
+        showListLoading();
+        
+        let allVariants = [];
+        let offset = 0;
+        const limit = 1000;
+        let hasMore = true;
+
+        while (hasMore) {
+            const res = await fetch(
+                `${CONFIG.SUPABASE.URL}/rest/v1/variants?select=*,evidence_links(*)&order=legacy_name.asc&limit=${limit}&offset=${offset}`,
+                { 
+                    headers: { 
+                        'apikey': CONFIG.SUPABASE.KEY, 
+                        'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` 
+                    } 
+                }
+            );
+            
+            STATE.system.apiCalls++;
+            
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            allVariants = [...allVariants, ...data];
+            hasMore = data.length === limit;
+            offset += limit;
+        }
+
+        STATE.variants = allVariants;
+        STATE.variantsById = new Map(STATE.variants.map(v => [v.id, v]));
+        STATE.variantsByLegacyName = new Map(STATE.variants.map(v => [v.legacy_name, v]));
+
+        buildSearchIndex();
+        calculateMasterStats();
+        await loadExistingRoles();
+
+        STATE.view.filteredVariants = [...STATE.variants];
+        STATE.view.currentPage = 1;
+
+        renderVariantList();
+        updateHeaderStats();
+        updateFilterChips();
+
+        STATE.system.initialized = true;
+        STATE.system.initEndTime = new Date();
+        
+        const initTime = (performance.now() - startTime).toFixed(0);
+        showNotification(`${STATE.variants.length.toLocaleString()} variants loaded in ${initTime}ms`, 'success', 2500);
+
+    } catch (err) {
+        console.error('Load failed:', err);
+        showListError(err.message);
+        showNotification('Database connection failed', 'error');
+        
+        STATE.system.errorCount++;
+        STATE.system.lastError = err;
+    }
+}
+
+// ========== SEARCH INDEX ==========
+
+function buildSearchIndex() {
+    const termMap = new Map();
+
+    STATE.variants.forEach(v => {
+        const terms = new Set();
+        const add = (s) => { if (s && s.trim().length >= 2) terms.add(s.toLowerCase().trim()); };
+
+        if (v.legacy_name) {
+            add(v.legacy_name);
+            const nums = v.legacy_name.match(/\d+/g);
+            if (nums) nums.forEach(add);
+            if (v.legacy_name.includes('del')) {
+                add(v.legacy_name.replace('del', ''));
+                add('del' + v.legacy_name.replace(/[A-Za-zdel]/g, ''));
+            }
+        }
+        if (v.protein_name) { add(v.protein_name); add(v.protein_name.replace('p.', '')); }
+        if (v.cdna_name) { add(v.cdna_name); add(v.cdna_name.replace('c.', '')); }
+        if (v.cftr_class) { add('class' + v.cftr_class); add('class ' + v.cftr_class); }
+        if (v.eti_prediction === 'responsive') { add('responsive'); add('responder'); add('eti'); }
+        if (v.class_subtype === 'exceptional') { add('exceptional'); }
+        if (v.final_determination) add(v.final_determination);
+
+        terms.forEach(term => {
+            if (!termMap.has(term)) termMap.set(term, new Set());
+            termMap.get(term).add(v.id);
+        });
+    });
+
+    STATE.searchIndex.termMap = termMap;
+    STATE.searchIndex.stats = {
+        variantCount: STATE.variants.length,
+        termCount: termMap.size,
+        lastBuilt: new Date()
+    };
+}
+
+function searchVariants(query) {
+    if (!query || query.length < CONFIG.UI.MIN_SEARCH_CHARS) return STATE.variants;
+    const q = query.toLowerCase().trim();
+    const matchedIds = new Set();
+    const scores = new Map();
+
+    [q, q.replace(/^p\./, ''), q.replace(/^c\./, ''), ...(q.match(/\d+/g) || [])]
+        .filter((v, i, a) => v && v.length >= 2 && a.indexOf(v) === i)
+        .forEach(term => {
+            if (STATE.searchIndex.termMap.has(term)) {
+                STATE.searchIndex.termMap.get(term).forEach(id => {
+                    matchedIds.add(id);
+                    scores.set(id, (scores.get(id) || 0) + (term === q ? 100 : 20));
+                });
+            }
+        });
+
+    return Array.from(matchedIds)
+        .map(id => ({ v: STATE.variantsById.get(id), s: scores.get(id) || 0 }))
+        .sort((a, b) => b.s - a.s)
+        .map(r => r.v);
+}
+
+// ========== STATISTICS ==========
+
+function calculateMasterStats() {
+    const v = STATE.variants;
+    STATE.masterStats = {
+        total: v.length,
+        complete: v.filter(x => x.data_status === 'complete_clinical').length,
+        clinical: v.filter(x => x.data_status === 'complete_clinical' || x.data_status === 'partial_clinical').length,
+        classI: v.filter(x => x.cftr_class === 'I').length,
+        classII: v.filter(x => x.cftr_class === 'II').length,
+        classIII: v.filter(x => x.cftr_class === 'III').length,
+        classIV: v.filter(x => x.cftr_class === 'IV').length,
+        classV: v.filter(x => x.cftr_class === 'V').length,
+        exceptional: v.filter(x => x.class_subtype === 'exceptional').length,
+        responsive: v.filter(x => x.eti_prediction === 'responsive').length,
+        nonResponsive: v.filter(x => x.eti_prediction === 'non_responsive').length,
+        unknown: v.filter(x => !x.eti_prediction || x.eti_prediction === 'unknown').length,
+        validated: v.filter(x => (x.validation_count || 0) > 0).length
+    };
+}
+
+function updateHeaderStats() {
+    const s = STATE.masterStats;
+    const missing = STATE.variants.filter(hasMissingData).length;
+    setText('hstatTotal', s.total.toLocaleString());
+    setText('hstatResponsive', s.responsive.toLocaleString());
+    setText('hstatMissing', missing.toLocaleString());
+}
+
+function updateFilterChips() {
+    const s = STATE.masterStats;
+    setText('chipAll', s.total.toLocaleString());
+    setText('chipResponsive', s.responsive.toLocaleString());
+    setText('chipExceptional', s.exceptional.toLocaleString());
+    setText('chipComplete', s.complete.toLocaleString());
+    const missing = STATE.variants.filter(hasMissingData).length;
+    setText('chipMissing', missing.toLocaleString());
+    
+    // Dashboard
+    setText('dkTotal', s.total.toLocaleString());
+    setText('dkResponsive', s.responsive.toLocaleString());
+    setText('dkExceptional', s.exceptional.toLocaleString());
+    setText('dkValidated', s.validated.toLocaleString());
+    setText('dashboardExceptional', s.exceptional.toLocaleString());
+    
+    if (s.classI > 0) {
+        setText('exceptionalPercentile', ((s.exceptional / s.classI) * 100).toFixed(1));
+    }
+}
+
+// ========== VIEW & FILTERING ==========
+
+function applyFilterChain() {
+    let filtered = [...STATE.variants];
+
+    if (STATE.view.searchQuery.length >= CONFIG.UI.MIN_SEARCH_CHARS) {
+        filtered = searchVariants(STATE.view.searchQuery);
+    }
+
+    switch (STATE.view.dataViewMode) {
+        case 'responsive':  filtered = filtered.filter(v => v.eti_prediction === 'responsive'); break;
+        case 'exceptional': filtered = filtered.filter(v => v.class_subtype === 'exceptional'); break;
+        case 'complete':    filtered = filtered.filter(v => v.data_status === 'complete_clinical'); break;
+    }
+
+    if (STATE.view.activeFilter === 'missing') {
+        filtered = filtered.filter(hasMissingData);
+    }
+
+    if (STATE.view.classFilter !== 'all') {
+        filtered = filtered.filter(v => v.cftr_class === STATE.view.classFilter);
+    }
+
+    if (STATE.view.sortAsc) {
+        filtered.sort((a, b) => (a.legacy_name || '').localeCompare(b.legacy_name || ''));
+    } else {
+        filtered.sort((a, b) => (b.legacy_name || '').localeCompare(a.legacy_name || ''));
+    }
+
+    STATE.view.filteredVariants = filtered;
+    STATE.view.currentPage = 1;
+    renderVariantList();
+    updatePagination();
+}
+
+function setDataView(mode) {
+    STATE.view.dataViewMode = mode;
+    STATE.view.activeFilter = null; // Reset missing filter
+    
+    ['all','responsive','exceptional','complete'].forEach(m => {
+        const el = document.getElementById(`chip-${m}`);
+        if (el) el.classList.toggle('active', m === mode);
+    });
+    
+    // Reset missing chip
+    const missingChip = document.getElementById('chip-missing');
+    if (missingChip) missingChip.classList.remove('active');
+    
+    applyFilterChain();
+}
+
+function filterVariants(filter) {
+    if (filter === 'missing') {
+        STATE.view.activeFilter = filter;
+        STATE.view.dataViewMode = 'all';
+        
+        // Update chip UI
+        ['all','responsive','exceptional','complete'].forEach(m => {
+            const el = document.getElementById(`chip-${m}`);
+            if (el) el.classList.remove('active');
+        });
+        
+        const missingChip = document.getElementById('chip-missing');
+        if (missingChip) missingChip.classList.add('active');
+    } else {
+        setDataView(filter);
+    }
+    
+    applyFilterChain();
+}
+
+function setClassFilter(cls) {
+    STATE.view.classFilter = cls;
+    ['all','I','II','III','IV','V'].forEach(c => {
+        const id = c === 'all' ? 'cdot-all' : `cdot-${c}`;
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('active', c === cls);
+    });
+    applyFilterChain();
+}
+
+function toggleSort() {
+    STATE.view.sortAsc = !STATE.view.sortAsc;
+    const icon = document.getElementById('sortIcon');
+    const label = document.getElementById('sortLabel');
+    if (icon) icon.className = STATE.view.sortAsc ? 'fas fa-sort-alpha-down' : 'fas fa-sort-alpha-up';
+    if (label) label.textContent = STATE.view.sortAsc ? 'A–Z' : 'Z–A';
+    applyFilterChain();
+}
+
+function selectVariant(name) {
+    const variant = STATE.variantsByLegacyName.get(name);
+    if (!variant) return;
+    STATE.view.selectedVariant = variant;
+    renderVariantList(); // update selection highlight
+    renderVariantDetail(variant);
+}
+
+function clearSearch() {
+    STATE.view.searchQuery = '';
+    const input = document.getElementById('searchInput');
+    if (input) input.value = '';
+    document.getElementById('searchClear')?.classList.add('hidden');
+    applyFilterChain();
+}
+
+function quickSearch(name) {
+    const input = document.getElementById('searchInput');
+    if (input) { input.value = name; }
+    STATE.view.searchQuery = name;
+    applyFilterChain();
+    setTimeout(() => selectVariant(name), 200);
+}
+
+// ========== SIDEBAR TOGGLE ==========
+
+function toggleSidebar() {
+    STATE.ui.sidebarCollapsed = !STATE.ui.sidebarCollapsed;
+    const shell = document.getElementById('appShell');
+    shell.classList.toggle('sidebar-collapsed', STATE.ui.sidebarCollapsed);
+}
+
+// ========== RENDER — VARIANT LIST ==========
+
+function renderVariantList() {
+    const container = document.getElementById('variantList');
+    if (!container) return;
+
+    const start = (STATE.view.currentPage - 1) * CONFIG.UI.ITEMS_PER_PAGE;
+    const page = STATE.view.filteredVariants.slice(start, start + CONFIG.UI.ITEMS_PER_PAGE);
+
+    setText('listCount', STATE.view.filteredVariants.length.toLocaleString());
+
+    if (page.length === 0) {
+        container.innerHTML = `
+            <div class="list-empty">
+                <div class="list-empty-icon"><i class="fas fa-search"></i></div>
+                <p>No variants found</p>
+                <p style="margin-top:6px; font-size:11px">Try a different search or filter</p>
+            </div>`;
+        return;
+    }
+
+    const q = STATE.view.searchQuery;
+
+    container.innerHTML = page.map(v => {
+        const isSelected = STATE.view.selectedVariant?.id === v.id;
+        const cls = v.cftr_class ? `c${v.cftr_class.toLowerCase()}` : 'cx';
+        const eti = v.eti_prediction || 'unknown';
+        const etiLabel = eti === 'responsive' ? 'ETI ✓' : eti === 'non_responsive' ? 'ETI ✗' : '—';
+        const valCount = v.validation_count || 0;
+        const isExceptional = v.class_subtype === 'exceptional';
+        const hasMissing = hasMissingData(v);
+
+        let nameDisplay = escapeHTML(v.legacy_name || '');
+        if (q && q.length >= 2) {
+            try {
+                nameDisplay = nameDisplay.replace(new RegExp(`(${escapeRegExp(q)})`, 'gi'), '<span class="sh">$1</span>');
+            } catch(e) {}
+        }
+
+        // Collapsed icon row
+        const clsColor = { 
+            ci: 'var(--class-i)', cii: 'var(--class-ii)', ciii: 'var(--class-iii)', 
+            civ: 'var(--class-iv)', cv: 'var(--class-v)', cx: 'var(--text-tertiary)' 
+        };
+        const clsBg = { 
+            ci: 'var(--class-i-bg)', cii: 'var(--class-ii-bg)', ciii: 'var(--class-iii-bg)', 
+            civ: 'var(--class-iv-bg)', cv: 'var(--class-v-bg)', cx: 'var(--surface-alt)' 
+        };
+
+        return `
+        <div class="variant-row ${isSelected ? 'selected' : ''}" onclick="selectVariant('${escapeAttr(v.legacy_name)}')">
+            <div class="row-accent ${cls}"></div>
+            <div class="row-content">
+                <div class="row-top">
+                    <span class="row-name">${nameDisplay}${isExceptional ? ' <span style="color:var(--class-ii);font-size:9px;font-family:var(--font-body)">⚡</span>' : ''}</span>
+                    ${v.cftr_class ? `<span class="row-class-badge ${cls}">${v.cftr_class}</span>` : ''}
+                </div>
+                ${v.protein_name ? `<div class="row-protein">${escapeHTML(v.protein_name)}</div>` : '<div class="row-protein" style="opacity:0.4">—</div>'}
+                <div class="row-indicators">
+                    <span class="eti-indicator ${eti}">
+                        <span class="eti-dot"></span>
+                        ${etiLabel}
+                    </span>
+                    ${valCount > 0 ? `<span class="val-badge"><i class="fas fa-check-circle" style="font-size:9px"></i>${valCount}</span>` : ''}
+                    ${hasMissing ? `<span class="missing-pip" title="Missing clinical data"></span>` : ''}
+                </div>
+            </div>
+            <div class="collapsed-icon-row ${cls}" style="background:${clsBg[cls]};color:${clsColor[cls]};font-weight:700;font-size:11px;">
+                ${v.cftr_class || '?'}
+            </div>
+        </div>`;
+    }).join('');
+
+    updatePagination();
+}
+
+// ========== RENDER — VARIANT DETAIL ==========
+
+function renderVariantDetail(variant) {
+    document.getElementById('detailEmpty').classList.add('hidden');
+    const container = document.getElementById('variantDetail');
+    container.classList.remove('hidden');
+
+    const cls = variant.cftr_class ? `c${variant.cftr_class.toLowerCase()}` : 'cx';
+    const isResponsive = variant.eti_prediction === 'responsive';
+    const isNonResponsive = variant.eti_prediction === 'non_responsive';
+    const isExceptional = variant.class_subtype === 'exceptional';
+    const valCount = variant.validation_count || 0;
+
+    const etiCardClass = isResponsive ? 'yes' : isNonResponsive ? 'no' : 'unk';
+    const etiIcon = isResponsive ? 'fa-check-circle' : isNonResponsive ? 'fa-times-circle' : 'fa-question-circle';
+    const etiLabel = isResponsive ? 'ETI Responsive' : isNonResponsive ? 'Non-responsive' : 'Unknown';
+    const etiSub = isResponsive ? 'Predicted to respond to elexacaftor/tezacaftor/ivacaftor' :
+                   isNonResponsive ? 'Not predicted to respond to current modulators' :
+                   'Insufficient data to predict ETI response';
+
+    // Evidence links
+    const evidenceLinks = variant.evidence_links || [];
+    const evidenceHTML = evidenceLinks.length === 0
+        ? `<div class="evidence-empty"><i class="fas fa-link" style="margin-bottom:6px;display:block;font-size:18px;opacity:0.3"></i>No evidence links yet</div>`
+        : evidenceLinks.slice(0, 3).map(link => renderEvidenceLink(link)).join('');
+
+    // Class description
+    const classDesc = {
+        I: 'Nonsense / Frameshift — No functional protein produced',
+        II: 'Misfolded protein — Trafficking defect',
+        III: 'Gating defect — Protein reaches cell surface but fails to open',
+        IV: 'Conductance — Reduced channel conductance',
+        V: 'Splicing / Reduced synthesis'
+    };
+
+    container.innerHTML = `
+        <!-- DETAIL HEADER -->
+        <div class="detail-header">
+            <div class="detail-class-block ${cls}">
+                <span class="class-roman">${variant.cftr_class || '?'}</span>
+                <span class="class-label">CLASS</span>
+            </div>
+
+            <div class="detail-names">
+                <div class="detail-legacy">${escapeHTML(variant.legacy_name || '—')}</div>
+                <div class="detail-protein">${escapeHTML(variant.protein_name || 'No protein notation')}</div>
+                <div class="detail-tags">
+                    ${variant.cftr_class ? `<span class="detail-tag tag-neutral"><i class="fas fa-dna" style="font-size:9px"></i> ${escapeHTML(classDesc[variant.cftr_class] || 'Class ' + variant.cftr_class)}</span>` : ''}
+                    ${isResponsive ? `<span class="detail-tag tag-eti-yes"><i class="fas fa-check" style="font-size:9px"></i> ETI Responsive</span>` : ''}
+                    ${isNonResponsive ? `<span class="detail-tag tag-eti-no"><i class="fas fa-times" style="font-size:9px"></i> Non-responsive</span>` : ''}
+                    ${isExceptional ? `<span class="detail-tag tag-exceptional">⚡ Exceptional</span>` : ''}
+                    ${variant.final_determination === 'CF-causing' ? `<span class="detail-tag tag-cf"><i class="fas fa-exclamation-triangle" style="font-size:9px"></i> CF-causing</span>` : ''}
+                    ${valCount > 0 ? `<span class="detail-tag tag-validated"><i class="fas fa-check-circle" style="font-size:9px"></i> ${valCount} validation${valCount > 1 ? 's' : ''}</span>` : ''}
+                </div>
+            </div>
+
+            <div class="detail-meta">
+                <div class="detail-actions">
+                    <button onclick="showValidationModal('${escapeAttr(variant.legacy_name)}', ${variant.id})" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-check-circle"></i> Validate
+                    </button>
+                    <button onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'legacy_name', '${escapeAttr(variant.legacy_name || '')}')" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-pencil-alt"></i> Edit
+                    </button>
+                    <button onclick="showDeleteModal('${escapeAttr(variant.legacy_name)}', ${variant.id})" class="btn btn-ghost btn-sm" title="Delete">
+                        <i class="fas fa-trash-alt" style="color:var(--error)"></i>
+                    </button>
+                </div>
+                ${variant.date_updated ? `<span style="font-size:10px;color:var(--text-tertiary)">Updated ${formatDate(variant.date_updated)}</span>` : ''}
+            </div>
+        </div>
+
+        <!-- NOMENCLATURE ROW -->
+        <div class="nomenclature-row">
+            <div class="nomen-card" onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'legacy_name', '${escapeAttr(variant.legacy_name || '')}')" style="cursor:pointer">
+                <div class="nomen-card-label">Legacy Name</div>
+                <div class="nomen-card-value">${escapeHTML(variant.legacy_name || '—')}</div>
+            </div>
+            <div class="nomen-card" onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'protein_name', '${escapeAttr(variant.protein_name || '')}')" style="cursor:pointer">
+                <div class="nomen-card-label">Protein Notation</div>
+                <div class="nomen-card-value ${!variant.protein_name ? 'field-value missing' : ''}">${escapeHTML(variant.protein_name || 'Not specified')}</div>
+            </div>
+            <div class="nomen-card" onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'cdna_name', '${escapeAttr(variant.cdna_name || '')}')" style="cursor:pointer">
+                <div class="nomen-card-label">cDNA Notation</div>
+                <div class="nomen-card-value ${!variant.cdna_name ? 'field-value missing' : ''}">${escapeHTML(variant.cdna_name || 'Not specified')}</div>
+            </div>
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="detail-grid">
+            <!-- Clinical Classification -->
+            <div class="detail-section">
+                <div class="section-header">
+                    <div class="section-header-icon" style="background:var(--class-i-bg);color:var(--class-i)"><i class="fas fa-stethoscope"></i></div>
+                    <span class="section-title">Clinical Classification</span>
+                    <button class="section-action" onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'cftr_class', '${escapeAttr(variant.cftr_class || '')}')">Edit</button>
+                </div>
+                <div class="section-body">
+                    <div class="field-grid">
+                        ${dataField('Determination', variant.final_determination, 'final_determination', variant)}
+                        ${dataField('CFTR Class', variant.cftr_class ? 'Class ' + variant.cftr_class : null, 'cftr_class', variant)}
+                        ${dataField('Subtype', variant.class_subtype, 'class_subtype', variant)}
+                        ${dataField('Confidence', variant.class_confidence, 'class_confidence', variant)}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Therapeutic Prediction -->
+            <div class="detail-section">
+                <div class="section-header">
+                    <div class="section-header-icon" style="background:var(--brand-light);color:var(--brand)"><i class="fas fa-prescription-bottle-alt"></i></div>
+                    <span class="section-title">Therapeutic Prediction</span>
+                    <button class="section-action" onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}', 'eti_prediction', '${escapeAttr(variant.eti_prediction || '')}')">Edit</button>
+                </div>
+                <div class="section-body">
+                    <div class="eti-card ${etiCardClass}">
+                        <div class="eti-icon"><i class="fas ${etiIcon}"></i></div>
+                        <div>
+                            <div class="eti-label">${etiLabel}</div>
+                            <div class="eti-sub">${etiSub}</div>
+                        </div>
+                    </div>
+                    <div class="field-grid">
+                        ${dataField('Evidence Level', variant.eti_evidence_level, 'eti_evidence_level', variant)}
+                        ${dataField('Recommendation', variant.eti_recommendation, 'eti_recommendation', variant)}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EVIDENCE + VALIDATION GRID -->
+        <div class="detail-grid">
+            <!-- Evidence Chain -->
+            <div class="detail-section">
+                <div class="section-header">
+                    <div class="section-header-icon" style="background:var(--class-v-bg);color:var(--class-v)"><i class="fas fa-link"></i></div>
+                    <span class="section-title">Evidence Chain</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-right:4px;" id="evidenceCount-${variant.id}">${evidenceLinks.length} source${evidenceLinks.length !== 1 ? 's' : ''}</span>
+                    <button class="section-action" onclick="showAllEvidence(${variant.id})">View All</button>
+                    <button class="section-action" onclick="showEvidenceModal('${escapeAttr(variant.legacy_name)}', ${variant.id})">+ Add</button>
+                </div>
+                <div class="section-body">
+                    <div class="evidence-list" id="evidencePreview-${variant.id}">${evidenceHTML}</div>
+                    ${evidenceLinks.length > 3 ? `
+                        <div class="mt-3 text-right">
+                            <button onclick="showAllEvidence(${variant.id})" class="text-xs text-[var(--brand)] hover:underline">
+                                View all ${evidenceLinks.length} sources →
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+
+            <!-- Clinical Validation -->
+            <div class="detail-section">
+                <div class="section-header">
+                    <div class="section-header-icon" style="background:var(--brand-light);color:var(--brand)"><i class="fas fa-shield-alt"></i></div>
+                    <span class="section-title">Clinical Validation</span>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-right:4px;" id="validationCount-${variant.id}">${valCount}</span>
+                    <button class="section-action" onclick="showValidationModal('${escapeAttr(variant.legacy_name)}', ${variant.id})">+ Add</button>
+                </div>
+                <div class="section-body">
+                    ${valCount > 0 ? `
+                    <div class="validation-summary">
+                        <div class="val-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="val-info">
+                            <div class="val-count">${valCount}</div>
+                            <div class="val-sub">
+                                ${variant.last_validator_name ? `Last by ${escapeHTML(variant.last_validator_name)}` : 'Validated'}
+                                ${variant.last_validator_role ? `<span class="val-entry-role">${escapeHTML(variant.last_validator_role)}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    ` : `
+                    <div style="text-align:center;padding:16px 0;color:var(--text-tertiary)">
+                        <i class="fas fa-shield-alt" style="font-size:24px;opacity:0.2;margin-bottom:8px;display:block"></i>
+                        <p style="font-size:12px">Not yet validated by clinical staff</p>
+                        <button onclick="showValidationModal('${escapeAttr(variant.legacy_name)}', ${variant.id})" class="btn btn-primary btn-sm" style="margin-top:10px">
+                            <i class="fas fa-check-circle"></i> Be the first to validate
+                        </button>
+                    </div>
+                    `}
+                    <div class="val-stats" id="valStats-${variant.id}">
+                        <div class="val-stat"><div class="val-stat-num" id="valTotal-${variant.id}">${valCount}</div><div class="val-stat-lbl">Total</div></div>
+                        <div class="val-stat"><div class="val-stat-num" id="valUnique-${variant.id}">—</div><div class="val-stat-lbl">Unique</div></div>
+                        <div class="val-stat"><div class="val-stat-num" id="valRoles-${variant.id}">—</div><div class="val-stat-lbl">Roles</div></div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="val-history" id="valHistory-${variant.id}">
+                        <div style="text-align:center;padding:8px;font-size:11px;color:var(--text-tertiary)">
+                            <i class="fas fa-spinner fa-spin"></i> Loading history…
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional data -->
+        ${(variant.population_frequency || variant.pubmed_ids) ? `
+        <div class="detail-section" style="margin-top:0">
+            <div class="section-header">
+                <div class="section-header-icon" style="background:var(--surface-alt);color:var(--text-secondary)"><i class="fas fa-globe"></i></div>
+                <span class="section-title">Population & Literature</span>
+            </div>
+            <div class="section-body">
+                <div class="field-grid">
+                    ${variant.population_frequency ? dataField('Population Frequency', variant.population_frequency, 'population_frequency', variant) : ''}
+                    ${variant.pubmed_ids ? dataField('PubMed IDs', variant.pubmed_ids, 'pubmed_ids', variant) : ''}
+                </div>
+            </div>
+        </div>
+        ` : ''}
+    `;
+
+    // Load validation history async
+    setTimeout(() => loadValidationHistory(variant.id), 100);
+}
+
+function dataField(label, value, field, variant) {
+    const isMissing = !value || value === '' || value === 'null';
+    const display = isMissing ? 'Not specified' : escapeHTML(String(value));
+    const escaped = value ? escapeAttr(String(value)) : '';
+    return `
+    <div class="data-field">
+        <div class="field-label">${label}${isMissing ? '<span class="missing-dot" title="Missing"></span>' : ''}</div>
+        <div class="field-value ${isMissing ? 'missing' : ''}">${display}</div>
+        <button class="field-edit" onclick="showAnnotationModal('${escapeAttr(variant.legacy_name)}','${field}','${escaped}')" title="Edit">
+            <i class="fas fa-pencil-alt"></i>
+        </button>
+    </div>`;
+}
+
+function renderEvidenceLink(link) {
+    const iconMap = { pubmed: 'fa-book-open', cftr2: 'fa-dna', clinvar: 'fa-hospital', other: 'fa-link' };
+    const icon = iconMap[link.type?.toLowerCase()] || 'fa-link';
+    const typeClass = link.type?.toLowerCase() || 'other';
+    
+    return `
+    <a href="${escapeHTML(link.url || '#')}" target="_blank" class="evidence-item" onclick="event.stopPropagation()">
+        <div class="evidence-type-icon ${typeClass}"><i class="fas ${icon}"></i></div>
+        <div class="evidence-info">
+            <div class="evidence-title">${escapeHTML(link.title || 'Untitled')}</div>
+            <div class="evidence-source">${escapeHTML(link.source || link.type || 'Source')}</div>
+        </div>
+        <i class="fas fa-external-link-alt evidence-arrow"></i>
+    </a>`;
+}
+
+// ========== VALIDATION ==========
+
+async function loadExistingRoles() {
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/validation_history?select=clinician_role&order=created_at.desc`,
+            { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        const roleCounts = new Map();
+        data.forEach(h => { if (h.clinician_role) roleCounts.set(h.clinician_role, (roleCounts.get(h.clinician_role)||0)+1); });
+        STATE.existingRoles = Array.from(roleCounts.entries()).map(([r,c]) => ({role_name:r,usage_count:c})).sort((a,b)=>b.usage_count-a.usage_count).slice(0,20);
+        const dl = document.getElementById('existingRoles');
+        if (dl) dl.innerHTML = STATE.existingRoles.map(r => `<option value="${escapeHTML(r.role_name)}">`).join('');
+    } catch(e) {}
+}
+
+function showValidationModal(variantName, variantId) {
+    STATE.ui.validationContext = { variantName, variantId };
+    setText('validateVariantName', variantName);
+    ['clinicianName','clinicianRoleInput','validationNotes'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    setText('validationMessage', '');
+    document.getElementById('validationModal').classList.remove('hidden');
+}
+
+function closeValidationModal() {
+    document.getElementById('validationModal').classList.add('hidden');
+    STATE.ui.validationContext = null;
+}
+
+async function submitValidation() {
+    if (!STATE.ui.validationContext) return;
+    const name = document.getElementById('clinicianName').value.trim();
+    const role = document.getElementById('clinicianRoleInput').value.trim();
+    const notes = document.getElementById('validationNotes').value.trim();
+    const msgDiv = document.getElementById('validationMessage');
+    const btn = document.getElementById('submitValidationBtn');
+
+    if (!name) { msgDiv.innerHTML = '<span style="color:var(--error)">Name required</span>'; return; }
+    if (!role) { msgDiv.innerHTML = '<span style="color:var(--error)">Role required</span>'; return; }
+
+    const { variantId, variantName } = STATE.ui.validationContext;
+
+    try {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+
+        const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/validation_history`, {
+            method: 'POST',
+            headers: {
+                'apikey': CONFIG.SUPABASE.KEY,
+                'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({
+                variant_id: variantId,
+                clinician_name: name,
+                clinician_role: role,
+                action: 'VALIDATED',
+                notes: notes || null,
+                created_at: new Date().toISOString()
+            })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        // Update local state
+        const variant = STATE.variants.find(v => v.id === variantId);
         if (variant) {
-            actions.selectVariant(variant);
-            renderVariantList();
-            ui.renderVariantDetail(variant);
+            variant.validation_count = (variant.validation_count || 0) + 1;
+            variant.last_validator_name = name;
+            variant.last_validator_role = role;
+            variant.last_validated_at = new Date().toISOString();
+        }
+
+        msgDiv.innerHTML = '<span style="color:var(--success)">✓ Saved</span>';
+        showNotification(`${name} validated ${variantName}`, 'success');
+        calculateMasterStats();
+        updateHeaderStats();
+        updateFilterChips();
+        renderVariantList();
+        if (STATE.view.selectedVariant?.id === variantId) {
+            renderVariantDetail(variant);
+        }
+
+        setTimeout(closeValidationModal, 1200);
+    } catch(err) {
+        msgDiv.innerHTML = `<span style="color:var(--error)">Error: ${err.message}</span>`;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Validate';
+    }
+}
+
+async function loadValidationHistory(variantId) {
+    const container = document.getElementById(`valHistory-${variantId}`);
+    if (!container) return;
+
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/validation_history?variant_id=eq.${variantId}&order=created_at.desc`,
+            { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
+        );
+        if (!res.ok) throw new Error();
+        const validations = await res.json();
+
+        const uniqueNames = new Set(validations.map(v => v.clinician_name)).size;
+        const uniqueRoles = new Set(validations.map(v => v.clinician_role)).size;
+        setText(`valUnique-${variantId}`, uniqueNames);
+        setText(`valRoles-${variantId}`, uniqueRoles);
+
+        if (validations.length === 0) {
+            container.innerHTML = '<div style="text-align:center;font-size:11px;color:var(--text-tertiary);padding:8px;">No validations yet</div>';
+            return;
+        }
+
+        container.innerHTML = validations.slice(0,5).map((v, i) => {
+            const initials = (v.clinician_name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+            return `
+            <div class="val-entry">
+                <div class="val-avatar">${initials}</div>
+                <div style="flex:1;min-width:0">
+                    <div class="val-entry-name">
+                        ${escapeHTML(v.clinician_name)}
+                        ${v.clinician_role ? `<span class="val-entry-role">${escapeHTML(v.clinician_role)}</span>` : ''}
+                        ${i === 0 ? '<span style="font-size:9px;color:var(--text-tertiary);margin-left:4px">LATEST</span>' : ''}
+                    </div>
+                    <div class="val-entry-date">${formatDate(v.created_at)}</div>
+                    ${v.notes ? `<div class="val-entry-note">"${escapeHTML(v.notes)}"</div>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+
+        if (validations.length > 5) {
+            container.innerHTML += `<div style="text-align:center;font-size:11px;color:var(--text-tertiary);padding:6px;">${validations.length - 5} more…</div>`;
+        }
+
+    } catch(e) {
+        container.innerHTML = '<div style="text-align:center;font-size:11px;color:var(--error);padding:8px;">Failed to load</div>';
+    }
+}
+
+// ========== ANNOTATION ==========
+
+function showAnnotationModal(variantName, field, currentValue) {
+    const variant = STATE.variantsByLegacyName.get(variantName);
+    if (!variant) return;
+    STATE.ui.annotationContext = { variant, field, currentValue };
+
+    const labels = {
+        legacy_name: 'Legacy Name', protein_name: 'Protein Notation', cdna_name: 'cDNA Notation',
+        final_determination: 'Clinical Determination', cftr_class: 'CFTR Class', class_subtype: 'Class Subtype',
+        class_confidence: 'Classification Confidence', eti_prediction: 'ETI Response',
+        eti_evidence_level: 'Evidence Level', eti_recommendation: 'Recommendation',
+        population_frequency: 'Population Frequency', pubmed_ids: 'PubMed IDs'
+    };
+
+    setText('annotationTitle', `Edit — ${labels[field] || field}`);
+
+    const selects = {
+        cftr_class: ['I','II','III','IV','V'].map(c => `<option value="${c}" ${currentValue===c?'selected':''}>Class ${c}</option>`).join(''),
+        class_subtype: ['standard','exceptional','true'].map(s => `<option value="${s}" ${currentValue===s?'selected':''}>${s}</option>`).join(''),
+        eti_prediction: ['responsive','non_responsive','unknown'].map(s => `<option value="${s}" ${currentValue===s?'selected':''}>${s}</option>`).join(''),
+        final_determination: ['CF-causing','Probably responsive to ETI','Variant of unknown significance','Likely CF-causing','Non CF-causing'].map(s => `<option value="${s}" ${currentValue===s?'selected':''}>${s}</option>`).join(''),
+        class_confidence: ['Confirmed','High','Moderate','Low'].map(s => `<option value="${s}" ${currentValue===s?'selected':''}>${s}</option>`).join(''),
+        eti_evidence_level: ['High','Moderate','Low'].map(s => `<option value="${s}" ${currentValue===s?'selected':''}>${s}</option>`).join('')
+    };
+
+    const hasSelect = selects[field];
+    const inputHTML = hasSelect
+        ? `<select id="annotationValue" class="form-control"><option value="">Not specified</option>${hasSelect}</select>`
+        : `<textarea id="annotationValue" class="form-control mono" rows="3">${escapeHTML(currentValue || '')}</textarea>`;
+
+    document.getElementById('annotationContent').innerHTML = `
+        <div class="form-group">
+            <label class="form-label">Current Value</label>
+            <div style="padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-family:var(--font-mono);font-size:13px;color:${!currentValue?'var(--text-tertiary)':'var(--text-primary)'}">
+                ${currentValue ? escapeHTML(String(currentValue)) : 'Not specified'}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">New Value</label>
+            ${inputHTML}
+        </div>
+    `;
+
+    document.getElementById('annotationModal').classList.remove('hidden');
+}
+
+function closeAnnotationModal() {
+    document.getElementById('annotationModal').classList.add('hidden');
+    STATE.ui.annotationContext = null;
+}
+
+async function saveAnnotation() {
+    if (!STATE.ui.annotationContext) return;
+    const { variant, field } = STATE.ui.annotationContext;
+    const input = document.getElementById('annotationValue');
+    if (!input) return;
+    let val = input.value || null;
+
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${variant.id}`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
+                    'Content-Type': 'application/json', 'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({ [field]: val, updated_at: new Date().toISOString() })
+            }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        STATE.variants = STATE.variants.map(v => v.id === variant.id ? {...v, [field]: val} : v);
+        const updated = STATE.variants.find(v => v.id === variant.id);
+        STATE.variantsById.set(variant.id, updated);
+        STATE.variantsByLegacyName.set(updated.legacy_name, updated);
+        buildSearchIndex();
+        calculateMasterStats();
+        updateHeaderStats();
+
+        if (STATE.view.selectedVariant?.id === variant.id) {
+            STATE.view.selectedVariant = updated;
+            renderVariantDetail(updated);
+        }
+        applyFilterChain();
+        closeAnnotationModal();
+        showNotification(`${field.replace(/_/g,' ')} updated`, 'success');
+    } catch(err) {
+        showNotification(`Update failed: ${err.message}`, 'error');
+    }
+}
+
+// ========== DELETE ==========
+
+function showDeleteModal(name, id) {
+    STATE.ui.deleteContext = { variantName: name, variantId: id };
+    setText('deleteVariantName', name);
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    STATE.ui.deleteContext = null;
+}
+
+async function confirmDeleteVariant() {
+    if (!STATE.ui.deleteContext) return;
+    const { variantName, variantId } = STATE.ui.deleteContext;
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${variantId}`,
+            { method: 'DELETE', headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        STATE.variants = STATE.variants.filter(v => v.id !== variantId);
+        STATE.variantsById.delete(variantId);
+        STATE.variantsByLegacyName.delete(variantName);
+        buildSearchIndex(); calculateMasterStats(); updateHeaderStats(); updateFilterChips();
+        STATE.view.filteredVariants = STATE.view.filteredVariants.filter(v => v.id !== variantId);
+        if (STATE.view.selectedVariant?.id === variantId) {
+            STATE.view.selectedVariant = null;
+            document.getElementById('variantDetail').classList.add('hidden');
+            document.getElementById('detailEmpty').classList.remove('hidden');
+        }
+        closeDeleteModal();
+        renderVariantList();
+        showNotification(`${variantName} deleted`, 'success');
+    } catch(err) {
+        showNotification(`Delete failed: ${err.message}`, 'error');
+        closeDeleteModal();
+    }
+}
+
+// ========== IMPORT ==========
+
+function showImportModal() {
+    document.getElementById('importModal').classList.remove('hidden');
+    switchImportTab('json');
+}
+
+function closeImportModal() {
+    document.getElementById('importModal').classList.add('hidden');
+    clearImportForm();
+    clearManualForm();
+}
+
+function switchImportTab(tab) {
+    ['json', 'form', 'bulk'].forEach(t => {
+        document.getElementById(`${t}ImportPanel`)?.classList.toggle('hidden', t !== tab);
+        const tabBtn = document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`);
+        if (tabBtn) tabBtn.classList.toggle('active', t === tab);
+    });
+}
+
+function clearImportForm() {
+    const el = document.getElementById('jsonInput');
+    if (el) el.value = '';
+    const res = document.getElementById('importResults');
+    if (res) res.innerHTML = '';
+    const btn = document.getElementById('executeImportBtn');
+    if (btn) { btn.disabled = true; }
+    STATE.ui.validatedJson = null;
+}
+
+function clearManualForm() {
+    ['formLegacyName','formProteinName','formCdnaName','formDetermination','formClass',
+     'formClassSubtype','formConfidence','formEtiResponse','formEvidenceLevel','formRecommendation'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+    });
+}
+
+function validateImport() {
+    const results = document.getElementById('importResults');
+    const btn = document.getElementById('executeImportBtn');
+    try {
+        const parsed = JSON.parse(document.getElementById('jsonInput').value.trim());
+        const arr = Array.isArray(parsed) ? parsed : [parsed];
+        const required = ['variant_legacy_name','variant_protein_name','variant_cDNA_name','variant_final_determination'];
+        const errors = arr.map((item,i) => required.filter(f => !item[f]).map(f => `Item ${i+1}: missing ${f}`)).flat();
+        if (errors.length) {
+            results.innerHTML = `<div style="background:var(--error-bg);border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:12px;color:var(--error);">${errors.join('<br>')}</div>`;
+            btn.disabled = true; STATE.ui.validatedJson = null;
+        } else {
+            STATE.ui.validatedJson = arr.length === 1 ? arr[0] : arr;
+            results.innerHTML = `<div style="background:var(--success-bg,#f0fdf4);border:1px solid #bbf7d0;border-radius:8px;padding:12px;font-size:12px;color:var(--success);">✓ Valid — ${arr.length} variant(s) ready to import</div>`;
+            btn.disabled = false;
+        }
+    } catch(e) {
+        results.innerHTML = `<div style="background:var(--error-bg);border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:12px;color:var(--error);">Invalid JSON: ${e.message}</div>`;
+        btn.disabled = true; STATE.ui.validatedJson = null;
+    }
+}
+
+async function executeJsonImport() {
+    if (!STATE.ui.validatedJson) return;
+    const btn = document.getElementById('executeImportBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing…';
+    const arr = Array.isArray(STATE.ui.validatedJson) ? STATE.ui.validatedJson : [STATE.ui.validatedJson];
+    let added = 0, updated = 0;
+    for (const data of arr) {
+        const exists = STATE.variantsByLegacyName.get(data.variant_legacy_name);
+        try {
+            if (exists) {
+                await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${exists.id}`, {
+                    method: 'PATCH',
+                    headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                    body: JSON.stringify({ 
+                        protein_name: data.variant_protein_name, 
+                        cdna_name: data.variant_cDNA_name, 
+                        final_determination: data.variant_final_determination, 
+                        cftr_class: data.cftr_class||null, 
+                        eti_prediction: data.eti_prediction||null, 
+                        updated_at: new Date().toISOString() 
+                    })
+                });
+                updated++;
+            } else {
+                const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants`, {
+                    method: 'POST',
+                    headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                    body: JSON.stringify({ 
+                        legacy_name: data.variant_legacy_name, 
+                        protein_name: data.variant_protein_name, 
+                        cdna_name: data.variant_cDNA_name, 
+                        final_determination: data.variant_final_determination, 
+                        cftr_class: data.cftr_class||null, 
+                        eti_prediction: data.eti_prediction||null, 
+                        data_status: 'minimal', 
+                        source_summary: 'Manual_JSON_Import', 
+                        validation_count: 0, 
+                        created_at: new Date().toISOString(), 
+                        updated_at: new Date().toISOString() 
+                    })
+                });
+                if (res.ok) { const d = await res.json(); STATE.variants.push(d[0]||data); added++; }
+            }
+        } catch(e) { console.error(e); }
+    }
+    STATE.variantsById = new Map(STATE.variants.map(v=>[v.id,v]));
+    STATE.variantsByLegacyName = new Map(STATE.variants.map(v=>[v.legacy_name,v]));
+    buildSearchIndex(); calculateMasterStats(); updateHeaderStats(); updateFilterChips();
+    STATE.view.filteredVariants = [...STATE.variants];
+    applyFilterChain();
+    showNotification(`Added ${added}, updated ${updated}`, 'success');
+    clearImportForm();
+    setTimeout(closeImportModal, 1200);
+}
+
+async function submitManualForm() {
+    const name = document.getElementById('formLegacyName').value.trim();
+    const prot = document.getElementById('formProteinName').value.trim();
+    const cdna = document.getElementById('formCdnaName').value.trim();
+    const det = document.getElementById('formDetermination').value;
+    if (!name || !prot || !cdna || !det) { showNotification('Please fill required fields', 'warning'); return; }
+    
+    const formData = {
+        variant_legacy_name: name,
+        variant_protein_name: prot,
+        variant_cDNA_name: cdna,
+        variant_final_determination: det,
+        cftr_class: document.getElementById('formClass').value || null,
+        class_subtype: document.getElementById('formClassSubtype').value || null,
+        class_confidence: document.getElementById('formConfidence').value || null,
+        eti_prediction: document.getElementById('formEtiResponse').value || null,
+        eti_evidence_level: document.getElementById('formEvidenceLevel').value || null,
+        eti_recommendation: document.getElementById('formRecommendation').value.trim() || null
+    };
+    
+    STATE.ui.validatedJson = formData;
+    await executeJsonImport();
+}
+
+// ========== BULK IMPORT ==========
+
+function initializeBulkImport() {
+    const drop = document.getElementById('dropZone');
+    const file = document.getElementById('csvFileInput');
+    
+    if (!drop || !file) return;
+    
+    drop.addEventListener('click', () => file.click());
+    
+    drop.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        drop.classList.add('border-[var(--brand)]', 'bg-[var(--brand-faint)]');
+    });
+    
+    drop.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        drop.classList.remove('border-[var(--brand)]', 'bg-[var(--brand-faint)]');
+    });
+    
+    drop.addEventListener('drop', (e) => {
+        e.preventDefault();
+        drop.classList.remove('border-[var(--brand)]', 'bg-[var(--brand-faint)]');
+        if (e.dataTransfer.files.length) {
+            handleCSVFile(e.dataTransfer.files[0]);
+        }
+    });
+    
+    file.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            handleCSVFile(e.target.files[0]);
+        }
+    });
+}
+
+function handleCSVFile(file) {
+    if (!file.name.endsWith('.csv')) {
+        showNotification('Please upload a CSV file', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            showNotification(`Parsing ${file.name}...`, 'info', 2000);
+            
+            const content = e.target.result;
+            const lines = content.trim().split('\n');
+            const headers = lines[0].split('\t').map(h => h.trim());
+            
+            const requiredHeaders = ['variant_legacy_name', 'variant_protein_name', 
+                                   'variant_cDNA_name', 'variant_final_determination'];
+            
+            const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+            if (missingHeaders.length > 0) {
+                throw new Error(`Missing columns: ${missingHeaders.join(', ')}`);
+            }
+            
+            const variants = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                const values = lines[i].split('\t');
+                const variant = {};
+                
+                headers.forEach((header, index) => {
+                    variant[header] = values[index]?.trim() || '';
+                });
+                
+                const missing = requiredHeaders.filter(f => !variant[f]);
+                if (missing.length > 0) {
+                    showNotification(`Skipping row ${i + 1}: missing ${missing.join(', ')}`, 'warning', 3000);
+                    continue;
+                }
+                
+                variants.push(variant);
+            }
+            
+            if (variants.length === 0) {
+                throw new Error('No valid variants found in CSV');
+            }
+            
+            STATE.ui.validatedJson = variants;
+            
+            const resultsDiv = document.getElementById('importResults');
+            resultsDiv.innerHTML = `
+                <div style="background:var(--success-bg);border:1px solid #bbf7d0;border-radius:8px;padding:12px;font-size:12px;color:var(--success);">
+                    ✓ CSV parsed successfully — ${variants.length} variants ready to import
+                </div>
+            `;
+            
+            await executeJsonImport();
+            
+        } catch (error) {
+            console.error('CSV parsing failed:', error);
+            showNotification(`CSV import failed: ${error.message}`, 'error');
         }
     };
     
-    // Event listeners
-    document.getElementById('langToggle')?.addEventListener('click', () => actions.toggleLanguage());
-    document.getElementById('analyticsBtn')?.addEventListener('click', () => ui.showDashboard());
-    document.getElementById('exportBtn')?.addEventListener('click', () => ui.exportReport());
-    document.getElementById('addVariantBtn')?.addEventListener('click', () => ui.showImportModal());
-    document.getElementById('sidebarToggle')?.addEventListener('click', () => {
-        document.getElementById('appShell')?.classList.toggle('sidebar-collapsed');
-    });
+    reader.onerror = () => {
+        showNotification('Failed to read file', 'error');
+    };
     
-    document.getElementById('searchInput')?.addEventListener('input', (e) => {
-        actions.setSearchQuery(e.target.value);
-        renderVariantList();
-    });
+    reader.readAsText(file);
+}
+
+function processBulkImport() {
+    document.getElementById('csvFileInput')?.click();
+}
+
+function downloadTemplate() {
+    const template = 'variant_legacy_name\tvariant_protein_name\tvariant_cDNA_name\tvariant_final_determination\tcftr_class\teti_prediction\n' +
+                    'G542X\tp.Gly542X\tc.1624G>T\tCF-causing\tI\tresponsive\n' +
+                    'F508del\tp.Phe508del\tc.1521_1523delCTT\tCF-causing\tII\tresponsive\n' +
+                    'G551D\tp.Gly551Asp\tc.1652G>A\tCF-causing\tIII\tresponsive';
     
-    document.getElementById('searchClear')?.addEventListener('click', () => {
-        document.getElementById('searchInput').value = '';
-        actions.setSearchQuery('');
-        renderVariantList();
-    });
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'helix_import_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showNotification('Template downloaded (TAB-separated)', 'success');
+}
+
+// ========== EVIDENCE ==========
+
+function showEvidenceModal(variantName, variantId) {
+    currentVariantName = variantName;
+    currentVariantId = variantId;
     
-    document.getElementById('sortBtn')?.addEventListener('click', () => {
-        actions.toggleSort();
-        renderVariantList();
+    setText('evidenceVariantName', variantName);
+    ['evidenceTitle','evidenceUrl','evidenceSource','evidenceNotes'].forEach(id => { 
+        const el = document.getElementById(id); 
+        if (el) el.value=''; 
     });
+    setText('evidenceMessage', '');
+    STATE.ui.evidenceContext = { variantName, variantId };
     
-    document.getElementById('prevBtn')?.addEventListener('click', () => {
-        if (state.view.currentPage > 1) {
-            state.view.currentPage--;
-            renderVariantList();
+    // Reset type buttons
+    ['pubmed','cftr2','clinvar','other'].forEach(t => {
+        const btn = document.getElementById(`type-${t}`);
+        if (btn) { btn.classList.remove('bg-[var(--brand)]', 'text-white', 'border-[var(--brand)]'); }
+    });
+    document.getElementById('evidenceType').value = '';
+    
+    document.getElementById('addEvidenceModal').classList.remove('hidden');
+}
+
+function closeAddEvidenceModal() { 
+    document.getElementById('addEvidenceModal').classList.add('hidden'); 
+    STATE.ui.evidenceContext = null;
+}
+
+function selectEvidenceType(type) {
+    ['pubmed','cftr2','clinvar','other'].forEach(t => {
+        const btn = document.getElementById(`type-${t}`);
+        if (btn) { 
+            btn.classList.toggle('bg-[var(--brand)]', t === type); 
+            btn.classList.toggle('text-white', t === type);
+            btn.classList.toggle('border-[var(--brand)]', t === type);
         }
     });
-    
-    document.getElementById('nextBtn')?.addEventListener('click', () => {
-        const total = Math.ceil(state.view.filteredVariants.length / 25);
-        if (state.view.currentPage < total) {
-            state.view.currentPage++;
-            renderVariantList();
-        }
-    });
-    
-    // Filter buttons
-    document.querySelectorAll('.filter-chip').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const view = btn.getAttribute('data-view');
-            if (view === 'missing') {
-                actions.setMissingFilter();
-            } else {
-                actions.setDataViewMode(view);
-            }
-            renderVariantList();
-            updateHeaderStats();
-            
-            // Update active state
-            document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+    document.getElementById('evidenceType').value = type;
+}
+
+async function saveEvidenceLink() {
+    const type = document.getElementById('evidenceType').value;
+    const title = document.getElementById('evidenceTitle').value.trim();
+    const url = document.getElementById('evidenceUrl').value.trim();
+    const source = document.getElementById('evidenceSource').value.trim();
+    const notes = document.getElementById('evidenceNotes').value.trim();
+    const msgDiv = document.getElementById('evidenceMessage');
+    const btn = document.getElementById('saveEvidenceBtn');
+
+    if (!type) { msgDiv.innerHTML = '<span style="color:var(--error)">Select source type</span>'; return; }
+    if (!title) { msgDiv.innerHTML = '<span style="color:var(--error)">Title required</span>'; return; }
+    if (!url) { msgDiv.innerHTML = '<span style="color:var(--error)">URL required</span>'; return; }
+
+    try {
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/evidence_links`, {
+            method: 'POST',
+            headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+            body: JSON.stringify({ 
+                variant_id: currentVariantId, 
+                type, 
+                title, 
+                url, 
+                source: source || type,
+                notes: notes || null,
+                date_added: new Date().toISOString() 
+            })
         });
-    });
-    
-    // Class filter buttons
-    document.querySelectorAll('.class-dot').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const cls = btn.getAttribute('data-class');
-            actions.setClassFilter(cls);
-            renderVariantList();
-            
-            document.querySelectorAll('.class-dot').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        });
-    });
-    
-    // Quick links
-    document.querySelectorAll('.quick-link').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const name = btn.getAttribute('data-quick');
-            document.getElementById('searchInput').value = name;
-            actions.setSearchQuery(name);
-            renderVariantList();
-            setTimeout(() => window.handleSelectVariant(name), 200);
-        });
-    });
-    
-    // Variant list delegation
-    document.getElementById('variantList')?.addEventListener('click', (e) => {
-        const row = e.target.closest('.variant-row');
-        if (row) {
-            const name = row.getAttribute('data-variant-name');
-            if (name) window.handleSelectVariant(name);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const saved = await res.json();
+        const variant = STATE.variants.find(v => v.id === currentVariantId);
+        if (variant) { 
+            if (!variant.evidence_links) variant.evidence_links = []; 
+            variant.evidence_links.push(saved[0] || saved); 
         }
-    });
+        if (STATE.view.selectedVariant?.id === currentVariantId) renderVariantDetail(variant);
+        msgDiv.innerHTML = '<span style="color:var(--success)">✓ Saved</span>';
+        showNotification('Evidence link added', 'success');
+        setTimeout(closeAddEvidenceModal, 1000);
+    } catch(err) {
+        msgDiv.innerHTML = `<span style="color:var(--error)">${err.message}</span>`;
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save';
+    }
+}
+
+function showAllEvidence(variantId) {
+    const variant = STATE.variantsById.get(variantId);
+    if (!variant) return;
     
-    // Initialize
-    async function init() {
-        await actions.loadVariants();
-        
-        // Set language from browser
-        const browserLang = navigator.language.split('-')[0];
-        if (browserLang === 'es') {
-            await actions.setLanguage('es');
-        } else {
-            await actions.setLanguage('en');
-        }
-        
-        renderVariantList();
-        updateHeaderStats();
+    currentVariantId = variantId;
+    currentVariantName = variant.legacy_name;
+    
+    const evidenceLinks = variant.evidence_links || [];
+    const modalList = document.getElementById('allEvidenceList');
+    
+    if (evidenceLinks.length === 0) {
+        modalList.innerHTML = `
+            <div class="text-center py-12">
+                <div class="w-16 h-16 bg-[var(--brand-light)] rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                    <i class="fas fa-link text-3xl text-[var(--brand)] opacity-40"></i>
+                </div>
+                <p class="text-gray-700 font-medium mb-2">No evidence links yet</p>
+                <p class="text-sm text-gray-500 mb-6">Add your first evidence source</p>
+                <button onclick="showEvidenceModal('${currentVariantName}', ${variantId}); closeAllEvidenceModal();" 
+                        class="btn btn-primary">
+                    <i class="fas fa-plus mr-2"></i> Add Evidence
+                </button>
+            </div>
+        `;
+    } else {
+        modalList.innerHTML = evidenceLinks.map(link => `
+            <div class="group relative bg-white rounded-xl border border-[var(--border)] hover:border-[var(--brand)] hover:shadow-md transition-all duration-200 mb-4 p-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--brand-light)] to-[var(--brand-faint)] flex items-center justify-center flex-shrink-0">
+                        <i class="fas ${getEvidenceIcon(link.type)} text-[var(--brand)]"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h4 class="font-semibold text-gray-900">${escapeHTML(link.title)}</h4>
+                                <div class="flex items-center gap-3 mt-2">
+                                    <span class="text-xs bg-[var(--brand-light)] text-[var(--brand)] px-2 py-1 rounded-full">
+                                        <i class="fas ${getEvidenceIcon(link.type)} mr-1"></i>
+                                        ${escapeHTML(link.source || link.type)}
+                                    </span>
+                                    <span class="text-xs text-gray-500">
+                                        <i class="far fa-clock mr-1"></i>${formatDate(link.date_added)}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="${escapeHTML(link.url)}" target="_blank" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 hover:text-[var(--brand)]">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                                <button onclick="copyToClipboard('${escapeHTML(link.url)}')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 hover:text-[var(--brand)]">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-3 bg-gray-50 rounded-lg px-3 py-2 text-xs font-mono text-gray-500 truncate">
+                            🔗 ${escapeHTML(link.url)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
     }
     
-    init();
+    document.getElementById('allEvidenceModal').classList.remove('hidden');
+}
+
+function closeAllEvidenceModal() {
+    document.getElementById('allEvidenceModal').classList.add('hidden');
+}
+
+function getEvidenceIcon(type) {
+    const icons = {
+        'pubmed': 'fa-book-open',
+        'cftr2': 'fa-dna',
+        'clinvar': 'fa-hospital',
+        'article': 'fa-file-alt',
+        'study': 'fa-flask',
+        'default': 'fa-link'
+    };
+    return icons[type?.toLowerCase()] || icons.default;
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('Link copied to clipboard', 'success');
+    }).catch(() => {
+        showNotification('Failed to copy', 'error');
+    });
+}
+
+// ========== DASHBOARD ==========
+
+function showDashboard() {
+    document.getElementById('dashboardModal').classList.remove('hidden');
+    setTimeout(renderCharts, 100);
+}
+
+function closeDashboard() { 
+    document.getElementById('dashboardModal').classList.add('hidden'); 
+}
+
+function renderCharts() {
+    if (!window.Chart) return;
+    const s = STATE.masterStats;
+
+    const classCfg = {
+        type: 'doughnut',
+        data: {
+            labels: ['I','II','III','IV','V'],
+            datasets: [{
+                data: [s.classI, s.classII, s.classIII, s.classIV, s.classV],
+                backgroundColor: ['#c0392b','#b7610a','#0b6e6d','#1a56a5','#6b3fa0'],
+                borderWidth: 3,
+                borderColor: '#fff'
+            }]
+        },
+        options: { 
+            responsive: true, 
+            cutout: '68%', 
+            plugins: { 
+                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } 
+            } 
+        }
+    };
+
+    const respCfg = {
+        type: 'bar',
+        data: {
+            labels: ['Responsive','Non-responsive','Unknown'],
+            datasets: [{
+                data: [s.responsive, s.nonResponsive, s.unknown],
+                backgroundColor: ['#0b6e6d','#c0392b','#b7610a'],
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: { 
+            responsive: true, 
+            plugins: { legend: { display: false } },
+            scales: { 
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                x: { grid: { display: false } }
+            } 
+        }
+    };
+
+    const compCfg = {
+        type: 'bar',
+        data: {
+            labels: ['Complete','Partial','Minimal'],
+            datasets: [{
+                data: [s.complete, s.clinical - s.complete, s.total - s.clinical],
+                backgroundColor: ['#0b6e6d','#1a56a5','#e4e8ef'],
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: { 
+            indexAxis: 'y',
+            responsive: true, 
+            plugins: { legend: { display: false } },
+            scales: { 
+                x: { beginAtZero: true, max: s.total, grid: { color: '#f1f5f9' } },
+                y: { grid: { display: false } }
+            } 
+        }
+    };
+
+    ['classChart','responseChart','completionChart'].forEach(id => {
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+        if (STATE.ui.charts[id]) STATE.ui.charts[id].destroy();
+        
+        let cfg = id === 'classChart' ? classCfg : id === 'responseChart' ? respCfg : compCfg;
+        STATE.ui.charts[id] = new Chart(canvas, cfg);
+    });
+}
+
+function refreshDashboardStats() {
+    calculateMasterStats();
+    renderCharts();
+    showNotification('Dashboard refreshed', 'success');
+}
+
+// ========== EXPORT ==========
+
+function exportReport() {
+    const headers = ['Legacy Name','Protein','cDNA','Determination','CFTR Class','ETI Prediction','Subtype','Confidence','Validation Count'];
+    const rows = STATE.variants.map(v => [
+        v.legacy_name, v.protein_name, v.cdna_name, v.final_determination,
+        v.cftr_class, v.eti_prediction, v.class_subtype, v.class_confidence,
+        v.validation_count || 0
+    ]);
+    generateCSV(headers, rows, `helix-export-${getCurrentDate()}.csv`);
+    showNotification('Export complete', 'success');
+}
+
+function exportFullReport() {
+    const headers = ['ID','Legacy Name','Protein','cDNA','Determination','CFTR Class',
+        'Subtype','Confidence','ETI Response','Evidence Level','Recommendation',
+        'Data Status','Source','Population Frequency','PubMed IDs','Date Updated',
+        'Validation Count','Last Validator','Last Validated'];
+    
+    const rows = STATE.variants.map(v => [
+        v.id, v.legacy_name, v.protein_name, v.cdna_name, v.final_determination,
+        v.cftr_class, v.class_subtype, v.class_confidence, v.eti_prediction,
+        v.eti_evidence_level, v.eti_recommendation, v.data_status, v.source_summary,
+        v.population_frequency, v.pubmed_ids, v.date_updated,
+        v.validation_count || 0,
+        v.last_validator_name || '',
+        v.last_validated_at || ''
+    ]);
+    
+    generateCSV(headers, rows, `helix-full-report-${getCurrentDate()}.csv`);
+    showNotification('Full export complete', 'success');
+}
+
+function generateCSV(headers, rows, filename) {
+    const csv = [headers, ...rows]
+        .map(row => row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+    
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// ========== PAGINATION ==========
+
+function updatePagination() {
+    const total = Math.ceil(STATE.view.filteredVariants.length / CONFIG.UI.ITEMS_PER_PAGE);
+    const ctrl = document.getElementById('listPagination');
+    if (!ctrl) return;
+    ctrl.style.display = total > 1 ? 'flex' : 'none';
+    setText('currentPage', STATE.view.currentPage);
+    setText('totalPages', total);
+    const prev = document.getElementById('prevBtn');
+    const next = document.getElementById('nextBtn');
+    if (prev) prev.disabled = STATE.view.currentPage === 1;
+    if (next) next.disabled = STATE.view.currentPage === total;
+}
+
+function previousPage() {
+    if (STATE.view.currentPage > 1) { STATE.view.currentPage--; renderVariantList(); updatePagination(); }
+}
+
+function nextPage() {
+    const total = Math.ceil(STATE.view.filteredVariants.length / CONFIG.UI.ITEMS_PER_PAGE);
+    if (STATE.view.currentPage < total) { STATE.view.currentPage++; renderVariantList(); updatePagination(); }
+}
+
+// ========== LOADING STATES ==========
+
+function showListLoading() {
+    const c = document.getElementById('variantList');
+    if (!c) return;
+    c.innerHTML = `
+    <div style="padding:40px 20px;text-align:center;">
+        <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;"></div>
+        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+        <p style="font-size:13px;color:var(--text-secondary);font-weight:500">Loading variants…</p>
+        <p style="font-size:11px;color:var(--text-tertiary);margin-top:4px">Connecting to database</p>
+    </div>`;
+}
+
+function showListError(msg) {
+    const c = document.getElementById('variantList');
+    if (!c) return;
+    c.innerHTML = `
+    <div style="padding:40px 20px;text-align:center;">
+        <i class="fas fa-exclamation-triangle" style="font-size:28px;color:var(--error);opacity:0.4;margin-bottom:12px;display:block"></i>
+        <p style="font-size:13px;color:var(--text-primary);font-weight:500">Connection failed</p>
+        <p style="font-size:11px;color:var(--text-tertiary);margin-top:4px">${escapeHTML(msg)}</p>
+        <button onclick="location.reload()" class="btn btn-primary btn-sm" style="margin-top:14px">Retry</button>
+    </div>`;
+}
+
+// ========== UTILITIES ==========
+
+function hasMissingData(v) {
+    return !v.cftr_class || !v.eti_prediction || !v.final_determination;
+}
+
+function escapeHTML(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+function escapeAttr(s) {
+    if (!s) return '';
+    return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;');
+}
+
+function escapeRegExp(s) { 
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
+}
+
+function setText(id, val) { 
+    const el = document.getElementById(id); 
+    if (el) el.textContent = val; 
+}
+
+function formatDate(s) {
+    if (!s) return '';
+    try {
+        return new Date(s).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    } catch { return s; }
+}
+
+function getCurrentDate() {
+    return new Date().toISOString().split('T')[0];
+}
+
+function showNotification(msg, type='info', duration=CONFIG.UI.NOTIFICATION_DURATION) {
+    const c = document.getElementById('notification-container');
+    if (!c) return;
+    const colors = { success: 'var(--success)', error: 'var(--error)', warning: 'var(--warning)', info: 'var(--brand)' };
+    const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+    const n = document.createElement('div');
+    n.className = `notification ${type}`;
+    n.style.borderLeftColor = colors[type] || colors.info;
+    n.innerHTML = `
+        <i class="fas ${icons[type]||icons.info}" style="color:${colors[type]||colors.info};font-size:14px;flex-shrink:0"></i>
+        <span style="flex:1">${escapeHTML(msg)}</span>
+        <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);padding:2px 4px;"><i class="fas fa-times" style="font-size:11px"></i></button>
+    `;
+    c.appendChild(n);
+    if (duration > 0) setTimeout(() => n.remove(), duration);
+}
+
+// ========== SEARCH INIT ==========
+
+function initSearch() {
+    const input = document.getElementById('searchInput');
+    const clear = document.getElementById('searchClear');
+    if (!input) return;
+
+    input.addEventListener('input', function() {
+        clearTimeout(STATE.ui.searchTimeout);
+        clear?.classList.toggle('hidden', !this.value);
+        STATE.ui.searchTimeout = setTimeout(() => {
+            STATE.view.searchQuery = this.value;
+            applyFilterChain();
+        }, CONFIG.UI.SEARCH_DELAY);
+    });
+
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { clearSearch(); }
+        if (e.key === 'Enter') { STATE.view.searchQuery = input.value; applyFilterChain(); }
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === '/' && !e.ctrlKey && !e.metaKey && 
+            !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+            e.preventDefault(); input.focus();
+        }
+    });
+}
+
+// ========== EVENT LISTENERS ==========
+
+function attachEvents() {
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            ['importModal','annotationModal','validationModal','deleteModal','dashboardModal','addEvidenceModal','allEvidenceModal']
+                .forEach(id => document.getElementById(id)?.classList.add('hidden'));
+        }
+    });
+
+    document.addEventListener('click', e => {
+        if (e.target.classList.contains('modal-overlay')) {
+            e.target.classList.add('hidden');
+        }
+    });
+}
+
+// ========== INIT ==========
+
+async function init() {
+    attachEvents();
+    initSearch();
+    initializeBulkImport();
+    await loadVariants();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+// Expose globals for inline onclick handlers
+Object.assign(window, {
+    selectVariant, setDataView, filterVariants, setClassFilter, toggleSort,
+    clearSearch, quickSearch, toggleSidebar, previousPage, nextPage,
+    showImportModal, closeImportModal, switchImportTab, validateImport, 
+    executeJsonImport, submitManualForm, clearManualForm, clearImportForm,
+    showAnnotationModal, closeAnnotationModal, saveAnnotation,
+    showDeleteModal, closeDeleteModal, confirmDeleteVariant,
+    showValidationModal, closeValidationModal, submitValidation,
+    showDashboard, closeDashboard, refreshDashboardStats, exportReport, exportFullReport,
+    showEvidenceModal, closeAddEvidenceModal, selectEvidenceType, saveEvidenceLink,
+    showAllEvidence, closeAllEvidenceModal, copyToClipboard,
+    downloadTemplate, processBulkImport
+});
 </script>
 </body>
 </html>
