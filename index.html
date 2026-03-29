@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Δ Helix | CFTR Clinical Intelligence Platform</title>
+    <title>Δ Helix | CFTR Precision Medicine Platform</title>
 
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,9 +31,9 @@
             --surface-alt: #0a1220;
             --border: rgba(99,140,210,0.13);
             --border-strong: rgba(99,140,210,0.25);
-            --text-primary: #dce8f8;
-            --text-secondary: #7a9bc8;
-            --text-tertiary: #4a6a99;
+            --text-primary: #f0f6ff;
+            --text-secondary: #9ab8e0;
+            --text-tertiary: #5a7aaa;
             --text-inverse: #0d1526;
 
             /* Brand — electric blue */
@@ -69,7 +69,10 @@
             --class-v-border: rgba(192,132,252,0.22);
             --class-v-text: #d8b4fe;
 
-            /* Semantic */
+            --class-vi: #f472b6;
+            --class-vi-bg: rgba(244,114,182,0.08);
+            --class-vi-border: rgba(244,114,182,0.22);
+            --class-vi-text: #f9a8d4;
             --success: #34d399;
             --success-bg: rgba(52,211,153,0.08);
             --warning: #fbbf24;
@@ -343,41 +346,60 @@
            ============================================================ */
         .dev-watermark {
             position: fixed;
-            bottom: 24px;
+            bottom: 0;
             left: 50%;
             transform: translateX(-50%);
             z-index: 9000;
             pointer-events: none;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 8px;
-            padding: 6px 14px 6px 10px;
-            background: rgba(4, 8, 15, 0.75);
-            border: 1px solid rgba(251,191,36,0.25);
-            border-radius: 20px;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            gap: 4px;
+            padding: 10px 28px 12px;
+            background: linear-gradient(135deg, rgba(4,8,15,0.92) 0%, rgba(10,18,35,0.92) 100%);
+            border: 1px solid rgba(251,191,36,0.35);
+            border-bottom: none;
+            border-radius: 14px 14px 0 0;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 -4px 24px rgba(251,191,36,0.08), inset 0 1px 0 rgba(251,191,36,0.12);
+            min-width: 420px;
+        }
+
+        .dev-watermark::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(251,191,36,0.5) 30%, rgba(251,191,36,0.5) 70%, transparent);
+        }
+
+        .dev-top-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .dev-dot {
-            width: 6px;
-            height: 6px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: #fbbf24;
             animation: devBlink 1.8s ease-in-out infinite;
             flex-shrink: 0;
+            box-shadow: 0 0 6px rgba(251,191,36,0.6);
         }
 
         @keyframes devBlink {
-            0%, 100% { opacity: 1; box-shadow: 0 0 4px rgba(251,191,36,0.6); }
-            50% { opacity: 0.35; box-shadow: none; }
+            0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(251,191,36,0.7); }
+            50% { opacity: 0.4; box-shadow: none; }
         }
 
         .dev-text {
             font-family: 'IBM Plex Mono', monospace;
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 0.12em;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
             text-transform: uppercase;
             color: #fbbf24;
             white-space: nowrap;
@@ -386,8 +408,17 @@
         .dev-version {
             font-family: 'IBM Plex Mono', monospace;
             font-size: 9px;
-            color: rgba(251,191,36,0.4);
-            margin-left: 2px;
+            color: rgba(251,191,36,0.45);
+            margin-left: 4px;
+            letter-spacing: 0.08em;
+        }
+
+        .dev-sub {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 10px;
+            color: rgba(251,191,36,0.5);
+            letter-spacing: 0.05em;
+            white-space: nowrap;
         }
 
         /* ============================================================
@@ -557,35 +588,53 @@
 
         .sidebar-toggle {
             position: absolute;
-            top: 12px;
-            right: -16px;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: #0d1a30;
-            border: 1px solid rgba(41,121,255,0.35);
+            top: 50%;
+            right: -18px;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 56px;
+            border-radius: 0 10px 10px 0;
+            background: linear-gradient(180deg, #1a3a6e 0%, #0d2150 50%, #1a3a6e 100%);
+            border: 1px solid rgba(41,121,255,0.55);
+            border-left: none;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 50;
-            box-shadow: 0 0 12px rgba(41,121,255,0.15), var(--shadow-md);
+            z-index: 200;
+            box-shadow: 4px 0 16px rgba(41,121,255,0.35), 0 0 0 1px rgba(41,121,255,0.15);
             transition: var(--transition);
+            overflow: visible;
+        }
+
+        .sidebar-toggle::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 2px;
+            height: 30px;
+            background: linear-gradient(180deg, transparent, rgba(41,121,255,0.7), transparent);
+            border-radius: 2px;
         }
 
         .sidebar-toggle:hover {
-            background: var(--brand);
-            border-color: var(--brand);
-            box-shadow: var(--glow-brand);
+            background: linear-gradient(180deg, #2979ff 0%, #1a5fd9 50%, #2979ff 100%);
+            border-color: #60a5fa;
+            box-shadow: 6px 0 24px rgba(41,121,255,0.6), 0 0 0 1px rgba(96,165,250,0.3);
+            width: 22px;
         }
 
         .sidebar-toggle i {
-            font-size: 10px;
-            color: #60a5fa;
+            font-size: 8px;
+            color: #93c5fd;
             transition: var(--transition);
+            position: relative;
+            z-index: 1;
         }
 
-        .sidebar-toggle:hover i { color: white; }
+        .sidebar-toggle:hover i { color: #ffffff; }
 
         .sidebar-collapsed .sidebar-toggle i {
             transform: rotate(180deg);
@@ -593,7 +642,7 @@
 
         /* Search zone */
         .sidebar-search {
-            padding: 12px;
+            padding: 12px 12px 8px;
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
         }
@@ -604,34 +653,49 @@
 
         .search-input {
             width: 100%;
-            height: 36px;
-            padding: 0 32px 0 34px;
+            height: 42px;
+            padding: 0 36px 0 40px;
             font-family: var(--font-body);
             font-size: 13px;
-            border: 1.5px solid var(--border);
-            border-radius: 8px;
-            background: rgba(4,8,15,0.6);
+            font-weight: 500;
+            border: 1.5px solid rgba(251,191,36,0.25);
+            border-radius: 10px;
+            background: rgba(4,8,15,0.7);
             color: var(--text-primary);
-            transition: var(--transition);
+            transition: all 240ms cubic-bezier(0.4,0,0.2,1);
             outline: none;
+            letter-spacing: 0.01em;
+        }
+
+        .search-input:hover {
+            border-color: rgba(251,191,36,0.45);
+            background: rgba(4,8,15,0.85);
         }
 
         .search-input:focus {
-            border-color: var(--brand);
-            background: rgba(4,8,15,0.9);
-            box-shadow: 0 0 0 3px rgba(41,121,255,0.12), var(--glow-brand);
+            border-color: rgba(251,191,36,0.8);
+            background: rgba(4,8,15,0.95);
+            box-shadow:
+                0 0 0 3px rgba(251,191,36,0.1),
+                0 0 18px rgba(251,191,36,0.1),
+                inset 0 1px 0 rgba(251,191,36,0.06);
         }
 
-        .search-input::placeholder { color: var(--text-tertiary); }
+        .search-input::placeholder { color: var(--text-tertiary); font-weight: 400; }
 
         .search-icon {
             position: absolute;
-            left: 10px;
+            left: 13px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-tertiary);
-            font-size: 12px;
+            color: rgba(251,191,36,0.5);
+            font-size: 13px;
             pointer-events: none;
+            transition: color 240ms;
+        }
+
+        .search-field:focus-within .search-icon {
+            color: rgba(251,191,36,0.95);
         }
 
         .search-clear {
@@ -643,14 +707,38 @@
             border: none;
             color: var(--text-tertiary);
             cursor: pointer;
-            padding: 2px;
+            padding: 4px;
             border-radius: 4px;
             display: flex;
             align-items: center;
             font-size: 11px;
+            transition: color 200ms;
         }
 
-        .search-clear:hover { color: var(--text-primary); }
+        .search-clear:hover { color: #fbbf24; }
+
+        .search-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 2px 2px;
+            font-size: 9.5px;
+            color: var(--text-tertiary);
+            font-family: var(--font-mono);
+        }
+
+        .search-hint kbd {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 5px;
+            background: rgba(251,191,36,0.07);
+            border: 1px solid rgba(251,191,36,0.2);
+            border-radius: 3px;
+            font-size: 9px;
+            color: rgba(251,191,36,0.55);
+            font-family: var(--font-mono);
+        }
+
 
         /* Filter chips */
         .sidebar-filters {
@@ -751,6 +839,7 @@
         .class-dot.ciii { background: var(--class-iii-bg); color: var(--class-iii-text); border-color: var(--class-iii-border); }
         .class-dot.civ  { background: var(--class-iv-bg);  color: var(--class-iv-text);  border-color: var(--class-iv-border); }
         .class-dot.cv   { background: var(--class-v-bg);   color: var(--class-v-text);   border-color: var(--class-v-border); }
+        .class-dot.cvi  { background: var(--class-vi-bg);  color: var(--class-vi-text);  border-color: var(--class-vi-border); }
         .class-dot.call { background: var(--surface-alt);  color: var(--text-secondary); border-color: var(--border); }
 
         .class-dot { opacity: 1; }
@@ -879,7 +968,7 @@
         .row-class-badge.cii  { background: var(--class-ii-bg);  color: var(--class-ii-text);  border: 1px solid var(--class-ii-border); }
         .row-class-badge.ciii { background: var(--class-iii-bg); color: var(--class-iii-text); border: 1px solid var(--class-iii-border); }
         .row-class-badge.civ  { background: var(--class-iv-bg);  color: var(--class-iv-text);  border: 1px solid var(--class-iv-border); }
-        .row-class-badge.cv   { background: var(--class-v-bg);   color: var(--class-v-text);   border: 1px solid var(--class-v-border); }
+        .row-class-badge.cvi  { background: var(--class-vi-bg);  color: var(--class-vi-text);  border: 1px solid var(--class-vi-border); }
 
         .row-protein {
             font-size: 11px;
@@ -2099,7 +2188,7 @@
         </div>
 
         <div class="load-title">Δ Helix</div>
-        <div class="load-sub">CFTR Clinical Intelligence Platform</div>
+        <div class="load-sub">CFTR Precision Medicine Platform</div>
 
         <div class="load-bar-wrap">
             <div class="load-bar-track">
@@ -2129,9 +2218,12 @@
      DEV WATERMARK
      ================================================================ -->
 <div class="dev-watermark">
-    <div class="dev-dot"></div>
-    <span class="dev-text">Sistema en Desarrollo</span>
-    <span class="dev-version">v3.0-β</span>
+    <div class="dev-top-row">
+        <div class="dev-dot"></div>
+        <span class="dev-text">Sistema Actualmente en Desarrollo</span>
+        <span class="dev-version">v3.0-β</span>
+    </div>
+    <div class="dev-sub">Esta plataforma está en fase de desarrollo activo — funcionalidades pueden cambiar sin previo aviso</div>
 </div>
 
 <!-- ================================================================
@@ -2154,7 +2246,7 @@
             </div>
             <div class="brand-text" id="brandText">
                 <div class="brand-name">Δ Helix</div>
-                <div class="brand-sub">CFTR Clinical Intelligence</div>
+                <div class="brand-sub">CFTR Precision Medicine</div>
             </div>
         </div>
 
@@ -2207,12 +2299,16 @@
                     type="text"
                     id="searchInput"
                     class="search-input"
-                    placeholder="Search variants, cDNA, protein…"
+                    placeholder="Variante, cDNA, proteína, clase…"
                     autocomplete="off"
                 >
                 <button class="search-clear hidden" id="searchClear" onclick="clearSearch()">
                     <i class="fas fa-times"></i>
                 </button>
+            </div>
+            <div class="search-hint">
+                <kbd>/</kbd><span>búsqueda rápida</span>
+                <span style="margin-left:auto;opacity:0.6" id="searchResultCount"></span>
             </div>
         </div>
 
@@ -2247,6 +2343,7 @@
             <button class="class-dot ciii" id="cdot-III" onclick="setClassFilter('III')">III</button>
             <button class="class-dot civ"  id="cdot-IV"  onclick="setClassFilter('IV')">IV</button>
             <button class="class-dot cv"   id="cdot-V"   onclick="setClassFilter('V')">V</button>
+            <button class="class-dot cvi"  id="cdot-VI"  onclick="setClassFilter('VI')">VI</button>
         </div>
 
         <!-- List meta -->
@@ -2862,63 +2959,200 @@ async function loadVariants() {
 // ========== SEARCH INDEX ==========
 
 function buildSearchIndex() {
-    const termMap = new Map();
+    const termMap = new Map();     // exact/prefix terms → Set of ids
+    const ngramMap = new Map();    // bigrams/trigrams → Set of ids
+    const variantTokens = new Map(); // id → array of searchable tokens
 
-    STATE.variants.forEach(v => {
-        const terms = new Set();
-        const add = (s) => { if (s && s.trim().length >= 2) terms.add(s.toLowerCase().trim()); };
+    // Clinical aliases and synonyms
+    const ALIASES = {
+        'deltaF508': ['F508del','f508del','delta508'],
+        'f508': ['F508del'],
+        'g551d': ['G551D'],
+        'g542x': ['G542X'],
+        'w1282x': ['W1282X'],
+        'n1303k': ['N1303K'],
+        'responsive': ['eti+','eti responsive','responder','modulable'],
+        'non_responsive': ['eti-','eti non','no responde','non responsive'],
+        'class i': ['nonsense','stop','class1'],
+        'class ii': ['misfolding','trafficking','class2'],
+        'class iii': ['gating','class3'],
+        'class iv': ['conductance','class4'],
+        'class v': ['splicing','reduced','class5'],
+        'class vi': ['instability','class6'],
+    };
 
-        if (v.legacy_name) {
-            add(v.legacy_name);
-            const nums = v.legacy_name.match(/\d+/g);
-            if (nums) nums.forEach(add);
-            if (v.legacy_name.includes('del')) {
-                add(v.legacy_name.replace('del', ''));
-                add('del' + v.legacy_name.replace(/[A-Za-zdel]/g, ''));
+    function tokenize(str) {
+        if (!str) return [];
+        const s = str.toLowerCase().trim();
+        const tokens = [s];
+        // Strip common prefixes
+        tokens.push(s.replace(/^p\./, '').replace(/^c\./, '').replace(/^r\./, ''));
+        // Extract numbers
+        const nums = s.match(/\d+/g);
+        if (nums) nums.forEach(n => tokens.push(n));
+        // Handle del/ins variants
+        if (s.includes('del')) tokens.push(s.replace('del',''), 'del' + s.replace(/[a-zdel]/g,''));
+        if (s.includes('ins')) tokens.push(s.replace('ins',''));
+        // Extract amino acid codes
+        const aa = s.match(/[a-z]{1,3}\d+[a-z*]{0,3}/g);
+        if (aa) aa.forEach(a => tokens.push(a));
+        return [...new Set(tokens.filter(t => t && t.length >= 2))];
+    }
+
+    function addNgrams(str, id) {
+        const s = str.toLowerCase().replace(/\s+/g,'');
+        for (let n = 2; n <= 3; n++) {
+            for (let i = 0; i <= s.length - n; i++) {
+                const gram = s.slice(i, i + n);
+                if (!ngramMap.has(gram)) ngramMap.set(gram, new Set());
+                ngramMap.get(gram).add(id);
             }
         }
-        if (v.protein_name) { add(v.protein_name); add(v.protein_name.replace('p.', '')); }
-        if (v.cdna_name) { add(v.cdna_name); add(v.cdna_name.replace('c.', '')); }
-        if (v.cftr_class) { add('class' + v.cftr_class); add('class ' + v.cftr_class); }
-        if (v.eti_prediction === 'responsive') { add('responsive'); add('responder'); add('eti'); }
-        if (v.class_subtype === 'exceptional') { add('exceptional'); }
-        if (v.final_determination) add(v.final_determination);
+    }
 
-        terms.forEach(term => {
+    STATE.variants.forEach(v => {
+        const tokens = [];
+
+        const fields = [
+            v.legacy_name, v.protein_name, v.cdna_name,
+            v.final_determination, v.source_summary,
+            v.cftr_class ? `class ${v.cftr_class}` : null,
+            v.cftr_class ? `class${v.cftr_class}` : null,
+            v.eti_prediction, v.class_subtype, v.eti_recommendation
+        ];
+
+        fields.forEach(f => { if (f) tokenize(f).forEach(t => tokens.push(t)); });
+
+        // Alias expansion
+        tokens.forEach(t => {
+            Object.entries(ALIASES).forEach(([key, vals]) => {
+                if (vals.some(a => a.toLowerCase() === t)) tokens.push(key);
+                if (t === key) vals.forEach(a => tokens.push(a.toLowerCase()));
+            });
+        });
+
+        const uniqueTokens = [...new Set(tokens)];
+        variantTokens.set(v.id, uniqueTokens);
+
+        uniqueTokens.forEach(term => {
             if (!termMap.has(term)) termMap.set(term, new Set());
             termMap.get(term).add(v.id);
+        });
+
+        // Build ngrams from key fields only
+        [v.legacy_name, v.protein_name, v.cdna_name].forEach(f => {
+            if (f) addNgrams(f, v.id);
         });
     });
 
     STATE.searchIndex.termMap = termMap;
+    STATE.searchIndex.ngramMap = ngramMap;
+    STATE.searchIndex.variantTokens = variantTokens;
     STATE.searchIndex.stats = {
         variantCount: STATE.variants.length,
         termCount: termMap.size,
+        ngramCount: ngramMap.size,
         lastBuilt: new Date()
     };
 }
 
+// ---- Levenshtein distance (bounded for performance) ----
+function editDistance(a, b, maxDist = 2) {
+    if (Math.abs(a.length - b.length) > maxDist) return maxDist + 1;
+    const la = a.length, lb = b.length;
+    const dp = Array.from({length: la + 1}, (_, i) => i);
+    for (let j = 1; j <= lb; j++) {
+        let prev = j;
+        for (let i = 1; i <= la; i++) {
+            const curr = a[i-1] === b[j-1] ? dp[i-1] : 1 + Math.min(dp[i-1], dp[i], prev);
+            dp[i-1] = prev;
+            prev = curr;
+        }
+        dp[la] = prev;
+    }
+    return dp[la];
+}
+
 function searchVariants(query) {
     if (!query || query.length < CONFIG.UI.MIN_SEARCH_CHARS) return STATE.variants;
-    const q = query.toLowerCase().trim();
-    const matchedIds = new Set();
+
+    const raw = query.toLowerCase().trim();
+    // Multi-token AND logic: split on spaces
+    const queryTokens = raw.split(/\s+/).filter(t => t.length >= 1);
     const scores = new Map();
 
-    [q, q.replace(/^p\./, ''), q.replace(/^c\./, ''), ...(q.match(/\d+/g) || [])]
-        .filter((v, i, a) => v && v.length >= 2 && a.indexOf(v) === i)
-        .forEach(term => {
-            if (STATE.searchIndex.termMap.has(term)) {
-                STATE.searchIndex.termMap.get(term).forEach(id => {
-                    matchedIds.add(id);
-                    scores.set(id, (scores.get(id) || 0) + (term === q ? 100 : 20));
-                });
+    const addScore = (id, pts) => scores.set(id, (scores.get(id) || 0) + pts);
+
+    queryTokens.forEach(q => {
+        // 1. Exact match — highest score
+        if (STATE.searchIndex.termMap.has(q)) {
+            STATE.searchIndex.termMap.get(q).forEach(id => addScore(id, 200));
+        }
+
+        // 2. Prefix match on all terms
+        STATE.searchIndex.termMap.forEach((ids, term) => {
+            if (term !== q && term.startsWith(q)) {
+                ids.forEach(id => addScore(id, 80 + (q.length / term.length) * 40));
+            }
+            // Substring match
+            else if (term.includes(q) && term !== q && !term.startsWith(q)) {
+                ids.forEach(id => addScore(id, 30));
             }
         });
 
-    return Array.from(matchedIds)
-        .map(id => ({ v: STATE.variantsById.get(id), s: scores.get(id) || 0 }))
-        .sort((a, b) => b.s - a.s)
-        .map(r => r.v);
+        // 3. Ngram fuzzy match (for typos / partial)
+        if (q.length >= 3) {
+            const ngramHits = new Map();
+            for (let i = 0; i <= q.length - 2; i++) {
+                const gram = q.slice(i, i + 2);
+                if (STATE.searchIndex.ngramMap.has(gram)) {
+                    STATE.searchIndex.ngramMap.get(gram).forEach(id => {
+                        ngramHits.set(id, (ngramHits.get(id) || 0) + 1);
+                    });
+                }
+            }
+            const maxGrams = q.length - 1;
+            ngramHits.forEach((hits, id) => {
+                const similarity = hits / maxGrams;
+                if (similarity >= 0.5) addScore(id, similarity * 45);
+            });
+        }
+
+        // 4. Fuzzy edit-distance match for short-ish queries
+        if (q.length >= 4 && q.length <= 12) {
+            STATE.searchIndex.variantTokens.forEach((tokens, id) => {
+                tokens.forEach(term => {
+                    if (Math.abs(term.length - q.length) <= 2) {
+                        const dist = editDistance(q, term, 2);
+                        if (dist === 1) addScore(id, 35);
+                        else if (dist === 2 && q.length >= 6) addScore(id, 12);
+                    }
+                });
+            });
+        }
+    });
+
+    // Multi-token AND bonus: boost variants that matched ALL tokens
+    if (queryTokens.length > 1) {
+        const tokenMatchCount = new Map();
+        queryTokens.forEach(q => {
+            const matched = new Set();
+            STATE.searchIndex.termMap.forEach((ids, term) => {
+                if (term.includes(q) || term.startsWith(q)) ids.forEach(id => matched.add(id));
+            });
+            matched.forEach(id => tokenMatchCount.set(id, (tokenMatchCount.get(id) || 0) + 1));
+        });
+        tokenMatchCount.forEach((count, id) => {
+            if (count === queryTokens.length) addScore(id, 150); // Strong AND bonus
+        });
+    }
+
+    // Sort by score descending, filter out near-zero noise
+    return Array.from(scores.entries())
+        .filter(([, s]) => s >= 10)
+        .sort((a, b) => b[1] - a[1])
+        .map(([id]) => STATE.variantsById.get(id))
+        .filter(Boolean);
 }
 
 // ========== STATISTICS ==========
@@ -3044,7 +3278,7 @@ function filterVariants(filter) {
 
 function setClassFilter(cls) {
     STATE.view.classFilter = cls;
-    ['all','I','II','III','IV','V'].forEach(c => {
+    ['all','I','II','III','IV','V','VI'].forEach(c => {
         const id = c === 'all' ? 'cdot-all' : `cdot-${c}`;
         const el = document.getElementById(id);
         if (el) el.classList.toggle('active', c === cls);
@@ -3116,6 +3350,16 @@ function renderVariantList() {
 
     const q = STATE.view.searchQuery;
 
+    // Update search result count hint
+    const countEl = document.getElementById('searchResultCount');
+    if (countEl) {
+        if (q && q.length >= CONFIG.UI.MIN_SEARCH_CHARS) {
+            countEl.textContent = `${STATE.view.filteredVariants.length} resultado${STATE.view.filteredVariants.length !== 1 ? 's' : ''}`;
+        } else {
+            countEl.textContent = '';
+        }
+    }
+
     container.innerHTML = page.map(v => {
         const isSelected = STATE.view.selectedVariant?.id === v.id;
         const cls = v.cftr_class ? `c${v.cftr_class.toLowerCase()}` : 'cx';
@@ -3125,21 +3369,25 @@ function renderVariantList() {
         const isExceptional = v.class_subtype === 'exceptional';
         const hasMissing = hasMissingData(v);
 
-        let nameDisplay = escapeHTML(v.legacy_name || '');
-        if (q && q.length >= 2) {
-            try {
-                nameDisplay = nameDisplay.replace(new RegExp(`(${escapeRegExp(q)})`, 'gi'), '<span class="sh">$1</span>');
-            } catch(e) {}
+        function hl(str) {
+            if (!str) return '';
+            let s = escapeHTML(str);
+            if (q && q.length >= 2) {
+                const tokens = q.toLowerCase().trim().split(/\s+/).filter(t => t.length >= 2);
+                tokens.forEach(tok => {
+                    try { s = s.replace(new RegExp(`(${escapeRegExp(tok)})`, 'gi'), '<span class="sh">$1</span>'); } catch(e) {}
+                });
+            }
+            return s;
         }
 
-        // Collapsed icon row
-        const clsColor = { 
-            ci: 'var(--class-i)', cii: 'var(--class-ii)', ciii: 'var(--class-iii)', 
-            civ: 'var(--class-iv)', cv: 'var(--class-v)', cx: 'var(--text-tertiary)' 
+        const clsColor = {
+            ci: 'var(--class-i)', cii: 'var(--class-ii)', ciii: 'var(--class-iii)',
+            civ: 'var(--class-iv)', cv: 'var(--class-v)', cvi: 'var(--class-vi)', cx: 'var(--text-tertiary)'
         };
-        const clsBg = { 
-            ci: 'var(--class-i-bg)', cii: 'var(--class-ii-bg)', ciii: 'var(--class-iii-bg)', 
-            civ: 'var(--class-iv-bg)', cv: 'var(--class-v-bg)', cx: 'var(--surface-alt)' 
+        const clsBg = {
+            ci: 'var(--class-i-bg)', cii: 'var(--class-ii-bg)', ciii: 'var(--class-iii-bg)',
+            civ: 'var(--class-iv-bg)', cv: 'var(--class-v-bg)', cvi: 'var(--class-vi-bg)', cx: 'var(--surface-alt)'
         };
 
         return `
@@ -3147,10 +3395,10 @@ function renderVariantList() {
             <div class="row-accent ${cls}"></div>
             <div class="row-content">
                 <div class="row-top">
-                    <span class="row-name">${nameDisplay}${isExceptional ? ' <span style="color:var(--class-ii);font-size:9px;font-family:var(--font-body)">⚡</span>' : ''}</span>
+                    <span class="row-name">${hl(v.legacy_name)}${isExceptional ? ' <span style="color:var(--class-ii);font-size:9px;font-family:var(--font-body)">⚡</span>' : ''}</span>
                     ${v.cftr_class ? `<span class="row-class-badge ${cls}">${v.cftr_class}</span>` : ''}
                 </div>
-                ${v.protein_name ? `<div class="row-protein">${escapeHTML(v.protein_name)}</div>` : '<div class="row-protein" style="opacity:0.4">—</div>'}
+                ${v.protein_name ? `<div class="row-protein">${hl(v.protein_name)}</div>` : '<div class="row-protein" style="opacity:0.4">—</div>'}
                 <div class="row-indicators">
                     <span class="eti-indicator ${eti}">
                         <span class="eti-dot"></span>
@@ -3160,7 +3408,7 @@ function renderVariantList() {
                     ${hasMissing ? `<span class="missing-pip" title="Missing clinical data"></span>` : ''}
                 </div>
             </div>
-            <div class="collapsed-icon-row ${cls}" style="background:${clsBg[cls]};color:${clsColor[cls]};font-weight:700;font-size:11px;">
+            <div class="collapsed-icon-row ${cls}" style="background:${clsBg[cls]||clsBg.cx};color:${clsColor[cls]||clsColor.cx};font-weight:700;font-size:11px;">
                 ${v.cftr_class || '?'}
             </div>
         </div>`;
