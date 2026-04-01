@@ -3093,6 +3093,7 @@ async function loadVariants() {
         buildSearchIndex();
         calculateMasterStats();
         await loadExistingRoles();
+        await loadSearchIntelligence(); // hydrate SI state from DB
 
         STATE.view.filteredVariants = [...STATE.variants];
         STATE.view.currentPage = 1;
@@ -3301,7 +3302,12 @@ function getTopSearchHits(n = 10) {
 function getTopMisses(n = 10) {
     return Array.from(STATE.searchIntelligence.globalMisses.entries())
         .sort((a,b) => b[1].sessions.size - a[1].sessions.size).slice(0, n)
-        .map(([query, data]) => ({ query, count: data.count, sessions: data.sessions.size }));
+        .map(([query, data]) => ({
+            query,
+            count:    data.count,
+            sessions: data.sessions.size,
+            status:   data.status || 'pending'
+        }));
 }
 function getSearchHitRate() {
     const si = STATE.searchIntelligence;
@@ -4725,6 +4731,7 @@ function populateSITab(name) {
                 <div class="si-miss-q">${escapeHTML(m.query)}</div>
                 <div class="si-miss-u">${m.sessions} user${m.sessions!==1?'s':''}</div>
                 <div class="si-miss-n">${m.count}×</div>
+                <div class="si-miss-s ${m.status === 'in_review' ? 'review' : m.status}">${m.status === 'in_review' ? 'in review' : m.status}</div>
             </div>`).join('');
     } else { mqEl.innerHTML = '<div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">No misses recorded yet.</div>'; }
 
@@ -5055,6 +5062,84 @@ function attachEvents() {
 }
 
 // ========== INIT ==========
+
+// ========== SEARCH INTELLIGENCE — HYDRATION FROM DB ==========
+// Called once on startup. Reads accumulated search_logs + miss_queue
+// from Supabase and populates STATE.searchIntelligence so the
+// analytics panel shows real persistent data, not just session data.
+
+async function loadSearchIntelligence() {
+    const si = STATE.searchIntelligence;
+    const headers = {
+        'apikey': CONFIG.SUPABASE.KEY,
+        'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`
+    };
+
+    try {
+        // ---- 1. Aggregated hit counts from search_logs ----
+        // Get top 200 queries with hit counts in one request
+        const hitsRes = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/search_logs` +
+            `?select=query,is_hit` +
+            `&is_hit=eq.true` +
+            `&order=searched_at.desc&limit=2000`,
+            { headers }
+        );
+        STATE.system.apiCalls++;
+        if (hitsRes.ok) {
+            const rows = await hitsRes.json();
+            rows.forEach(r => {
+                const q = r.query;
+                si.globalHits.set(q, (si.globalHits.get(q) || 0) + 1);
+            });
+        }
+
+        // ---- 2. Miss queue — load full aggregated table ----
+        const missRes = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/search_miss_queue` +
+            `?select=query,miss_count,unique_sessions,status` +
+            `&order=unique_sessions.desc&limit=500`,
+            { headers }
+        );
+        STATE.system.apiCalls++;
+        if (missRes.ok) {
+            const rows = await missRes.json();
+            rows.forEach(r => {
+                // Reconstruct the in-memory miss map from DB aggregates
+                const sessions = new Set();
+                // We only have the count, not the actual session IDs —
+                // fill the set with synthetic tokens so .size matches DB value
+                for (let i = 0; i < r.unique_sessions; i++) sessions.add('db_session_' + i);
+                si.globalMisses.set(r.query, {
+                    count: r.miss_count,
+                    sessions,
+                    status: r.status
+                });
+            });
+        }
+
+        // ---- 3. Timeline — last 500 events for the activity chart ----
+        const tlRes = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/search_logs` +
+            `?select=searched_at,is_hit` +
+            `&order=searched_at.desc&limit=500`,
+            { headers }
+        );
+        STATE.system.apiCalls++;
+        if (tlRes.ok) {
+            const rows = await tlRes.json();
+            // Reverse so timeline is chronological oldest→newest
+            si.timeline = rows.reverse().map(r => ({
+                ts: new Date(r.searched_at).getTime(),
+                hit: r.is_hit
+            }));
+        }
+
+    } catch(e) {
+        // Non-fatal — analytics will just show session data only
+        console.warn('Search intelligence hydration failed:', e.message);
+    }
+}
 
 async function init() {
     attachEvents();
