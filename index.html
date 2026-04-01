@@ -1113,6 +1113,222 @@
         .si-fb-seg { display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:600; letter-spacing:.04em; }
         .si-gap-badge { font-size:9px; font-weight:600; padding:1px 6px; border-radius:4px; background:rgba(248,113,113,0.08); color:#f87171; border:1px solid rgba(248,113,113,0.18); }
 
+
+        /* ---- Research gap engine ---- */
+        .gap-queue-row { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+        .gap-queue-row:last-child { border-bottom:none; }
+        .gap-level-pill { font-size:9px; font-weight:700; padding:2px 7px; border-radius:4px; letter-spacing:.04em; white-space:nowrap; flex-shrink:0; margin-top:1px; }
+        .gap-level-pill.CRITICAL { background:rgba(248,113,113,0.12); color:#f87171; border:1px solid rgba(248,113,113,0.25); }
+        .gap-level-pill.SEVERE   { background:rgba(251,146,60,0.12);  color:#fb923c; border:1px solid rgba(251,146,60,0.25); }
+        .gap-level-pill.MODERATE { background:rgba(251,191,36,0.1);   color:#fbbf24; border:1px solid rgba(251,191,36,0.2); }
+        .gap-level-pill.MINOR    { background:rgba(96,165,250,0.1);   color:#60a5fa; border:1px solid rgba(96,165,250,0.2); }
+        .gap-level-pill.ADEQUATE { background:rgba(52,211,153,0.1);   color:#34d399; border:1px solid rgba(52,211,153,0.2); }
+        .gap-queue-name { font-size:12px; font-family:var(--font-mono); color:var(--text-primary); font-weight:600; }
+        .gap-queue-meta { font-size:10px; color:var(--text-tertiary); margin-top:2px; line-height:1.5; }
+        .gap-score-bar { height:3px; border-radius:2px; margin-top:4px; }
+        .gap-recs { margin-top:4px; display:flex; flex-direction:column; gap:2px; }
+        .gap-rec { font-size:10px; color:var(--text-secondary); display:flex; align-items:center; gap:5px; }
+        .gap-rec::before { content:''; width:4px; height:4px; border-radius:50%; background:var(--text-tertiary); flex-shrink:0; }
+
+        /* ---- Hospital onboarding modal ---- */
+        .hospital-modal-overlay {
+            position: fixed; inset: 0; z-index: 99998;
+            background: rgba(4,8,15,0.92);
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+        .hospital-modal {
+            background: #0a1220; border: 1px solid rgba(99,140,210,0.25);
+            border-radius: 16px; padding: 32px 36px; width: 440px;
+            box-shadow: 0 24px 64px rgba(0,5,20,0.8);
+        }
+        .hospital-modal-logo {
+            font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800;
+            color: #f0f6ff; margin-bottom: 4px;
+        }
+        .hospital-modal-sub {
+            font-size: 11px; color: #5a7aaa; letter-spacing: .12em;
+            text-transform: uppercase; margin-bottom: 24px;
+        }
+        .hospital-modal h3 {
+            font-size: 15px; font-weight: 600; color: #f0f6ff; margin-bottom: 6px;
+        }
+        .hospital-modal p {
+            font-size: 12px; color: #9ab8e0; line-height: 1.6; margin-bottom: 20px;
+        }
+        .hospital-input-wrap { position: relative; margin-bottom: 10px; }
+        .hospital-input {
+            width: 100%; height: 42px; padding: 0 12px;
+            background: rgba(4,8,15,0.8); border: 1.5px solid rgba(99,140,210,0.25);
+            border-radius: 8px; color: #f0f6ff; font-size: 13px;
+            font-family: var(--font-body); outline: none;
+            transition: border-color .2s;
+        }
+        .hospital-input:focus { border-color: rgba(41,121,255,0.6); }
+        .hospital-input::placeholder { color: #5a7aaa; }
+        .hospital-suggestions {
+            position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+            background: #0d1830; border: 1px solid rgba(99,140,210,0.2);
+            border-radius: 8px; overflow: hidden; z-index: 10;
+            max-height: 160px; overflow-y: auto;
+        }
+        .hospital-suggestion {
+            padding: 8px 12px; font-size: 12px; color: #9ab8e0;
+            cursor: pointer; transition: background .12s; border-bottom: 1px solid rgba(99,140,210,0.08);
+        }
+        .hospital-suggestion:last-child { border-bottom: none; }
+        .hospital-suggestion:hover { background: rgba(41,121,255,0.1); color: #f0f6ff; }
+        .hospital-confirm-btn {
+            width: 100%; height: 42px; background: #2979ff;
+            border: none; border-radius: 8px; color: white;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            font-family: var(--font-body); margin-top: 14px;
+            transition: background .15s;
+        }
+        .hospital-confirm-btn:hover { background: #1a5fd9; }
+        .hospital-confirm-btn:disabled { background: rgba(41,121,255,0.3); cursor: default; }
+        .hospital-skip {
+            text-align: center; margin-top: 12px; font-size: 11px;
+            color: #5a7aaa; cursor: pointer; text-decoration: underline;
+        }
+        .hospital-skip:hover { color: #9ab8e0; }
+        .hospital-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 10px; color: #9ab8e0; font-family: var(--font-mono);
+            background: rgba(99,140,210,0.08); border: 1px solid rgba(99,140,210,0.15);
+            border-radius: 5px; padding: 2px 8px; cursor: pointer;
+        }
+        .hospital-badge:hover { border-color: rgba(41,121,255,0.4); color: #f0f6ff; }
+
+        /* ---- Ambient intelligence strip ---- */
+        .intel-strip {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 12px; background: var(--surface-alt);
+            border-bottom: 1px solid var(--border);
+            font-size: 10px; font-family: var(--font-mono);
+            flex-wrap: wrap;
+        }
+        .intel-pill {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 2px 8px; border-radius: 4px; font-size: 9px;
+            font-weight: 600; letter-spacing: .04em; white-space: nowrap;
+        }
+        .intel-pill.trending { background: rgba(74,222,128,0.1); color:#4ade80; border:1px solid rgba(74,222,128,0.2); }
+        .intel-pill.hot      { background: rgba(251,191,36,0.1); color:#fbbf24; border:1px solid rgba(251,191,36,0.2); }
+        .intel-pill.gap      { background: rgba(248,113,113,0.08); color:#f87171; border:1px solid rgba(248,113,113,0.18); }
+        .intel-pill.miss     { background: rgba(96,165,250,0.1); color:#60a5fa; border:1px solid rgba(96,165,250,0.2); }
+        .intel-pill.neutral  { background: var(--surface); color:var(--text-tertiary); border:1px solid var(--border); }
+
+        /* ---- Search dropdown ---- */
+        .search-dropdown {
+            position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+            background: #0a1220; border: 1px solid var(--border-strong);
+            border-radius: 10px; z-index: 500; overflow: hidden;
+            box-shadow: 0 12px 32px rgba(0,5,20,0.7);
+            max-height: 320px; overflow-y: auto;
+        }
+        .sd-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 12px; cursor: pointer;
+            border-bottom: 1px solid var(--border); transition: background .12s;
+        }
+        .sd-item:last-child { border-bottom: none; }
+        .sd-item:hover { background: rgba(41,121,255,0.08); }
+        .sd-name { font-size: 12px; font-weight: 600; font-family: var(--font-mono); color: var(--text-primary); flex:1; }
+        .sd-field { font-size: 9px; padding: 1px 5px; border-radius: 3px; background: rgba(41,121,255,0.1); color: #60a5fa; white-space:nowrap; }
+        .sd-eti   { font-size: 9px; font-weight:700; white-space:nowrap; }
+        .sd-eti.r { color:#4ade80; } .sd-eti.n { color:#f87171; } .sd-eti.u { color:#5a7aaa; }
+        .sd-hits  { font-size: 9px; color: var(--text-tertiary); font-family: var(--font-mono); white-space:nowrap; }
+        .sd-val   { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+        .sd-val.validated { background:#4ade80; } .sd-val.unvalidated { background:#5a7aaa; }
+
+        /* ---- Miss queue badge on sidebar ---- */
+        .miss-badge {
+            display: inline-flex; align-items:center; gap:4px;
+            font-size: 9px; font-weight:700; padding:2px 6px; border-radius:4px;
+            background:rgba(248,113,113,0.1); color:#f87171;
+            border:1px solid rgba(248,113,113,0.2); margin-left:auto;
+        }
+
+
+        /* ---- Research gap score ---- */
+        .gap-score-ring { position:relative; width:52px; height:52px; flex-shrink:0; }
+        .gap-score-ring svg { position:absolute; inset:0; }
+        .gap-score-val { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+        .gap-score-num { font-size:13px; font-weight:700; font-family:var(--font-mono); line-height:1; }
+        .gap-score-lbl { font-size:7px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-tertiary); }
+        .gap-level-pill { font-size:9px; font-weight:700; padding:2px 7px; border-radius:4px; letter-spacing:.04em; white-space:nowrap; }
+        .gap-level-pill.CRITICAL { background:rgba(248,113,113,0.12); color:#f87171; border:1px solid rgba(248,113,113,0.25); }
+        .gap-level-pill.SEVERE   { background:rgba(251,146,60,0.12);  color:#fb923c; border:1px solid rgba(251,146,60,0.25); }
+        .gap-level-pill.MODERATE { background:rgba(251,191,36,0.1);   color:#fbbf24; border:1px solid rgba(251,191,36,0.2); }
+        .gap-level-pill.MINOR    { background:rgba(96,165,250,0.1);   color:#60a5fa; border:1px solid rgba(96,165,250,0.2); }
+        .gap-level-pill.ADEQUATE { background:rgba(52,211,153,0.1);   color:#34d399; border:1px solid rgba(52,211,153,0.2); }
+        .gap-rec-row { display:flex; align-items:flex-start; gap:7px; padding:5px 0; border-bottom:1px solid var(--border); font-size:11px; color:var(--text-secondary); line-height:1.5; }
+        .gap-rec-row:last-child { border-bottom:none; }
+        .gap-rec-icon { font-size:9px; color:var(--text-tertiary); flex-shrink:0; margin-top:2px; width:12px; }
+        /* ---- Command centre panel ---- */
+        .cc-panel { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:16px; }
+        .cc-card { background:var(--surface-alt); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+        .cc-card-head { padding:9px 13px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+        .cc-card-title { font-size:10px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.08em; }
+        .cc-card-body { padding:13px; }
+        .cc-card-full { grid-column:1/-1; }
+        .priority-row { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:background .12s; }
+        .priority-row:last-child { border-bottom:none; }
+        .priority-row:hover { background:var(--brand-faint); margin:0 -13px; padding:6px 13px; }
+        .priority-badge { font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px; flex-shrink:0; white-space:nowrap; }
+        .priority-name { font-size:12px; font-family:var(--font-mono); color:var(--text-primary); flex:1; }
+        .priority-meta { font-size:10px; color:var(--text-tertiary); white-space:nowrap; }
+
+        /* ---- Gap alert pill on variant rows ---- */
+        .gap-alert {
+            width:5px; height:5px; border-radius:50%;
+            background:#fbbf24; flex-shrink:0;
+            box-shadow: 0 0 5px rgba(251,191,36,0.5);
+            animation: gapPulse 2s ease-in-out infinite;
+        }
+        @keyframes gapPulse {
+            0%,100%{opacity:1;} 50%{opacity:0.4;}
+        }
+
+        /* ---- Activity ribbon ---- */
+        .activity-ribbon {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 28px; background: rgba(8,15,29,0.95);
+            border-top: 1px solid var(--border);
+            display: flex; align-items: center;
+            padding: 0 14px; gap: 16px; z-index: 80;
+            backdrop-filter: blur(8px);
+            font-size: 10px; font-family: var(--font-mono);
+            overflow: hidden;
+        }
+        .ribbon-label { color: var(--text-tertiary); white-space:nowrap; flex-shrink:0; }
+        .ribbon-feed  { display:flex; gap:12px; overflow:hidden; flex:1; }
+        .ribbon-event {
+            display:inline-flex; align-items:center; gap:5px;
+            color: var(--text-secondary); white-space:nowrap;
+            animation: ribbonSlide .4s ease;
+        }
+        .ribbon-event.hit  { color:#4ade80; }
+        .ribbon-event.miss { color:#f87171; }
+        @keyframes ribbonSlide { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:none} }
+        .ribbon-dot { width:4px;height:4px;border-radius:50%;flex-shrink:0; }
+        .ribbon-dot.hit{background:#4ade80;} .ribbon-dot.miss{background:#f87171;}
+        .ribbon-miss-count { color:#f87171; margin-left:auto; white-space:nowrap; flex-shrink:0; }
+
+        /* ---- Import preview table ---- */
+        .import-preview { max-height:200px; overflow-y:auto; margin-top:10px; }
+        .import-preview table { width:100%; font-size:11px; border-collapse:collapse; }
+        .import-preview th { padding:5px 8px; background:var(--surface); color:var(--text-tertiary);
+            font-size:9px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+            border-bottom:1px solid var(--border); text-align:left; }
+        .import-preview td { padding:5px 8px; border-bottom:1px solid var(--border); color:var(--text-primary); font-family:var(--font-mono); font-size:10px; }
+        .import-preview tr.dup td { background:rgba(251,191,36,0.05); color:#fbbf24; }
+        .import-preview tr.err td { background:rgba(248,113,113,0.05); color:#f87171; }
+        .import-preview tr.new td { background:rgba(74,222,128,0.03); }
+        .preview-legend { display:flex; gap:12px; font-size:10px; color:var(--text-tertiary); margin-top:6px; }
+        .pl-dot { width:8px;height:8px;border-radius:2px;flex-shrink:0; }
+
         /* Empty state */
         .list-empty {
             padding: 40px 20px;
@@ -2265,6 +2481,41 @@
 </div>
 
 <!-- ================================================================
+     HOSPITAL ONBOARDING MODAL
+     ================================================================ -->
+<div id="hospitalModal" class="hospital-modal-overlay" style="display:none;">
+    <div class="hospital-modal">
+        <div class="hospital-modal-logo">Δ Helix</div>
+        <div class="hospital-modal-sub">CFTR Precision Medicine Platform</div>
+        <h3>Which institution are you searching from?</h3>
+        <p>This helps us track which variants are most searched at each clinical centre — enabling regional prevalence insights and prioritising research gaps by institution.</p>
+        <div class="hospital-input-wrap">
+            <input
+                type="text"
+                id="hospitalInput"
+                class="hospital-input"
+                placeholder="Start typing your hospital or centre name…"
+                autocomplete="off"
+                oninput="filterHospitalSuggestions(this.value)"
+            >
+            <div class="hospital-suggestions hidden" id="hospitalSuggestions"></div>
+        </div>
+        <div style="font-size:10px;color:var(--text-tertiary);margin-top:4px;">
+            Your selection is saved locally — you will not be asked again on this device.
+        </div>
+        <button
+            class="hospital-confirm-btn"
+            id="hospitalConfirmBtn"
+            onclick="confirmHospital()"
+            disabled
+        >
+            Continue to platform
+        </button>
+        <div class="hospital-skip" onclick="skipHospital()">Skip — search anonymously</div>
+    </div>
+</div>
+
+<!-- ================================================================
      DEV WATERMARK
      ================================================================ -->
 <div class="dev-watermark">
@@ -2317,6 +2568,10 @@
             </div>
 
             <div class="header-actions">
+                <span class="hospital-badge" id="hospitalBadge" onclick="changeHospital()" title="Click to change institution" style="display:none;">
+                    <i class="fas fa-hospital" style="font-size:9px;"></i>
+                    <span id="hospitalBadgeText">—</span>
+                </span>
                 <button onclick="showDashboard()" class="btn btn-ghost" title="Analytics">
                     <i class="fas fa-chart-bar"></i>
                     <span>Analytics</span>
@@ -2360,6 +2615,8 @@
                 <kbd>/</kbd><span>búsqueda rápida</span>
                 <span style="margin-left:auto;opacity:0.6" id="searchResultCount"></span>
             </div>
+            <!-- Intelligent search dropdown -->
+            <div class="search-dropdown hidden" id="searchDropdown"></div>
         </div>
 
         <!-- View filters -->
@@ -2378,6 +2635,16 @@
             <button class="filter-chip" id="chip-missing" onclick="filterVariants('missing')">
                 Missing
                 <span class="chip-divider"></span><span class="chip-count" id="chipMissing">—</span>
+            </button>
+            <button class="filter-chip" id="chip-missqueue" onclick="showMissQueuePanel()" title="Searches with no result — research gaps" style="display:none;">
+                <i class="fas fa-exclamation" style="font-size:9px;color:#f87171;"></i>
+                <span style="color:#f87171;">Miss</span>
+                <span class="chip-divider"></span><span class="chip-count" id="chipMissQueue" style="color:#f87171;">—</span>
+            </button>
+            <button class="filter-chip" id="chip-gaps" onclick="showGapQueuePanel()" title="Research gap queue" style="display:none;">
+                <i class="fas fa-triangle-exclamation" style="font-size:9px;color:#fbbf24;"></i>
+                <span style="color:#fbbf24;">Gaps</span>
+                <span class="chip-divider"></span><span class="chip-count" id="chipGaps" style="color:#fbbf24;">—</span>
             </button>
             <button class="filter-chip" id="chip-complete" onclick="setDataView('complete')">
                 Complete
@@ -2425,7 +2692,7 @@
     <!-- ============================================================
          MAIN CONTENT
          ============================================================ -->
-    <main class="app-main" id="appMain">
+    <main class="app-main" id="appMain" style="padding-bottom:28px;">
         <div class="main-inner">
             <!-- Empty state -->
             <div class="detail-empty" id="detailEmpty">
@@ -2453,6 +2720,15 @@
             <div id="variantDetail" class="hidden"></div>
         </div>
     </main>
+</div>
+
+<!-- Activity ribbon — bottom of viewport -->
+<div class="activity-ribbon" id="activityRibbon">
+    <span class="ribbon-label">Live activity</span>
+    <div class="ribbon-feed" id="ribbonFeed">
+        <span class="ribbon-event" style="color:var(--text-tertiary);">Waiting for searches…</span>
+    </div>
+    <span class="ribbon-miss-count" id="ribbonMissCount" style="display:none;"></span>
 </div>
 
 <!-- ================================================================
@@ -2712,7 +2988,13 @@
                 <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;">
                     <button class="si-tab active" id="dashTab-clinical" onclick="setDashTab('clinical',this)" style="border-radius:0;font-size:10px;padding:4px 10px;">Clinical</button>
                     <button class="si-tab" id="dashTab-search" onclick="setDashTab('search',this)" style="border-radius:0;font-size:10px;padding:4px 10px;border-left:1px solid var(--border);">
-                        <i class="fas fa-chart-line" style="font-size:9px;margin-right:4px;"></i>Search Intelligence
+                        <i class="fas fa-chart-line" style="font-size:9px;margin-right:4px;"></i>Search
+                    </button>
+                    <button class="si-tab" id="dashTab-gaps" onclick="setDashTab('gaps',this)" style="border-radius:0;font-size:10px;padding:4px 10px;border-left:1px solid var(--border);">
+                        <i class="fas fa-exclamation-triangle" style="font-size:9px;margin-right:4px;color:#fbbf24;"></i>Research Gaps
+                    </button>
+                    <button class="si-tab" id="dashTab-command" onclick="setDashTab('command',this)" style="border-radius:0;font-size:10px;padding:4px 10px;border-left:1px solid var(--border);">
+                        <i class="fas fa-terminal" style="font-size:9px;margin-right:4px;color:#60a5fa;"></i>Command Centre
                     </button>
                 </div>
                 <button class="btn btn-ghost btn-icon" onclick="closeDashboard()">
@@ -2771,6 +3053,42 @@
                 </div>
             </div>
         </div>
+        <!-- Research Gaps panel -->
+        <div id="gapPanel" style="display:none;">
+            <div class="si-body">
+                <div class="si-card">
+                    <div class="si-card-head">
+                        <div class="si-card-title">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>
+                            Research priority queue — variants needing attention
+                        </div>
+                        <div class="si-card-note" id="gapQueueNote">Sorted by gap score</div>
+                    </div>
+                    <div class="si-card-body" id="gapQueueList">
+                        <div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">Loading gap analysis…</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Command Centre panel -->
+        <div id="commandPanel" style="display:none;">
+            <div class="cc-panel">
+                <div class="cc-card">
+                    <div class="cc-card-head"><span class="cc-card-title">High priority variants</span><span style="font-size:10px;color:var(--text-tertiary);">searched · unvalidated</span></div>
+                    <div class="cc-card-body" id="ccHighPriority"></div>
+                </div>
+                <div class="cc-card">
+                    <div class="cc-card-head"><span class="cc-card-title">Miss queue — top gaps</span><span style="font-size:10px;color:var(--text-tertiary);">by unique users</span></div>
+                    <div class="cc-card-body" id="ccMissQueue"></div>
+                </div>
+                <div class="cc-card cc-card-full">
+                    <div class="cc-card-head"><span class="cc-card-title">Platform health snapshot</span></div>
+                    <div class="cc-card-body" id="ccHealthPanel"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Search Intelligence tab content -->
         <div id="siPanel" style="display:none;">
             <div class="si-tabs">
@@ -2778,6 +3096,7 @@
                 <button class="si-tab" id="siTab-misses" onclick="setSITab('misses',this)">Miss queue</button>
                 <button class="si-tab" id="siTab-recent" onclick="setSITab('recent',this)">Session</button>
                 <button class="si-tab" id="siTab-geo" onclick="setSITab('geo',this)"><i class="fas fa-map-marker-alt" style="font-size:9px;margin-right:4px;"></i>Geography</button>
+                <button class="si-tab" id="siTab-gaps" onclick="setSITab('gaps',this)"><i class="fas fa-exclamation-triangle" style="font-size:9px;margin-right:4px;color:#fbbf24;"></i>Gap queue</button>
             </div>
 
             <div id="siPanelOverview" class="si-panel active">
@@ -2871,6 +3190,43 @@
                         <div class="si-card">
                             <div class="si-card-head"><div class="si-card-title"><span style="width:6px;height:6px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>Top variants by region</div></div>
                             <div class="si-card-body" id="siGeoVariants"><div style="font-size:11px;color:var(--text-tertiary);">No location data yet</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="siPanelGaps" class="si-panel" style="display:none;">
+                <div class="si-body">
+                    <div class="si-card">
+                        <div class="si-card-head">
+                            <div class="si-card-title">
+                                <span style="width:6px;height:6px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>
+                                Research gap queue
+                                <span style="font-size:9px;color:#fbbf24;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:4px;padding:1px 6px;font-weight:600;">scored client-side</span>
+                            </div>
+                            <div class="si-card-note" id="gapQueueNote">Variants are scored when selected</div>
+                        </div>
+                        <div class="si-card-body">
+                            <div style="display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--border);font-size:9px;font-weight:600;letter-spacing:.08em;color:var(--text-tertiary);text-transform:uppercase;">
+                                <span>Level</span><span>Variant</span><span>Score</span><span>Searched</span>
+                            </div>
+                            <div id="gapQueueList"><div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">Select variants to populate gap analysis.</div></div>
+                        </div>
+                    </div>
+                    <div class="si-row2">
+                        <div class="si-card">
+                            <div class="si-card-head"><div class="si-card-title"><span style="width:6px;height:6px;border-radius:50%;background:#f87171;display:inline-block;"></span>Critical gaps</div></div>
+                            <div class="si-card-body" id="criticalGapCount">
+                                <div style="font-size:28px;font-weight:700;font-family:var(--font-mono);color:#f87171;" id="criticalGapNum">0</div>
+                                <div style="font-size:10px;color:var(--text-tertiary);margin-top:2px;">variants scoring 80+</div>
+                            </div>
+                        </div>
+                        <div class="si-card">
+                            <div class="si-card-head"><div class="si-card-title"><span style="width:6px;height:6px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>Avg gap score</div></div>
+                            <div class="si-card-body">
+                                <div style="font-size:28px;font-weight:700;font-family:var(--font-mono);color:#fbbf24;" id="avgGapScore">—</div>
+                                <div style="font-size:10px;color:var(--text-tertiary);margin-top:2px;">across scored variants</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3076,7 +3432,8 @@ const STATE = {
         sessionId: 'sess_' + Math.random().toString(36).slice(2,10),
         siCharts: {},
         locationCache: null,  // { country, region, city, latitude, longitude } — fetched once per session
-        _lastResult: null     // last search result metadata — used by log debounce
+        _lastResult: null,    // last search result metadata — used by log debounce
+        hospital: null        // set from localStorage by initHospital()
     }
 };
 
@@ -3279,6 +3636,10 @@ function logSearch(query, isHit, matchedField, matchedVariantId) {
     si.timeline.push({ ts, hit: isHit });
     if (si.timeline.length > 500) si.timeline.shift();
 
+    // Update live activity ribbon
+    pushRibbonEvent(query, isHit);
+    updateMissQueueChip();
+
     // Persist to Supabase — fire-and-forget, never blocks UI
     persistSearchEvent(query, isHit, matchedField, matchedVariantId);
 }
@@ -3338,7 +3699,8 @@ async function persistSearchEvent(query, isHit, matchedField, matchedVariantId) 
                 city:      loc.city      || null,
                 latitude:  loc.latitude  || null,
                 longitude: loc.longitude || null,
-                ip_source: loc.ip_source || null
+                ip_source:     loc.ip_source || null,
+                hospital_name: STATE.searchIntelligence.hospital || null
             })
         });
         // If miss — upsert into miss queue
@@ -3470,7 +3832,11 @@ async function renderGeoTab() {
             return;
         }
 
-        if (noteEl) noteEl.textContent = rows.length + ' searches with location data';
+        const hospital = STATE.searchIntelligence.hospital;
+        const note = rows.length + ' searches with location data';
+        if (noteEl) noteEl.textContent = hospital && hospital !== 'Anonymous'
+            ? note + ' · ' + hospital
+            : note;
 
         // Init or reuse map
         if (!window._helixMap) {
@@ -3576,170 +3942,422 @@ async function renderGeoTab() {
 
 // ---- Search Intelligence PDF Report ----
 async function exportSearchPDF() {
-    // Load jsPDF dynamically
     if (!window.jspdf) {
-        await new Promise((res, rej) => {
-            const s = document.createElement('script');
-            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-            s.onload = res; s.onerror = rej;
-            document.head.appendChild(s);
-        });
+        try {
+            await new Promise((res, rej) => {
+                const s = document.createElement('script');
+                s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                s.onload = res;
+                s.onerror = () => rej(new Error('Failed to load PDF library'));
+                document.head.appendChild(s);
+            });
+        } catch(e) {
+            showNotification('PDF library failed to load — check connection', 'error');
+            return;
+        }
     }
+
+    showNotification('Generating report…', 'info', 3500);
 
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const si  = STATE.searchIntelligence;
+    const doc  = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const si   = STATE.searchIntelligence;
     const rate = getSearchHitRate();
     const now  = new Date();
-    const W    = 210; // A4 width mm
-    const M    = 14;  // margin
-    let   y    = 20;
+    const W = 210, M = 18, TW = W - M * 2;
+    const fmt  = n => Number(n).toLocaleString('en-GB');
+    const dateStr = now.toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
+    const hospital = (si.hospital && si.hospital !== 'Anonymous') ? si.hospital : null;
+    const reportId = 'ΔHEL-' + now.toISOString().replace(/[-:T]/g,'').slice(0,12);
 
-    // ---- Helpers ----
-    const line = (x1, y1, x2, y2, color) => {
-        doc.setDrawColor(...(color || [226, 232, 240]));
-        doc.line(x1, y1, x2, y2);
+    // ---- Institutional branding ----
+    const BRAND = {
+        group:      'neumACt',
+        department: 'Servicio de Neumología',
+        hospital:   'CHUAC',
+        full:       'neumACt  ·  Servicio de Neumología  ·  CHUAC',
+        hospitalFull: 'Complejo Hospitalario Universitario de A Coruña (CHUAC)',
     };
-    const txt = (text, x, yPos, size, bold, color) => {
-        doc.setFontSize(size || 10);
-        doc.setFont('helvetica', bold ? 'bold' : 'normal');
-        doc.setTextColor(...(color || [15, 23, 42]));
+
+    // ---- Color palette — scientific, minimal ----
+    const C = {
+        black:      [10, 10, 10],
+        dark:       [30, 30, 30],
+        mid:        [80, 80, 80],
+        light:      [130, 130, 130],
+        verylight:  [180, 180, 180],
+        rule:       [200, 200, 200],
+        rowshade:   [248, 248, 248],
+        headershade:[235, 235, 235],
+        accent:     [20, 60, 120],
+        accentlt:   [230, 237, 248],
+    };
+    let y = 0;
+    let sectionNum = 0;
+    let tableNum = 0;
+
+    // ---- Core helpers ----
+    const setFont = (size, style, color) => {
+        doc.setFontSize(size);
+        doc.setFont('helvetica', style || 'normal');
+        doc.setTextColor(...(color || C.dark));
+    };
+    const txt = (text, x, yPos, size, style, color, align) => {
+        setFont(size, style, color);
+        doc.text(String(text), x, yPos, align ? {align} : undefined);
+    };
+    const rule = (yPos, x1, x2, weight, color) => {
+        doc.setDrawColor(...(color || C.rule));
+        doc.setLineWidth(weight || 0.25);
+        doc.line(x1 !== undefined ? x1 : M, yPos, x2 !== undefined ? x2 : W-M, yPos);
+    };
+    const mono = (text, x, yPos, size, color) => {
+        doc.setFontSize(size || 8.5);
+        doc.setFont('courier', 'normal');
+        doc.setTextColor(...(color || C.dark));
         doc.text(String(text), x, yPos);
     };
-    const badge = (text, x, yPos, bgR, bgG, bgB, txR, txG, txB) => {
-        const w = doc.getTextWidth(text) + 4;
-        doc.setFillColor(bgR, bgG, bgB);
-        doc.roundedRect(x, yPos - 3.5, w, 5, 1, 1, 'F');
-        doc.setFontSize(7); doc.setFont('helvetica', 'bold');
-        doc.setTextColor(txR, txG, txB);
-        doc.text(text, x + 2, yPos);
-        return w;
+
+    // Check for page break and add new page if needed
+    const needsPage = (spaceNeeded) => {
+        if (y + spaceNeeded > 276) {
+            doc.addPage();
+            // Subtle running header on continuation pages
+            setFont(7, 'normal', C.verylight);
+            doc.text('neumACt · Servicio de Neumología · CHUAC  —  Δ Helix Search Intelligence Report', M, 8);
+            doc.text(reportId, W-M, 8, {align:'right'});
+            rule(10, M, W-M, 0.2, C.rule);
+            y = 18;
+            return true;
+        }
+        return false;
     };
 
-    // ---- Header bar ----
-    doc.setFillColor(8, 15, 29);
-    doc.rect(0, 0, W, 24, 'F');
-    txt('Δ Helix', M, 10, 16, true, [255, 255, 255]);
-    txt('CFTR Precision Medicine — Search Intelligence Report', M, 16, 8, false, [154, 184, 224]);
-    txt(now.toLocaleString('en-GB'), W - M, 16, 8, false, [90, 122, 170]);
-    doc.setFontSize(8); doc.setTextColor(90, 122, 170);
-    doc.text(now.toLocaleString('en-GB'), W - M - doc.getTextWidth(now.toLocaleString('en-GB')), 16);
-    y = 34;
+    const sectionHeader = (title) => {
+        sectionNum++;
+        needsPage(18);
+        y += 6;
+        txt(`${sectionNum}.  ${title}`, M, y, 11, 'bold', C.accent);
+        y += 1.5;
+        rule(y, M, W-M, 0.5, C.accent);
+        y += 6;
+    };
 
-    // ---- KPI row ----
-    const kpis = [
-        { label: 'Total searches', value: rate.total, color: [96, 165, 250] },
-        { label: 'Hit rate',       value: rate.total > 0 ? rate.hitRate + '%' : '—', color: [74, 222, 128] },
-        { label: 'Unique queries', value: si.globalHits.size + si.globalMisses.size, color: [251, 191, 36] },
-        { label: 'Miss queue',     value: si.globalMisses.size, color: [248, 113, 113] },
-    ];
-    const kW = (W - M * 2 - 9) / 4;
-    kpis.forEach((k, i) => {
-        const x = M + i * (kW + 3);
-        doc.setFillColor(248, 250, 252);
-        doc.roundedRect(x, y, kW, 14, 1.5, 1.5, 'F');
-        doc.setDrawColor(226, 232, 240); doc.setLineWidth(0.3);
-        doc.roundedRect(x, y, kW, 14, 1.5, 1.5, 'S');
-        txt(k.label, x + 3, y + 5, 7, false, [100, 116, 139]);
-        doc.setFontSize(12); doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...k.color);
-        doc.text(String(k.value), x + 3, y + 11);
-    });
-    y += 22;
+    const tableCaption = (caption) => {
+        tableNum++;
+        txt(`Table ${tableNum}.  ${caption}`, M, y, 8, 'bold', C.mid);
+        y += 5;
+    };
 
-    // ---- Section: Top Hits ----
-    const topHits   = getTopSearchHits(15);
-    const topMisses = getTopMisses(15);
-
-    if (topHits.length) {
-        txt('Most searched variants', M, y, 10, true, [15, 23, 42]); y += 2;
-        line(M, y, W - M, y); y += 5;
-        topHits.forEach((h, i) => {
-            if (y > 260) { doc.addPage(); y = 20; }
-            txt(String(i + 1).padStart(2, '0') + '.', M, y, 9, false, [148, 163, 184]);
-            txt(h.query, M + 8, y, 9, true, [15, 23, 42]);
-            badge('HIT', M + 80, y, 220, 252, 231, 22, 101, 52);
-            txt(h.count + ' searches', W - M - 28, y, 8, false, [100, 116, 139]);
-            y += 6;
+    const tableHeader = (cols) => {
+        // cols: [{label, x, w, align}]
+        doc.setFillColor(...C.headershade);
+        doc.rect(M, y - 3.5, TW, 6, 'F');
+        rule(y - 3.5, M, W-M, 0.35, C.rule);
+        cols.forEach(col => {
+            setFont(7.5, 'bold', C.mid);
+            // Small caps simulation — uppercase
+            doc.text(col.label.toUpperCase(), col.x, y, col.align ? {align: col.align} : undefined);
         });
-        y += 4;
-    }
+        y += 2.5;
+        rule(y, M, W-M, 0.35, C.rule);
+        y += 3.5;
+    };
 
-    // ---- Section: Miss Queue ----
-    if (topMisses.length) {
-        if (y > 240) { doc.addPage(); y = 20; }
-        txt('Miss queue — research gaps', M, y, 10, true, [15, 23, 42]); y += 2;
-        line(M, y, W - M, y); y += 5;
-        txt('Sorted by unique users. These queries returned no result — potential database gaps.', M, y, 7.5, false, [100, 116, 139]); y += 6;
-        topMisses.forEach((m, i) => {
-            if (y > 260) { doc.addPage(); y = 20; }
-            txt(String(i + 1).padStart(2, '0') + '.', M, y, 9, false, [148, 163, 184]);
-            txt(m.query, M + 8, y, 9, true, [15, 23, 42]);
-            badge('MISS', M + 80, y, 254, 226, 226, 153, 27, 27);
-            txt(m.sessions + ' user' + (m.sessions !== 1 ? 's' : ''), W - M - 42, y, 8, false, [248, 113, 113]);
-            txt(m.count + '×', W - M - 10, y, 8, false, [100, 116, 139]);
-            const statusColors = {
-                pending:   [251, 191, 36,  133, 77,  14],
-                in_review: [96,  165, 250, 30,  64,  175],
-                resolved:  [74,  222, 128, 6,   78,  59],
-            };
-            const sc = statusColors[m.status] || statusColors.pending;
-            badge(m.status || 'pending', W - M - 28, y, sc[0], sc[1], sc[2], sc[3], sc[4], sc[5]);
-            y += 6;
-        });
-        y += 4;
-    }
-
-    // ---- Section: Full session history ----
-    if (si.recentSearches.length) {
-        if (y > 230) { doc.addPage(); y = 20; }
-        txt('Session search history', M, y, 10, true, [15, 23, 42]); y += 2;
-        line(M, y, W - M, y); y += 5;
-
-        // Table header
-        doc.setFillColor(248, 250, 252);
-        doc.rect(M, y - 1, W - M * 2, 6, 'F');
-        txt('Query', M + 2, y + 3, 7.5, true, [100, 116, 139]);
-        txt('Status', M + 80, y + 3, 7.5, true, [100, 116, 139]);
-        txt('Matched field', M + 105, y + 3, 7.5, true, [100, 116, 139]);
-        txt('Time', W - M - 18, y + 3, 7.5, true, [100, 116, 139]);
-        y += 7;
-        line(M, y, W - M, y, [226, 232, 240]); y += 4;
-
-        const fieldLabel = { legacy_name:'Legacy name', protein_name:'Protein (HGVS)', cdna_name:'cDNA', alt_names:'Alt name' };
-
-        si.recentSearches.forEach((r, i) => {
-            if (y > 270) { doc.addPage(); y = 20; }
-            // Zebra stripe
-            if (i % 2 === 0) {
-                doc.setFillColor(250, 251, 252);
-                doc.rect(M, y - 3, W - M * 2, 6, 'F');
-            }
-            txt(r.query, M + 2, y, 8.5, false, [15, 23, 42]);
-            if (r.isHit) {
-                badge('HIT', M + 80, y, 220, 252, 231, 22, 101, 52);
+    const tableRow = (cells, rowIndex, height) => {
+        const h = height || 5.5;
+        needsPage(h + 2);
+        if (rowIndex % 2 === 0) {
+            doc.setFillColor(...C.rowshade);
+            doc.rect(M, y - 3.5, TW, h, 'F');
+        }
+        cells.forEach(cell => {
+            if (cell.mono) {
+                mono(cell.text, cell.x, y, cell.size || 8, cell.color || C.dark);
             } else {
-                badge('MISS', M + 80, y, 254, 226, 226, 153, 27, 27);
+                setFont(cell.size || 8.5, cell.bold ? 'bold' : 'normal', cell.color || C.dark);
+                doc.text(String(cell.text), cell.x, y, cell.align ? {align: cell.align} : undefined);
             }
-            txt(r.matchedField ? (fieldLabel[r.matchedField] || r.matchedField) : '—', M + 105, y, 8, false, [100, 116, 139]);
-            txt(new Date(r.ts).toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'}), W - M - 18, y, 8, false, [100, 116, 139]);
-            y += 6;
         });
+        y += h;
+    };
+
+    const tableFooter = (note) => {
+        rule(y, M, W-M, 0.25, C.rule);
+        y += 3.5;
+        if (note) { txt(note, M, y, 7, 'italic', C.light); y += 5; }
+        else y += 2;
+    };
+
+    // ================================================================
+    // TITLE PAGE
+    // ================================================================
+    y = 42;
+
+    // Top rule — double weight
+    rule(y, M, W-M, 1, C.accent);
+    y += 1.5;
+    rule(y, M, W-M, 0.3, C.accent);
+    y += 10;
+
+    txt('Search Intelligence Report', M, y, 18, 'bold', C.accent);
+    y += 8;
+    txt('Supplementary Data — CFTR Variant Search Activity Analysis', M, y, 11, 'normal', C.mid);
+    y += 14;
+    // Institutional branding block
+    rule(y, M, W-M, 0.25, C.rule); y += 5;
+    txt(BRAND.group, M, y, 11, 'bold', C.accent);
+    y += 5.5;
+    txt('Servicio de Neumología  ·  Complejo Hospitalario Universitario de A Coruña (CHUAC)', M, y, 8.5, 'normal', C.mid);
+    y += 5;
+    rule(y, M, W-M, 0.25, C.rule); y += 5;
+
+    rule(y, M, W-M, 0.3, C.rule);
+    y += 8;
+
+    // Metadata block — like a journal paper
+    const metaRows = [
+        ['Research group', BRAND.group],
+        ['Department',     BRAND.department],
+        ['Hospital',       BRAND.hospitalFull],
+        ['Platform',       'Δ Helix CFTR Precision Medicine Platform'],
+        ['Report ID',      reportId],
+        ['Generated',      dateStr + '  ·  ' + now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'})],
+        ['Clinician site', hospital || 'Not specified'],
+        ['Coverage',       rate.total > 0 ? `${rate.hitRate}% query resolution rate over ${fmt(rate.total)} searches` : 'No searches recorded'],
+    ];
+    metaRows.forEach(([label, value]) => {
+        txt(label, M,      y, 9, 'bold',   C.mid);
+        txt(value, M + 36, y, 9, 'normal', C.dark);
+        y += 6;
+    });
+
+    y += 6;
+    rule(y, M, W-M, 0.3, C.rule);
+    y += 10;
+
+    // Abstract
+    txt('Abstract', M, y, 10, 'bold', C.dark);
+    y += 6;
+    const hitRate = rate.total > 0 ? rate.hitRate : 0;
+    const abstract =
+        `This report summarises CFTR variant search activity recorded by the ${BRAND.group} research group ` +
+        `(${BRAND.department}, ${BRAND.hospitalFull}) on the Δ Helix precision medicine platform. ` +
+        `A total of ${fmt(rate.total)} search events were analysed, of which ${fmt(rate.hits)} (${hitRate}%) resolved ` +
+        `to a known variant entry across the three primary nomenclature fields (legacy name, HGVS protein notation, cDNA notation). ` +
+        `${fmt(si.globalMisses.size)} unique query terms returned no result, representing potential gaps in database coverage ` +
+        `that may warrant targeted literature review or variant curation.` +
+        (hospital ? ` Session attributed to: ${hospital}.` : '');
+
+    const abstractLines = doc.splitTextToSize(abstract, TW);
+    setFont(9, 'normal', C.dark);
+    abstractLines.forEach(line => { doc.text(line, M, y); y += 5; });
+
+    y += 6;
+    rule(y, M, W-M, 1, C.accent);
+    y += 0.8;
+    rule(y, M, W-M, 0.3, C.accent);
+
+    // Confidential footer on title page
+    txt(BRAND.full, W/2, 280, 7.5, 'normal', C.mid, 'center');
+    txt('CONFIDENTIAL — For authorised clinical and research personnel only', W/2, 286, 7, 'italic', C.light, 'center');
+
+    // ================================================================
+    // PAGE 2 ONWARDS — Content
+    // ================================================================
+    doc.addPage();
+    setFont(7, 'normal', C.verylight);
+    doc.text(BRAND.full + '  —  Search Intelligence Report', M, 8);
+    doc.text(reportId, W-M, 8, {align:'right'});
+    rule(10, M, W-M, 0.2, C.rule);
+    y = 22;
+
+    // ================================================================
+    // SECTION 1 — Activity summary
+    // ================================================================
+    sectionHeader('Activity Summary');
+    tableCaption('Key performance indicators for the recorded search period.');
+
+    const kpiCols = [
+        {label:'Metric',       x: M,          w: 80},
+        {label:'Value',        x: M+82,       w: 30},
+        {label:'Notes',        x: M+115,      w: 60},
+    ];
+    tableHeader(kpiCols);
+
+    const kpiRows = [
+        ['Research group',                BRAND.group,                 BRAND.department + '  ·  ' + BRAND.hospital],
+        ['Total search events',           fmt(rate.total),             'Unique settled queries after debounce'],
+        ['Queries with result (hits)',     fmt(rate.hits),              'Matched in legacy, protein, or cDNA field'],
+        ['Queries without result (misses)',fmt(rate.misses),            'Logged to research gap queue'],
+        ['Query resolution rate',         `${hitRate}%`,               'Hits / total searches'],
+        ['Unique query terms',            fmt(si.globalHits.size + si.globalMisses.size), 'Distinct search strings'],
+        ['Open miss queue entries',       fmt(si.globalMisses.size),   'Unresolved, awaiting curation'],
+        ['Clinician site',                hospital || 'Not specified',  'As entered on first platform use'],
+    ];
+    kpiRows.forEach(([metric, value, note], i) => {
+        tableRow([
+            {text: metric, x: M,    size: 8.5},
+            {text: value,  x: M+82, size: 8.5, bold: true, color: C.accent, mono: true},
+            {text: note,   x: M+115,size: 7.5, color: C.mid},
+        ], i);
+    });
+    tableFooter();
+
+    // ================================================================
+    // SECTION 2 — Variant search frequency
+    // ================================================================
+    sectionHeader('Variant Search Frequency');
+    tableCaption('Queries resolved to a known CFTR variant, with clinical annotation. Sorted by search frequency descending.');
+
+    const hitCols = [
+        {label:'Rank',         x: M,       },
+        {label:'Variant (legacy name)', x: M+10},
+        {label:'CFTR class',   x: M+82,    },
+        {label:'ETI prediction',x: M+100,  },
+        {label:'Validations',  x: M+132,   },
+        {label:'n searches',   x: W-M, align:'right'},
+    ];
+    tableHeader(hitCols);
+
+    const topHits = getTopSearchHits(25);
+    topHits.forEach((h, i) => {
+        needsPage(7);
+        const v = STATE.variants.find(vv => vv.legacy_name.toLowerCase() === h.query.toLowerCase());
+        const etiLabel = v ? (v.eti_prediction === 'responsive' ? 'Responsive'
+            : v.eti_prediction === 'non_responsive' ? 'Non-responsive' : 'Unknown') : '—';
+        const valStr = v ? (v.validation_count > 0 ? v.validation_count + '' : '0') : '—';
+        tableRow([
+            {text: String(i+1).padStart(2,'0'), x: M, size:8, color: C.light},
+            {text: h.query, x: M+10, mono: true, size: 8.5},
+            {text: v ? ('Class ' + (v.cftr_class||'—')) : '—', x: M+82,  size:8, color: C.mid},
+            {text: etiLabel,  x: M+100, size:8, color: C.mid},
+            {text: valStr,    x: M+132, size:8, color: C.mid},
+            {text: fmt(h.count), x: W-M, size:8.5, bold:true, align:'right'},
+        ], i);
+    });
+    tableFooter('ETI prediction: based on variant class rules and available evidence. Validation count reflects clinician-confirmed records.');
+
+    // ================================================================
+    // SECTION 3 — Unresolved query analysis
+    // ================================================================
+    const topMisses = getTopMisses(25);
+    if (topMisses.length) {
+        sectionHeader('Unresolved Query Analysis');
+        tableCaption('Search terms that returned no result, ranked by number of unique users. These represent candidate variants for database expansion.');
+
+        const missCols = [
+            {label:'Rank',           x: M},
+            {label:'Query term',     x: M+10},
+            {label:'Unique users',   x: M+90},
+            {label:'Total searches', x: M+115},
+            {label:'Status',         x: M+145},
+        ];
+        tableHeader(missCols);
+
+        topMisses.forEach((m, i) => {
+            needsPage(7);
+            const statusMap = {pending:'Awaiting review', in_review:'Under review', resolved:'Resolved'};
+            tableRow([
+                {text: String(i+1).padStart(2,'0'), x: M, size:8, color: C.light},
+                {text: m.query, x: M+10, mono: true, size: 8.5},
+                {text: fmt(m.sessions),  x: M+90,  size:8.5, bold:true},
+                {text: fmt(m.count),     x: M+115, size:8},
+                {text: statusMap[m.status] || 'Awaiting review', x: M+145, size:7.5, color: C.mid},
+            ], i);
+        });
+        tableFooter('Queries from multiple unique users are prioritised. A query appearing across ≥5 distinct sessions warrants expedited curation.');
     }
 
-    // ---- Footer on every page ----
+    // ================================================================
+    // SECTION 4 — Geographic distribution
+    // ================================================================
+    const loc = si.locationCache;
+    if (loc && loc.city) {
+        sectionHeader('Geographic Context');
+        tableCaption('Session origin derived from IP-based geolocation. Precision: city level.');
+        tableHeader([
+            {label:'Field', x:M}, {label:'Value', x:M+50}
+        ]);
+        const geoRows = [
+            ['City',    loc.city    || '—'],
+            ['Region',  loc.region  || '—'],
+            ['Country', loc.country || '—'],
+            ['Source',  'ipapi.co (IP geolocation, city-level precision)'],
+            ['Note',    'VPN or institutional proxy may affect accuracy'],
+        ];
+        geoRows.forEach(([f,v], i) => {
+            tableRow([
+                {text:f, x:M,    size:8.5, bold:true, color:C.mid},
+                {text:v, x:M+50, size:8.5},
+            ], i);
+        });
+        tableFooter();
+    }
+
+    // ================================================================
+    // SECTION 5 — Complete search log
+    // ================================================================
+    sectionHeader('Complete Search Log');
+
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/search_logs?select=query,is_hit,matched_field,city,hospital_name,searched_at&order=searched_at.desc&limit=300`,
+            { headers: {'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`} }
+        );
+        const dbHistory = res.ok ? await res.json() : [];
+        tableCaption(`Full search event log (most recent ${dbHistory.length} events). Fields: query term, resolution status, matched nomenclature field, location.`);
+
+        const logCols = [
+            {label:'Query',          x:M},
+            {label:'Result',         x:M+68},
+            {label:'Field matched',  x:M+84},
+            {label:'City',           x:M+120},
+            {label:'Date / Time (UTC)', x:W-M, align:'right'},
+        ];
+        tableHeader(logCols);
+
+        const fLabel = {legacy_name:'Legacy', protein_name:'Protein', cdna_name:'cDNA', alt_names:'Alt'};
+
+        dbHistory.forEach((r, i) => {
+            needsPage(6);
+            const qd = (r.query||'').length > 28 ? r.query.slice(0,26)+'…' : r.query;
+            const dt = new Date(r.searched_at);
+            const dtStr = dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) +
+                          '  ' + dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+            tableRow([
+                {text:qd,                    x:M,     mono:true, size:8},
+                {text:r.is_hit?'HIT':'MISS', x:M+68,  size:8, bold:true,
+                    color: r.is_hit ? [20,100,40] : [150,30,30]},
+                {text:fLabel[r.matched_field]||'—', x:M+84,  size:8, color:C.mid},
+                {text:(r.city||'—').slice(0,14),    x:M+120, size:7.5, color:C.mid},
+                {text:dtStr,                 x:W-M,   size:7.5, color:C.mid, align:'right'},
+            ], i);
+        });
+        tableFooter('HIT = query resolved to a known variant. MISS = no matching record found in database.');
+    } catch(e) {
+        txt('Search log unavailable — database connection required.', M, y, 9, 'italic', C.light);
+        y += 8;
+    }
+
+    // ================================================================
+    // FOOTER on every page
+    // ================================================================
     const pageCount = doc.getNumberOfPages();
     for (let p = 1; p <= pageCount; p++) {
         doc.setPage(p);
-        line(M, 285, W - M, 285, [226, 232, 240]);
-        txt('Δ Helix — CFTR Precision Medicine Platform', M, 290, 7, false, [148, 163, 184]);
-        txt('Page ' + p + ' of ' + pageCount, W - M - 20, 290, 7, false, [148, 163, 184]);
-        txt('CONFIDENTIAL — For clinical use only', W / 2, 290, 7, false, [200, 200, 200]);
+        rule(283, M, W-M, 0.35, C.rule);
+        setFont(7, 'normal', C.light);
+        doc.text(BRAND.full, M, 288);
+        doc.text('CONFIDENTIAL', W/2, 288, {align:'center'});
+        doc.text(`S-${p} / S-${pageCount}`, W-M, 288, {align:'right'});
     }
 
-    doc.save('helix-search-report-' + now.toISOString().split('T')[0] + '.pdf');
-    showNotification('PDF report downloaded', 'success');
+    const fname = 'neumACt-search-supplement-' + now.toISOString().split('T')[0] + '.pdf';
+    doc.save(fname);
+    showNotification(`Report downloaded — ${pageCount} page${pageCount>1?'s':''}`, 'success');
 }
+
 
 // ---- Search Intelligence text export ----
 function exportSearchReport() {
@@ -4023,6 +4641,7 @@ function renderVariantList() {
                     </span>
                     ${valCount > 0 ? `<span class="val-badge"><i class="fas fa-check-circle" style="font-size:9px"></i>${valCount}</span>` : ''}
                     ${hasMissing ? `<span class="missing-pip" title="Missing clinical data"></span>` : ''}
+                    ${(v.search_hit_count||0) >= 5 && valCount === 0 ? `<span class="gap-alert" title="Searched ${v.search_hit_count} times — needs validation"></span>` : ''}
                 </div>
             </div>
             <div class="collapsed-icon-row ${cls}" style="background:${clsBg[cls]||clsBg.cx};color:${clsColor[cls]||clsColor.cx};font-weight:700;font-size:11px;">
@@ -4040,6 +4659,9 @@ function renderVariantDetail(variant) {
     document.getElementById('detailEmpty').classList.add('hidden');
     const container = document.getElementById('variantDetail');
     container.classList.remove('hidden');
+    // Run gap analysis — updates intel strip and registers in gap queue
+    const gap = analyseAndRegisterGap(variant);
+    setTimeout(() => updateIntelStrip(variant, gap), 50);
 
     const cls = variant.cftr_class ? `c${variant.cftr_class.toLowerCase()}` : 'cx';
     const isResponsive = variant.eti_prediction === 'responsive';
@@ -4053,6 +4675,7 @@ function renderVariantDetail(variant) {
     const etiSub = isResponsive ? 'Predicted to respond to elexacaftor/tezacaftor/ivacaftor' :
                    isNonResponsive ? 'Not predicted to respond to current modulators' :
                    'Insufficient data to predict ETI response';
+    const gap = calculateGapScore(variant);
 
     // Evidence links
     const evidenceLinks = variant.evidence_links || [];
@@ -4104,6 +4727,16 @@ function renderVariantDetail(variant) {
                 </div>
                 ${variant.date_updated ? `<span style="font-size:10px;color:var(--text-tertiary)">Updated ${formatDate(variant.date_updated)}</span>` : ''}
             </div>
+        </div>
+
+        <!-- AMBIENT INTELLIGENCE STRIP -->
+        <div class="intel-strip" id="intelStrip">
+            <span style="color:var(--text-tertiary);font-size:9px;letter-spacing:.06em;text-transform:uppercase;margin-right:4px;">Intelligence</span>
+            <span id="intelSearchCount" class="intel-pill neutral" style="display:none;"></span>
+            <span id="intelTrending"    class="intel-pill trending" style="display:none;"></span>
+            <span id="intelMissRef"     class="intel-pill miss"    style="display:none;"></span>
+            <span id="intelGapAlert"    class="intel-pill gap"     style="display:none;"></span>
+            <span id="intelLastSearch"  style="font-size:9px;color:var(--text-tertiary);margin-left:auto;display:none;"></span>
         </div>
 
         <!-- NOMENCLATURE ROW -->
@@ -4600,25 +5233,108 @@ function clearManualForm() {
     });
 }
 
+// ---- Import validation constants (mirror DB constraints) ----
+const VALID_ETI       = ['responsive','non_responsive','unknown'];
+const VALID_CLASS     = ['I','II','III','IV','V','VI'];
+const VALID_SUBTYPE   = ['true','presumed','exceptional','atypical','standard'];
+
+function normalizeImportName(s) {
+    return (s || '').toLowerCase().trim().replace(/\s+/g,' ');
+}
+
 function validateImport() {
     const results = document.getElementById('importResults');
     const btn = document.getElementById('executeImportBtn');
     try {
         const parsed = JSON.parse(document.getElementById('jsonInput').value.trim());
         const arr = Array.isArray(parsed) ? parsed : [parsed];
-        const required = ['variant_legacy_name','variant_protein_name','variant_cDNA_name','variant_final_determination'];
-        const errors = arr.map((item,i) => required.filter(f => !item[f]).map(f => `Item ${i+1}: missing ${f}`)).flat();
-        if (errors.length) {
-            results.innerHTML = `<div style="background:var(--error-bg);border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:12px;color:var(--error);">${errors.join('<br>')}</div>`;
-            btn.disabled = true; STATE.ui.validatedJson = null;
-        } else {
-            STATE.ui.validatedJson = arr.length === 1 ? arr[0] : arr;
-            results.innerHTML = `<div style="background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.3);border-radius:8px;padding:12px;font-size:12px;color:var(--success);">✓ Valid — ${arr.length} variant(s) ready to import</div>`;
-            btn.disabled = false;
-        }
+        previewImportBatch(arr, results, btn);
     } catch(e) {
-        results.innerHTML = `<div style="background:var(--error-bg);border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:12px;color:var(--error);">Invalid JSON: ${e.message}</div>`;
+        results.innerHTML = `<div style="background:var(--error-bg);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:12px;font-size:12px;color:var(--error);">Invalid JSON: ${e.message}</div>`;
         btn.disabled = true; STATE.ui.validatedJson = null;
+    }
+}
+
+function previewImportBatch(arr, resultsEl, btn) {
+    const required = ['variant_legacy_name','variant_protein_name','variant_cDNA_name','variant_final_determination'];
+    const rows = arr.map((item, i) => {
+        const rowErrors = [];
+        // Required field check
+        required.forEach(f => { if (!item[f]) rowErrors.push(`missing ${f}`); });
+        // Constraint validation
+        if (item.eti_prediction && !VALID_ETI.includes(item.eti_prediction))
+            rowErrors.push(`eti_prediction '${item.eti_prediction}' invalid — must be: ${VALID_ETI.join('/')}`);
+        if (item.cftr_class && !VALID_CLASS.includes(item.cftr_class))
+            rowErrors.push(`cftr_class '${item.cftr_class}' invalid — must be: ${VALID_CLASS.join('/')}`);
+        if (item.class_subtype && !VALID_SUBTYPE.includes(item.class_subtype))
+            rowErrors.push(`class_subtype '${item.class_subtype}' invalid`);
+        // Normalise name for duplicate check
+        const normName = normalizeImportName(item.variant_legacy_name);
+        // Case-insensitive duplicate check across all three nomenclature fields
+        const dupByLegacy   = STATE.variants.find(v => normalizeImportName(v.legacy_name)  === normName);
+        const dupByProtein  = item.variant_protein_name ? STATE.variants.find(v => v.protein_name && normalizeImportName(v.protein_name) === normalizeImportName(item.variant_protein_name)) : null;
+        const dupByCdna     = item.variant_cDNA_name    ? STATE.variants.find(v => v.cdna_name    && normalizeImportName(v.cdna_name)    === normalizeImportName(item.variant_cDNA_name))    : null;
+        const isDup  = !!dupByLegacy;
+        const hasConflict = !isDup && (dupByProtein || dupByCdna);
+        return { item, rowErrors, isDup, hasConflict, dupBy: dupByLegacy || dupByProtein || dupByCdna, rowNum: i+1 };
+    });
+
+    const hasErrors   = rows.some(r => r.rowErrors.length > 0);
+    const newCount    = rows.filter(r => !r.isDup && !r.hasConflict && !r.rowErrors.length).length;
+    const dupCount    = rows.filter(r => r.isDup).length;
+    const errCount    = rows.filter(r => r.rowErrors.length > 0).length;
+    const conflCount  = rows.filter(r => r.hasConflict).length;
+
+    // Summary bar
+    let summaryColor = newCount > 0 ? 'rgba(52,211,153,0.07)' : 'var(--error-bg)';
+    let summaryBorder = newCount > 0 ? 'rgba(52,211,153,0.3)' : 'rgba(248,113,113,0.3)';
+    let summaryText = `<span style="color:var(--success)">✓ ${newCount} new</span>`;
+    if (dupCount)   summaryText += ` · <span style="color:#fbbf24">⚠ ${dupCount} duplicate${dupCount>1?'s':''} (will update)</span>`;
+    if (conflCount) summaryText += ` · <span style="color:#60a5fa">~ ${conflCount} protein/cDNA conflict${conflCount>1?'s':''}</span>`;
+    if (errCount)   summaryText += ` · <span style="color:var(--error)">✗ ${errCount} error${errCount>1?'s':''} (will skip)</span>`;
+
+    // Preview table
+    const tableRows = rows.slice(0,50).map(r => {
+        const cls = r.rowErrors.length ? 'err' : r.isDup ? 'dup' : '';
+        const status = r.rowErrors.length
+            ? `<span style="color:#f87171;font-size:9px;">${r.rowErrors[0]}</span>`
+            : r.isDup
+                ? `<span style="color:#fbbf24;font-size:9px;">UPDATE existing</span>`
+                : r.hasConflict
+                    ? `<span style="color:#60a5fa;font-size:9px;">protein/cDNA conflict</span>`
+                    : `<span style="color:#4ade80;font-size:9px;">NEW</span>`;
+        return `<tr class="${cls}">
+            <td>${r.rowNum}</td>
+            <td>${escapeHTML(r.item.variant_legacy_name||'—')}</td>
+            <td>${escapeHTML(r.item.cftr_class||'—')}</td>
+            <td>${escapeHTML(r.item.eti_prediction||'—')}</td>
+            <td>${status}</td>
+        </tr>`;
+    }).join('');
+
+    resultsEl.innerHTML = `
+        <div style="background:${summaryColor};border:1px solid ${summaryBorder};border-radius:8px;padding:10px 12px;font-size:12px;margin-bottom:8px;">
+            ${summaryText}${rows.length > 50 ? ` · showing first 50 of ${rows.length}` : ''}
+        </div>
+        <div class="import-preview">
+            <table>
+                <thead><tr><th>#</th><th>Legacy name</th><th>Class</th><th>ETI</th><th>Status</th></tr></thead>
+                <tbody>${tableRows}</tbody>
+            </table>
+        </div>
+        <div class="preview-legend">
+            <span class="pl-dot" style="background:rgba(74,222,128,0.3);"></span>New
+            <span class="pl-dot" style="background:rgba(251,191,36,0.3);"></span>Duplicate → update
+            <span class="pl-dot" style="background:rgba(248,113,113,0.3);"></span>Error → skip
+        </div>`;
+
+    // Only allow execute if at least one valid row
+    if (newCount > 0 || dupCount > 0) {
+        STATE.ui.validatedJson = arr;
+        if (btn) btn.disabled = false;
+    } else {
+        STATE.ui.validatedJson = null;
+        if (btn) btn.disabled = true;
     }
 }
 
@@ -4627,76 +5343,149 @@ async function executeJsonImport() {
     const btn = document.getElementById('executeImportBtn');
     btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing…';
     const arr = Array.isArray(STATE.ui.validatedJson) ? STATE.ui.validatedJson : [STATE.ui.validatedJson];
-    let added = 0, updated = 0;
+
+    let added = 0, updated = 0, skipped = 0;
+    const errors = [];
+    const importTs = new Date().toISOString();
+
     for (const data of arr) {
-        const exists = STATE.variantsByLegacyName.get(data.variant_legacy_name);
+        // Skip rows with constraint violations
+        if (data.eti_prediction && !VALID_ETI.includes(data.eti_prediction)) { skipped++; errors.push(`${data.variant_legacy_name}: invalid eti_prediction '${data.eti_prediction}'`); continue; }
+        if (data.cftr_class    && !VALID_CLASS.includes(data.cftr_class))     { skipped++; errors.push(`${data.variant_legacy_name}: invalid cftr_class '${data.cftr_class}'`); continue; }
+
+        // Normalise legacy name
+        const normName = normalizeImportName(data.variant_legacy_name);
+        const exists = STATE.variants.find(v => normalizeImportName(v.legacy_name) === normName);
+
         try {
             if (exists) {
-                await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${exists.id}`, {
+                const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants?id=eq.${exists.id}`, {
                     method: 'PATCH',
                     headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-                    body: JSON.stringify({ 
-                        protein_name: data.variant_protein_name, 
-                        cdna_name: data.variant_cDNA_name, 
-                        final_determination: data.variant_final_determination, 
-                        cftr_class: data.cftr_class||null, 
-                        eti_prediction: data.eti_prediction||null, 
-                        updated_at: new Date().toISOString() 
+                    body: JSON.stringify({
+                        protein_name:       data.variant_protein_name || exists.protein_name,
+                        cdna_name:          data.variant_cDNA_name    || exists.cdna_name,
+                        final_determination: data.variant_final_determination || exists.final_determination,
+                        cftr_class:         data.cftr_class    || exists.cftr_class    || null,
+                        eti_prediction:     data.eti_prediction|| exists.eti_prediction|| null,
+                        updated_at: importTs
                     })
                 });
+                if (!res.ok) { const t=await res.text(); errors.push(`${data.variant_legacy_name}: update failed (${res.status}) ${t.slice(0,80)}`); skipped++; continue; }
+                // Update local state
+                Object.assign(exists, { protein_name: data.variant_protein_name||exists.protein_name, cdna_name: data.variant_cDNA_name||exists.cdna_name, cftr_class: data.cftr_class||exists.cftr_class, eti_prediction: data.eti_prediction||exists.eti_prediction });
                 updated++;
             } else {
                 const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants`, {
                     method: 'POST',
                     headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-                    body: JSON.stringify({ 
-                        legacy_name: data.variant_legacy_name, 
-                        protein_name: data.variant_protein_name, 
-                        cdna_name: data.variant_cDNA_name, 
-                        final_determination: data.variant_final_determination, 
-                        cftr_class: data.cftr_class||null, 
-                        eti_prediction: data.eti_prediction||null, 
-                        data_status: 'minimal', 
-                        source_summary: 'Manual_JSON_Import', 
-                        validation_count: 0, 
-                        created_at: new Date().toISOString(), 
-                        updated_at: new Date().toISOString() 
+                    body: JSON.stringify({
+                        legacy_name:        data.variant_legacy_name.trim(),
+                        protein_name:       data.variant_protein_name||null,
+                        cdna_name:          data.variant_cDNA_name||null,
+                        alt_names:          data.alt_names||null,
+                        final_determination: data.variant_final_determination||null,
+                        cftr_class:         data.cftr_class||null,
+                        class_subtype:      data.class_subtype||null,
+                        eti_prediction:     data.eti_prediction||null,
+                        data_status:        'minimal',
+                        source_summary:     data.source_summary || 'Manual_Import',
+                        validation_count:   0,
+                        created_at:         importTs,
+                        updated_at:         importTs
                     })
                 });
-                if (res.ok) { const d = await res.json(); STATE.variants.push(d[0]||data); added++; }
+                if (!res.ok) { const t=await res.text(); errors.push(`${data.variant_legacy_name}: insert failed (${res.status}) ${t.slice(0,80)}`); skipped++; continue; }
+                const saved = await res.json();
+                const newV = saved[0] || saved;
+                STATE.variants.push(newV);
+                added++;
+                // Cross-reference miss queue — resolve if this variant answers a miss
+                resolveMissQueueForVariant(newV);
             }
-        } catch(e) { console.error(e); }
+        } catch(e) {
+            errors.push(`${data.variant_legacy_name}: ${e.message}`);
+            skipped++;
+        }
     }
+
+    // Rebuild indices
     STATE.variantsById = new Map(STATE.variants.map(v=>[v.id,v]));
     STATE.variantsByLegacyName = new Map(STATE.variants.map(v=>[v.legacy_name,v]));
     buildSearchIndex(); calculateMasterStats(); updateHeaderStats(); updateFilterChips();
     STATE.view.filteredVariants = [...STATE.variants];
     applyFilterChain();
-    showNotification(`Added ${added}, updated ${updated}`, 'success');
+
+    // Show detailed result
+    const parts = [];
+    if (added)   parts.push(`${added} added`);
+    if (updated) parts.push(`${updated} updated`);
+    if (skipped) parts.push(`${skipped} skipped`);
+    showNotification(parts.join(', ') || 'No changes', added||updated ? 'success' : 'warning');
+
+    if (errors.length) {
+        const resultsEl = document.getElementById('importResults');
+        if (resultsEl) {
+            resultsEl.innerHTML += `<div style="background:var(--error-bg);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--error);margin-top:8px;max-height:120px;overflow-y:auto;">
+                <strong>Errors (${errors.length}):</strong><br>${errors.map(e=>escapeHTML(e)).join('<br>')}
+            </div>`;
+            return; // don't auto-close if there were errors
+        }
+    }
+
     clearImportForm();
     setTimeout(closeImportModal, 1200);
+}
+
+// Cross-reference miss queue when a new variant is added
+async function resolveMissQueueForVariant(variant) {
+    const fields = [variant.legacy_name, variant.protein_name, variant.cdna_name, variant.alt_names].filter(Boolean);
+    const si = STATE.searchIntelligence;
+    let resolved = 0;
+    si.globalMisses.forEach((data, query) => {
+        if (fields.some(f => f.toLowerCase().includes(query) || query.includes(f.toLowerCase()))) {
+            // Update miss queue status in DB
+            fetch(`${CONFIG.SUPABASE.URL}/rest/v1/search_miss_queue?query=eq.${encodeURIComponent(query)}`, {
+                method: 'PATCH',
+                headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                body: JSON.stringify({ status: 'resolved', resolved_variant_id: variant.id, resolved_at: new Date().toISOString() })
+            }).catch(()=>{});
+            resolved++;
+        }
+    });
+    if (resolved) showNotification(`${resolved} miss queue item${resolved>1?'s':''} auto-resolved`, 'success');
 }
 
 async function submitManualForm() {
     const name = document.getElementById('formLegacyName').value.trim();
     const prot = document.getElementById('formProteinName').value.trim();
     const cdna = document.getElementById('formCdnaName').value.trim();
-    const det = document.getElementById('formDetermination').value;
+    const det  = document.getElementById('formDetermination').value;
     if (!name || !prot || !cdna || !det) { showNotification('Please fill required fields', 'warning'); return; }
-    
+
+    const eti   = document.getElementById('formEtiResponse').value || null;
+    const cls   = document.getElementById('formClass').value || null;
+    const sub   = document.getElementById('formClassSubtype').value || null;
+
+    // Validate against constraints before submitting
+    if (eti && !VALID_ETI.includes(eti))     { showNotification(`Invalid ETI value: ${eti}`, 'error'); return; }
+    if (cls && !VALID_CLASS.includes(cls))   { showNotification(`Invalid CFTR class: ${cls}`, 'error'); return; }
+    if (sub && !VALID_SUBTYPE.includes(sub)) { showNotification(`Invalid subtype: ${sub}`, 'error'); return; }
+
     const formData = {
-        variant_legacy_name: name,
-        variant_protein_name: prot,
-        variant_cDNA_name: cdna,
+        variant_legacy_name:        name,          // already trimmed
+        variant_protein_name:       prot,
+        variant_cDNA_name:          cdna,
         variant_final_determination: det,
-        cftr_class: document.getElementById('formClass').value || null,
-        class_subtype: document.getElementById('formClassSubtype').value || null,
-        class_confidence: document.getElementById('formConfidence').value || null,
-        eti_prediction: document.getElementById('formEtiResponse').value || null,
-        eti_evidence_level: document.getElementById('formEvidenceLevel').value || null,
-        eti_recommendation: document.getElementById('formRecommendation').value.trim() || null
+        cftr_class:                 cls,
+        class_subtype:              sub,
+        class_confidence:           document.getElementById('formConfidence').value || null,
+        eti_prediction:             eti,
+        eti_evidence_level:         document.getElementById('formEvidenceLevel').value || null,
+        eti_recommendation:         document.getElementById('formRecommendation').value.trim() || null,
+        source_summary:             'Manual_Form'
     };
-    
+
     STATE.ui.validatedJson = formData;
     await executeJsonImport();
 }
@@ -4737,73 +5526,59 @@ function initializeBulkImport() {
 }
 
 function handleCSVFile(file) {
-    if (!file.name.endsWith('.csv')) {
-        showNotification('Please upload a CSV file', 'error');
+    if (!file.name.match(/\.(csv|tsv|txt)$/i)) {
+        showNotification('Please upload a CSV, TSV or TXT file', 'error');
         return;
     }
-    
+
     const reader = new FileReader();
-    reader.onload = async (e) => {
+    reader.onload = (e) => {
         try {
-            showNotification(`Parsing ${file.name}...`, 'info', 2000);
-            
-            const content = e.target.result;
-            const lines = content.trim().split('\n');
-            const headers = lines[0].split('\t').map(h => h.trim());
-            
-            const requiredHeaders = ['variant_legacy_name', 'variant_protein_name', 
-                                   'variant_cDNA_name', 'variant_final_determination'];
-            
-            const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
-            if (missingHeaders.length > 0) {
-                throw new Error(`Missing columns: ${missingHeaders.join(', ')}`);
-            }
-            
+            showNotification(`Parsing ${file.name}…`, 'info', 2000);
+            const raw = e.target.result;
+            const lines = raw.trim().split(/\r?\n/);
+
+            // Auto-detect separator — tab vs comma vs semicolon
+            const firstLine = lines[0];
+            const tabCount   = (firstLine.match(/\t/g)   || []).length;
+            const commaCount = (firstLine.match(/,/g)     || []).length;
+            const semiCount  = (firstLine.match(/;/g)     || []).length;
+            const sep = tabCount >= commaCount && tabCount >= semiCount ? '\t'
+                      : commaCount >= semiCount ? ',' : ';';
+
+            const headers = firstLine.split(sep).map(h => h.trim().replace(/^"|"$/g,''));
+            const required = ['variant_legacy_name','variant_protein_name','variant_cDNA_name','variant_final_determination'];
+            const missing  = required.filter(h => !headers.includes(h));
+            if (missing.length) throw new Error(`Missing columns: ${missing.join(', ')}`);
+
             const variants = [];
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
-                
-                const values = lines[i].split('\t');
-                const variant = {};
-                
-                headers.forEach((header, index) => {
-                    variant[header] = values[index]?.trim() || '';
-                });
-                
-                const missing = requiredHeaders.filter(f => !variant[f]);
-                if (missing.length > 0) {
-                    showNotification(`Skipping row ${i + 1}: missing ${missing.join(', ')}`, 'warning', 3000);
+                const values = lines[i].split(sep).map(v => v.trim().replace(/^"|"$/g,''));
+                const row = {};
+                headers.forEach((h, idx) => { row[h] = values[idx] || ''; });
+                const missingFields = required.filter(f => !row[f]);
+                if (missingFields.length) {
+                    console.warn(`Row ${i+1} skipped: missing ${missingFields.join(', ')}`);
                     continue;
                 }
-                
-                variants.push(variant);
+                variants.push(row);
             }
-            
-            if (variants.length === 0) {
-                throw new Error('No valid variants found in CSV');
-            }
-            
-            STATE.ui.validatedJson = variants;
-            
-            const resultsDiv = document.getElementById('importResults');
-            resultsDiv.innerHTML = `
-                <div style="background:var(--success-bg);border:1px solid rgba(52,211,153,0.3);border-radius:8px;padding:12px;font-size:12px;color:var(--success);">
-                    ✓ CSV parsed successfully — ${variants.length} variants ready to import
-                </div>
-            `;
-            
-            await executeJsonImport();
-            
-        } catch (error) {
-            console.error('CSV parsing failed:', error);
-            showNotification(`CSV import failed: ${error.message}`, 'error');
+
+            if (!variants.length) throw new Error('No valid rows found');
+
+            // Show preview — do NOT auto-execute
+            const btn = document.getElementById('executeImportBtn');
+            const resultsEl = document.getElementById('importResults');
+            previewImportBatch(variants, resultsEl, btn);
+            showNotification(`${variants.length} rows parsed (${sep==='\t'?'TAB':sep===',' ?'comma':'semicolon'}-separated) — review and confirm`, 'info');
+
+        } catch(err) {
+            console.error('CSV parse error:', err);
+            showNotification(`CSV error: ${err.message}`, 'error');
         }
     };
-    
-    reader.onerror = () => {
-        showNotification('Failed to read file', 'error');
-    };
-    
+    reader.onerror = () => showNotification('Failed to read file', 'error');
     reader.readAsText(file);
 }
 
@@ -4893,7 +5668,8 @@ async function saveEvidenceLink() {
                 url, 
                 source: source || type,
                 notes: notes || null,
-                date_added: new Date().toISOString() 
+                date_added: new Date().toISOString(),
+                fingerprint: btoa(encodeURIComponent((url||'').slice(0,60))).slice(0,40)
             })
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -5021,35 +5797,52 @@ function closeDashboard() {
 }
 
 function setDashTab(tab, btn) {
-    // Toggle clinical vs search intelligence panels
-    const clinicalEls = ['dash-kpis','dash-grid'];
-    document.querySelectorAll('.dash-kpis, .dash-grid, [id^="dash-card"]').forEach(el => {});
-    // Clinical panel = all children of modal-body except siPanel
+    const panelIds = ['siPanel','gapPanel','commandPanel'];
     const body = document.getElementById('dashModalBody');
+
+    // Show/hide clinical children (all except our panels)
     Array.from(body.children).forEach(el => {
-        if (el.id === 'siPanel') return;
+        if (panelIds.includes(el.id)) return;
         el.style.display = tab === 'clinical' ? '' : 'none';
     });
-    document.getElementById('siPanel').style.display = tab === 'search' ? 'block' : 'none';
-    document.getElementById('dashExportBtn').style.display = tab === 'search' ? 'none' : '';
-    document.getElementById('siExportBtn').style.display  = tab === 'search' ? '' : 'none';
-    // Update tab highlight
-    document.querySelectorAll('#dashModalTitle').forEach(el => {
-        el.textContent = tab === 'clinical' ? 'Analytics Dashboard' : 'Search Intelligence';
+
+    // Show/hide special panels
+    panelIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
     });
+    if (tab === 'search')  { const p = document.getElementById('siPanel');      if(p) p.style.display='block'; }
+    if (tab === 'gaps')    { const p = document.getElementById('gapPanel');     if(p) p.style.display='block'; }
+    if (tab === 'command') { const p = document.getElementById('commandPanel'); if(p) p.style.display='block'; }
+
+    // Export buttons
+    const expBtn  = document.getElementById('dashExportBtn');
+    const siBtn   = document.getElementById('siExportBtn');
+    if (expBtn) expBtn.style.display = (tab==='search'||tab==='gaps'||tab==='command') ? 'none' : '';
+    if (siBtn)  siBtn.style.display  = tab === 'search' ? '' : 'none';
+
+    // Title
+    const titles = {clinical:'Analytics Dashboard', search:'Search Intelligence', gaps:'Research Gaps', command:'Command Centre'};
+    document.querySelectorAll('#dashModalTitle').forEach(el => { el.textContent = titles[tab] || 'Analytics'; });
+
     document.querySelectorAll('[id^="dashTab-"]').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
-    if (tab === 'search') setTimeout(renderSICharts, 80);
+
+    if (tab === 'search')  setTimeout(renderSICharts, 80);
+    if (tab === 'gaps')    setTimeout(renderGapQueue, 80);
+    if (tab === 'command') setTimeout(renderCommandCentre, 80);
 }
 
 function setSITab(name, btn) {
-    ['overview','misses','recent','geo'].forEach(t => {
-        const el = document.getElementById('siPanel' + t.charAt(0).toUpperCase() + t.slice(1));
+    ['overview','misses','recent','geo','gaps'].forEach(t => {
+        const panel = 'siPanel' + t.charAt(0).toUpperCase() + t.slice(1);
+        const el = document.getElementById(panel);
         if (el) el.style.display = t === name ? 'block' : 'none';
     });
     document.querySelectorAll('.si-tab').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
-    if (name === 'geo') renderGeoTab();
+    if (name === 'geo')  renderGeoTab();
+    else if (name === 'gaps') renderGapQueue();
     else populateSITab(name);
 }
 
@@ -5429,6 +6222,745 @@ function showNotification(msg, type='info', duration=CONFIG.UI.NOTIFICATION_DURA
     if (duration > 0) setTimeout(() => n.remove(), duration);
 }
 
+// ========== RESEARCH GAP ENGINE ==========
+// Scores a variant 0-100 based on data completeness, evidence, and validation.
+// Persists to research_gaps table asynchronously. Never blocks the UI.
+
+const GAP_LEVELS = [
+    { level:'CRITICAL', min:80, color:'#f87171' },
+    { level:'SEVERE',   min:60, color:'#fb923c' },
+    { level:'MODERATE', min:40, color:'#fbbf24' },
+    { level:'MINOR',    min:20, color:'#60a5fa' },
+    { level:'ADEQUATE', min:0,  color:'#34d399' },
+];
+
+function getGapLevel(score) {
+    return GAP_LEVELS.find(g => score >= g.min) || GAP_LEVELS[GAP_LEVELS.length - 1];
+}
+
+function scoreVariantGap(variant) {
+    if (!variant) return null;
+
+    let score = 0;
+    const missing = [];
+    const recs    = [];
+
+    // ---- Field completeness (60 pts max) ----
+    if (!variant.cftr_class) {
+        score += 30;
+        missing.push('cftr_class');
+        recs.push('Assign CFTR functional class based on variant mechanism');
+    }
+    if (!variant.eti_prediction || variant.eti_prediction === 'unknown') {
+        score += 20;
+        missing.push('eti_prediction');
+        recs.push('Determine ETI (elexacaftor/tezacaftor/ivacaftor) response prediction');
+    }
+    if (!variant.final_determination) {
+        score += 10;
+        missing.push('final_determination');
+        recs.push('Assign clinical determination (CF-causing, VUS, etc.)');
+    }
+    if (!variant.protein_name) {
+        score += 5;
+        missing.push('protein_name');
+        recs.push('Add HGVS protein notation (p.Xxx000Xxx)');
+    }
+    if (!variant.cdna_name) {
+        score += 5;
+        missing.push('cdna_name');
+        recs.push('Add HGVS cDNA notation (c.XXXXXX)');
+    }
+    if (!variant.alt_names) {
+        score += 2;
+        missing.push('alt_names');
+        recs.push('Add alternate names to improve search recall');
+    }
+
+    // ---- Evidence chain (20 pts max) ----
+    const evidenceCount = (variant.evidence_links || []).length;
+    if (evidenceCount === 0) {
+        score += 20;
+        missing.push('evidence_links');
+        recs.push('Add at least one evidence source (PubMed, CFTR2, ClinVar)');
+    } else if (evidenceCount < 2) {
+        score += 8;
+        recs.push('Add additional evidence sources — single-source variants are fragile');
+    } else if (evidenceCount < 3) {
+        score += 3;
+    }
+
+    // ---- Validation (15 pts max) ----
+    const valCount = variant.validation_count || 0;
+    if (valCount === 0) {
+        score += 15;
+        missing.push('validation');
+        recs.push('Requires at least one clinical validation');
+    } else if (valCount < 2) {
+        score += 5;
+        recs.push('Consider a second independent validation');
+    }
+
+    // ---- Search signal bonus (5 pts) ----
+    // If frequently searched but still has gaps — urgency multiplier
+    const searchHits = variant.search_hit_count || 0;
+    if (searchHits >= 10 && score > 20) {
+        score += 5;
+        recs.push(`High clinical interest (${searchHits} searches) — prioritise data completion`);
+    } else if (searchHits >= 5 && score > 30) {
+        score += 3;
+    }
+
+    score = Math.min(100, score);
+    const gapLevel = getGapLevel(score);
+
+    return {
+        variant_id:    variant.id,
+        gap_score:     score,
+        gap_level:     gapLevel.level,
+        missing_types: missing,
+        recommendations: recs,
+        analyzed_at:   new Date().toISOString(),
+        color:         gapLevel.color
+    };
+}
+
+// Persist gap to DB — fire and forget
+async function persistGapScore(gap) {
+    if (!gap || !gap.variant_id) return;
+    try {
+        await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/research_gaps?variant_id=eq.${gap.variant_id}`,
+            {
+                method: 'GET',
+                headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` }
+            }
+        ).then(async res => {
+            const existing = await res.json();
+            const method   = existing.length ? 'PATCH' : 'POST';
+            const url      = existing.length
+                ? `${CONFIG.SUPABASE.URL}/rest/v1/research_gaps?variant_id=eq.${gap.variant_id}`
+                : `${CONFIG.SUPABASE.URL}/rest/v1/research_gaps`;
+            await fetch(url, {
+                method,
+                headers: {
+                    'apikey': CONFIG.SUPABASE.KEY,
+                    'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    variant_id:      gap.variant_id,
+                    gap_score:       gap.gap_score,
+                    gap_level:       gap.gap_level,
+                    missing_types:   JSON.stringify(gap.missing_types),
+                    recommendations: JSON.stringify(gap.recommendations),
+                    analyzed_at:     gap.analyzed_at
+                })
+            });
+        });
+    } catch(e) { /* silent */ }
+}
+
+// In-memory gap registry — grows as variants are selected
+const GAP_REGISTRY = new Map(); // variant_id → gap result
+
+function analyseAndRegisterGap(variant) {
+    if (!variant) return null;
+    const gap = scoreVariantGap(variant);
+    if (gap) {
+        GAP_REGISTRY.set(variant.id, gap);
+        variant._gap = gap;
+        persistGapScore(gap);
+        // Update sidebar chip
+        setTimeout(updateGapChip, 0);
+    }
+    return gap;
+}
+
+function renderGapQueue() {
+    const gaps = Array.from(GAP_REGISTRY.values())
+        .sort((a, b) => b.gap_score - a.gap_score);
+
+    const listEl    = document.getElementById('gapQueueList');
+    const noteEl    = document.getElementById('gapQueueNote');
+    const critEl    = document.getElementById('criticalGapNum');
+    const avgEl     = document.getElementById('avgGapScore');
+
+    if (!gaps.length) {
+        if (listEl) listEl.innerHTML = '<div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">Select variants to populate gap analysis.</div>';
+        return;
+    }
+
+    const critical  = gaps.filter(g => g.gap_level === 'CRITICAL').length;
+    const avgScore  = Math.round(gaps.reduce((s, g) => s + g.gap_score, 0) / gaps.length);
+
+    if (critEl) critEl.textContent = critical;
+    if (avgEl)  avgEl.textContent  = avgScore;
+    if (noteEl) noteEl.textContent = `${gaps.length} variant${gaps.length!==1?'s':''} scored`;
+
+    if (!listEl) return;
+    listEl.innerHTML = gaps.slice(0, 20).map(g => {
+        const v = STATE.variantsById.get(g.variant_id);
+        const name = v ? v.legacy_name : `ID ${g.variant_id}`;
+        const barColor = g.color;
+        const searches = v ? (v.search_hit_count || 0) : 0;
+        return `<div class="gap-queue-row" style="cursor:pointer;" onclick="selectVariant('${v ? escapeAttr(v.legacy_name) : ''}')">
+            <span class="gap-level-pill ${g.gap_level}">${g.gap_level}</span>
+            <div style="flex:1;min-width:0;">
+                <div class="gap-queue-name">${escapeHTML(name)}</div>
+                <div class="gap-score-bar" style="width:${g.gap_score}%;background:${barColor};opacity:.7;"></div>
+                <div class="gap-queue-meta">${g.missing_types.slice(0,3).join(' · ')}${g.missing_types.length > 3 ? ' +' + (g.missing_types.length - 3) + ' more' : ''}</div>
+                <div class="gap-recs">${g.recommendations.slice(0,2).map(r => `<span class="gap-rec">${escapeHTML(r)}</span>`).join('')}</div>
+            </div>
+            <div style="font-size:10px;font-family:var(--font-mono);color:var(--text-tertiary);text-align:right;flex-shrink:0;">
+                <div style="font-size:14px;font-weight:700;color:${barColor};">${g.gap_score}</div>
+                <div>${searches}×</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ========== HOSPITAL MANAGEMENT ==========
+
+const HOSPITAL_KEY  = 'helix_hospital_v1';
+const HOSPITAL_LIST_KEY = 'helix_hospital_list_v1';
+
+// Known hospitals — seeded list, grows from DB over time
+const HOSPITAL_SEEDS = [
+    'CHUAC — Complejo Hospitalario Universitario de A Coruña',
+    'Hospital Universitario Central de Asturias (HUCA)',
+    'Complejo Hospitalario Universitario de A Coruña (CHUAC)',
+    'Hospital Universitario La Paz — Madrid',
+    'Hospital Vall d'Hebron — Barcelona',
+    'Hospital Universitario Virgen del Rocío — Sevilla',
+    'Hospital Universitario 12 de Octubre — Madrid',
+    'Hospital Universitario La Fe — Valencia',
+    'Hospital Universitario Reina Sofía — Córdoba',
+    'Hospital Universitario Miguel Servet — Zaragoza',
+    'Hospital Clínic — Barcelona',
+    'Hospital Universitario Ramón y Cajal — Madrid',
+    'Hospital General Universitario Gregorio Marañón — Madrid',
+    'Hospital Universitario Marqués de Valdecilla — Santander',
+    'Hospital Universitario de Cruces — Bilbao',
+    'Complejo Hospitalario Universitario de Santiago (CHUS)',
+    'Hospital Universitario Son Espases — Palma',
+    'Other / International',
+];
+
+function getStoredHospital() {
+    try { return localStorage.getItem(HOSPITAL_KEY) || null; } catch { return null; }
+}
+
+function setStoredHospital(name) {
+    try {
+        localStorage.setItem(HOSPITAL_KEY, name);
+        // Add to known list
+        const list = getHospitalList();
+        if (name && !list.includes(name)) {
+            list.unshift(name);
+            localStorage.setItem(HOSPITAL_LIST_KEY, JSON.stringify(list.slice(0,50)));
+        }
+    } catch(e) {}
+}
+
+function getHospitalList() {
+    try {
+        const stored = JSON.parse(localStorage.getItem(HOSPITAL_LIST_KEY) || '[]');
+        // Merge with seeds, deduplicated
+        const all = [...new Set([...stored, ...HOSPITAL_SEEDS])];
+        return all;
+    } catch { return HOSPITAL_SEEDS; }
+}
+
+function initHospital() {
+    const stored = getStoredHospital();
+    if (stored) {
+        // Already set — show badge, don't prompt
+        updateHospitalBadge(stored);
+        STATE.searchIntelligence.hospital = stored;
+    } else {
+        // First visit — show modal after variants load
+        setTimeout(showHospitalModal, 800);
+    }
+}
+
+function showHospitalModal() {
+    const modal = document.getElementById('hospitalModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Pre-populate suggestions
+        renderHospitalSuggestions(getHospitalList().slice(0,8));
+        const input = document.getElementById('hospitalInput');
+        if (input) setTimeout(() => input.focus(), 100);
+    }
+}
+
+function filterHospitalSuggestions(val) {
+    const btn = document.getElementById('hospitalConfirmBtn');
+    if (btn) btn.disabled = !val || val.trim().length < 2;
+    if (!val || val.trim().length < 1) {
+        renderHospitalSuggestions(getHospitalList().slice(0,8));
+        return;
+    }
+    const filtered = getHospitalList().filter(h =>
+        h.toLowerCase().includes(val.toLowerCase())
+    ).slice(0,8);
+    renderHospitalSuggestions(filtered);
+}
+
+function renderHospitalSuggestions(list) {
+    const el = document.getElementById('hospitalSuggestions');
+    if (!el) return;
+    if (!list.length) { el.classList.add('hidden'); return; }
+    el.innerHTML = list.map(h =>
+        `<div class="hospital-suggestion" onclick="selectHospital('${escapeAttr(h)}')">${escapeHTML(h)}</div>`
+    ).join('');
+    el.classList.remove('hidden');
+}
+
+function selectHospital(name) {
+    const input = document.getElementById('hospitalInput');
+    if (input) input.value = name;
+    const el = document.getElementById('hospitalSuggestions');
+    if (el) el.classList.add('hidden');
+    const btn = document.getElementById('hospitalConfirmBtn');
+    if (btn) btn.disabled = false;
+}
+
+function confirmHospital() {
+    const input = document.getElementById('hospitalInput');
+    const name = input?.value?.trim();
+    if (!name || name.length < 2) return;
+    setStoredHospital(name);
+    STATE.searchIntelligence.hospital = name;
+    updateHospitalBadge(name);
+    const modal = document.getElementById('hospitalModal');
+    if (modal) modal.style.display = 'none';
+    showNotification(`Welcome from ${name}`, 'success', 3000);
+}
+
+function skipHospital() {
+    setStoredHospital('Anonymous');
+    STATE.searchIntelligence.hospital = 'Anonymous';
+    const modal = document.getElementById('hospitalModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function changeHospital() {
+    // Allow user to change their hospital — clear stored and re-show modal
+    try { localStorage.removeItem(HOSPITAL_KEY); } catch(e) {}
+    STATE.searchIntelligence.hospital = null;
+    const input = document.getElementById('hospitalInput');
+    if (input) input.value = '';
+    showHospitalModal();
+}
+
+function updateHospitalBadge(name) {
+    const badge = document.getElementById('hospitalBadge');
+    const text  = document.getElementById('hospitalBadgeText');
+    if (!badge || !text) return;
+    // Truncate long names for the badge
+    const display = name.length > 28 ? name.slice(0,26)+'…' : name;
+    text.textContent = display;
+    badge.style.display = name && name !== 'Anonymous' ? '' : 'none';
+}
+
+// ========== RESEARCH GAP SCORING ENGINE ==========
+// Scores each variant 0-100 based on data completeness, evidence,
+// validation, and search demand. Higher = more urgent research need.
+
+const GAP_WEIGHTS = {
+    no_cftr_class:        25,   // biggest clinical gap
+    no_eti_prediction:    20,
+    no_protein_name:       8,
+    no_cdna_name:          8,
+    no_final_determination:7,
+    no_evidence:          15,   // no evidence links at all
+    few_evidence:          7,   // fewer than 3
+    no_validation:        10,   // searched but never validated
+    high_search_demand:   10,   // searched 10+ times — clinicians need this
+};
+
+function calculateGapScore(variant) {
+    let score = 0;
+    const missing = [];
+    const recs = [];
+
+    if (!variant.cftr_class) {
+        score += GAP_WEIGHTS.no_cftr_class;
+        missing.push('cftr_class');
+        recs.push('Assign CFTR functional class (I–VI) from published literature');
+    }
+    if (!variant.eti_prediction || variant.eti_prediction === 'unknown') {
+        score += GAP_WEIGHTS.no_eti_prediction;
+        missing.push('eti_prediction');
+        recs.push('Determine ETI response prediction based on class and evidence');
+    }
+    if (!variant.protein_name) {
+        score += GAP_WEIGHTS.no_protein_name;
+        missing.push('protein_name');
+        recs.push('Add HGVS protein notation (p.XxxNNNXxx)');
+    }
+    if (!variant.cdna_name) {
+        score += GAP_WEIGHTS.no_cdna_name;
+        missing.push('cdna_name');
+        recs.push('Add HGVS cDNA notation (c.NNNx>x)');
+    }
+    if (!variant.final_determination) {
+        score += GAP_WEIGHTS.no_final_determination;
+        missing.push('final_determination');
+        recs.push('Confirm CF-causing status (CF-causing / VUS / Non CF-causing)');
+    }
+
+    const evidenceCount = (variant.evidence_links || []).length;
+    if (evidenceCount === 0) {
+        score += GAP_WEIGHTS.no_evidence;
+        missing.push('evidence_links');
+        recs.push('Add at least one evidence source (PubMed, CFTR2, ClinVar)');
+    } else if (evidenceCount < 3) {
+        score += GAP_WEIGHTS.few_evidence;
+        recs.push(`Expand evidence chain — currently only ${evidenceCount} source${evidenceCount>1?'s':''}`);
+    }
+
+    const valCount = variant.validation_count || 0;
+    const searchHits = variant.search_hit_count || 0;
+    if (valCount === 0 && searchHits >= 5) {
+        score += GAP_WEIGHTS.no_validation;
+        recs.push(`Validate urgently — searched ${searchHits} times, zero clinical validations`);
+    } else if (valCount === 0) {
+        score += Math.round(GAP_WEIGHTS.no_validation * 0.4);
+        recs.push('No clinical validations recorded');
+    }
+
+    if (searchHits >= 10) {
+        score += GAP_WEIGHTS.high_search_demand;
+        recs.push(`High search demand (${searchHits} searches) — prioritise curation`);
+    }
+
+    // Cap at 100
+    score = Math.min(100, score);
+
+    const gapLevel = score >= 75 ? 'CRITICAL'
+                   : score >= 55 ? 'SEVERE'
+                   : score >= 35 ? 'MODERATE'
+                   : score >= 15 ? 'MINOR'
+                   : 'ADEQUATE';
+
+    return { score, gapLevel, missing, recommendations: recs };
+}
+
+function gapLevelColor(level) {
+    return { CRITICAL:'#f87171', SEVERE:'#fb923c', MODERATE:'#fbbf24', MINOR:'#60a5fa', ADEQUATE:'#34d399' }[level] || '#5a7aaa';
+}
+
+function gapRingHTML(score, level) {
+    const color = gapLevelColor(level);
+    const r = 22, c = 26, circ = 2*Math.PI*r;
+    const dash = (score/100)*circ;
+    return `<div class="gap-score-ring">
+        <svg viewBox="0 0 52 52" fill="none">
+            <circle cx="${c}" cy="${c}" r="${r}" stroke="rgba(255,255,255,0.06)" stroke-width="5"/>
+            <circle cx="${c}" cy="${c}" r="${r}" stroke="${color}" stroke-width="5"
+                stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}"
+                stroke-linecap="round" transform="rotate(-90 ${c} ${c})" opacity="0.85"/>
+        </svg>
+        <div class="gap-score-val">
+            <span class="gap-score-num" style="color:${color}">${score}</span>
+            <span class="gap-score-lbl">gap</span>
+        </div>
+    </div>`;
+}
+
+async function persistGapScore(variantId, score, gapLevel, missing, recommendations) {
+    try {
+        await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/research_gaps?variant_id=eq.${variantId}`,
+            {
+                method: 'DELETE',
+                headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` }
+            }
+        );
+        await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/research_gaps`, {
+            method: 'POST',
+            headers: {
+                'apikey': CONFIG.SUPABASE.KEY,
+                'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+                variant_id:      variantId,
+                gap_score:       score,
+                gap_level:       gapLevel,
+                missing_types:   missing,
+                recommendations: recommendations,
+                analyzed_at:     new Date().toISOString()
+            })
+        });
+    } catch(e) { /* silent */ }
+}
+
+// ---- Gap queue for dashboard ----
+function getGapQueue(n = 15) {
+    return STATE.variants
+        .map(v => ({ v, ...calculateGapScore(v) }))
+        .filter(x => x.score >= 15)
+        .sort((a,b) => b.score - a.score)
+        .slice(0, n);
+}
+
+function renderGapQueue() {
+    const list = document.getElementById('gapQueueList');
+    const note = document.getElementById('gapQueueNote');
+    if (!list) return;
+    const queue = getGapQueue(20);
+    if (note) note.textContent = `${queue.length} variants need attention`;
+    if (!queue.length) {
+        list.innerHTML = '<div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">No significant gaps detected.</div>';
+        return;
+    }
+    list.innerHTML = queue.map(({v, score, gapLevel, recommendations}) => `
+        <div class="priority-row" onclick="selectVariant('${escapeAttr(v.legacy_name)}');closeDashboard();">
+            ${gapRingHTML(score, gapLevel)}
+            <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+                    <span class="priority-name">${escapeHTML(v.legacy_name)}</span>
+                    <span class="gap-level-pill ${gapLevel}">${gapLevel}</span>
+                </div>
+                <div style="font-size:10px;color:var(--text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    ${escapeHTML(recommendations[0] || '')}
+                </div>
+            </div>
+            <div style="font-size:9px;color:var(--text-tertiary);font-family:var(--font-mono);flex-shrink:0;text-align:right;">
+                ${v.cftr_class ? 'Class '+v.cftr_class : 'No class'}<br>
+                ${(v.search_hit_count||0) > 0 ? (v.search_hit_count||0)+'× searched' : ''}
+            </div>
+        </div>`).join('');
+}
+
+function renderCommandCentre() {
+    // High priority variants
+    const hp = document.getElementById('ccHighPriority');
+    if (hp) {
+        const urgent = STATE.variants
+            .filter(v => (v.search_hit_count||0) >= 5 && (v.validation_count||0) === 0)
+            .sort((a,b) => (b.search_hit_count||0) - (a.search_hit_count||0))
+            .slice(0, 6);
+        hp.innerHTML = urgent.length ? urgent.map(v => `
+            <div class="priority-row" onclick="selectVariant('${escapeAttr(v.legacy_name)}');closeDashboard();">
+                <div style="flex:1;">
+                    <div class="priority-name">${escapeHTML(v.legacy_name)}</div>
+                    <div style="font-size:10px;color:var(--text-tertiary);">${v.cftr_class?'Class '+v.cftr_class:'No class'} · ${(v.search_hit_count||0)} searches</div>
+                </div>
+                <span class="gap-level-pill CRITICAL">0 validations</span>
+            </div>`).join('')
+        : '<div style="font-size:11px;color:var(--text-tertiary);">No urgent items — great coverage.</div>';
+    }
+
+    // Miss queue
+    const mq = document.getElementById('ccMissQueue');
+    if (mq) {
+        const misses = getTopMisses(6);
+        mq.innerHTML = misses.length ? misses.map(m => `
+            <div class="priority-row">
+                <div style="flex:1;">
+                    <div class="priority-name">${escapeHTML(m.query)}</div>
+                    <div style="font-size:10px;color:var(--text-tertiary);">${m.sessions} user${m.sessions!==1?'s':''} · ${m.count} searches</div>
+                </div>
+                <span class="si-miss-s ${m.status==='in_review'?'review':m.status}">${m.status==='in_review'?'in review':m.status}</span>
+            </div>`).join('')
+        : '<div style="font-size:11px;color:var(--text-tertiary);">No misses recorded yet.</div>';
+    }
+
+    // Health snapshot
+    const hp2 = document.getElementById('ccHealthPanel');
+    if (hp2) {
+        const s = STATE.masterStats;
+        const rate = getSearchHitRate();
+        const criticalGaps = STATE.variants.filter(v => calculateGapScore(v).gapLevel === 'CRITICAL').length;
+        const items = [
+            { label:'Total variants',       val: s.total.toLocaleString(),                        ok: true },
+            { label:'Complete records',     val: s.complete.toLocaleString() + ' / ' + s.total,  ok: s.complete/s.total > 0.4 },
+            { label:'ETI Responsive',       val: s.responsive.toLocaleString(),                   ok: true },
+            { label:'Unclassified',         val: (s.total - (s.classI+s.classII+s.classIII+s.classIV+s.classV)).toLocaleString(), ok: false },
+            { label:'Search hit rate',      val: rate.total > 0 ? rate.hitRate+'%' : '—',        ok: rate.hitRate >= 80 },
+            { label:'Open miss queue',      val: STATE.searchIntelligence.globalMisses.size,      ok: STATE.searchIntelligence.globalMisses.size === 0 },
+            { label:'Critical gap variants',val: criticalGaps.toLocaleString(),                   ok: criticalGaps === 0 },
+            { label:'Validated variants',   val: s.validated.toLocaleString(),                    ok: s.validated/s.total > 0.3 },
+        ];
+        hp2.innerHTML = `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">` +
+            items.map(item => `
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:9px 10px;">
+                    <div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;">${item.label}</div>
+                    <div style="font-size:14px;font-weight:700;font-family:var(--font-mono);color:${item.ok?'#34d399':'#f87171'};">${item.val}</div>
+                </div>`).join('') + '</div>';
+    }
+}
+
+// ========== AMBIENT INTELLIGENCE ==========
+
+function updateIntelStrip(variant, gap) {
+    if (!variant) return;
+    const hits     = variant.search_hit_count || 0;
+    const valCount = variant.validation_count  || 0;
+    const si       = STATE.searchIntelligence;
+    gap = gap || variant._gap || null;
+
+    // Search frequency
+    const hitEl = document.getElementById('intelSearchCount');
+    if (hitEl) {
+        if (hits > 0) {
+            hitEl.textContent = `${hits} search${hits!==1?'es':''}`;
+            hitEl.style.display = '';
+        } else hitEl.style.display = 'none';
+    }
+
+    // Trending — searched 3+ times this session
+    const sessionHits = si.globalHits.get(variant.legacy_name.toLowerCase()) || 0;
+    const trendEl = document.getElementById('intelTrending');
+    if (trendEl) {
+        if (sessionHits >= 3) { trendEl.textContent = `↑ trending this session`; trendEl.style.display=''; }
+        else trendEl.style.display='none';
+    }
+
+    // Hospital context
+    const hosp = STATE.searchIntelligence.hospital;
+    const hospEl = document.getElementById('intelSearchCount');
+    if (hospEl && hosp && hosp !== 'Anonymous' && hits > 0) {
+        hospEl.textContent = `${hits} search${hits!==1?'es':''} · ${hosp.split('—')[0].trim().split('(')[0].trim()}`;
+    }
+
+    // Was in miss queue before this variant existed?
+    const missRef = document.getElementById('intelMissRef');
+    if (missRef) {
+        const names = [variant.legacy_name, variant.protein_name, variant.cdna_name].filter(Boolean).map(n=>n.toLowerCase());
+        const wasMissed = Array.from(si.globalMisses.keys()).some(q => names.some(n=>n.includes(q)||q.includes(n)));
+        if (wasMissed) { missRef.textContent = `Previously searched — not found`; missRef.style.display=''; }
+        else missRef.style.display='none';
+    }
+
+    // Gap alert — real score from engine
+    const gapEl = document.getElementById('intelGapAlert');
+    if (gapEl) {
+        if (gap && gap.gap_score >= 20) {
+            gapEl.textContent = `${gap.gap_level}  ·  score ${gap.gap_score}`;
+            gapEl.className = 'intel-pill gap-level-pill ' + gap.gap_level;
+            gapEl.style.display = '';
+        } else if (gap && gap.gap_score < 20) {
+            gapEl.textContent = 'ADEQUATE';
+            gapEl.className = 'intel-pill gap-level-pill ADEQUATE';
+            gapEl.style.display = '';
+        } else {
+            gapEl.style.display = 'none';
+        }
+    }
+
+    // Last searched
+    const lastEl = document.getElementById('intelLastSearch');
+    if (lastEl) {
+        if (variant.last_searched_at) {
+            const d = new Date(variant.last_searched_at);
+            lastEl.textContent = `Last searched ${d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}`;
+            lastEl.style.display='';
+        } else lastEl.style.display='none';
+    }
+}
+
+// ========== SEARCH DROPDOWN ==========
+
+function updateSearchDropdown(query, results) {
+    const dd = document.getElementById('searchDropdown');
+    if (!dd) return;
+    if (!query || query.length < CONFIG.UI.MIN_SEARCH_CHARS || !results.length) {
+        dd.classList.add('hidden'); return;
+    }
+    const fieldLabel = { legacy_name:'Legacy', protein_name:'Protein', cdna_name:'cDNA', alt_names:'Alt' };
+    const raw = query.toLowerCase().trim().replace(/^p\./,'').replace(/^c\./,'');
+    const top = results.slice(0, 8);
+    dd.innerHTML = top.map(v => {
+        // Determine matched field for this result
+        let mf = '';
+        if (v.legacy_name  && v.legacy_name.toLowerCase().includes(raw))  mf = 'legacy_name';
+        else if (v.protein_name && v.protein_name.toLowerCase().includes(raw)) mf = 'protein_name';
+        else if (v.cdna_name    && v.cdna_name.toLowerCase().includes(raw))    mf = 'cdna_name';
+        else mf = 'alt_names';
+        const etiCls = v.eti_prediction==='responsive'?'r':v.eti_prediction==='non_responsive'?'n':'u';
+        const etiLabel = v.eti_prediction==='responsive'?'ETI ✓':v.eti_prediction==='non_responsive'?'ETI ✗':'—';
+        const hits = v.search_hit_count || 0;
+        const val  = v.validation_count || 0;
+        return `<div class="sd-item" onclick="selectVariant('${escapeAttr(v.legacy_name)}');document.getElementById('searchDropdown').classList.add('hidden');">
+            <div class="sd-val ${val>0?'validated':'unvalidated'}" title="${val>0?val+' validations':'Not validated'}"></div>
+            <div class="sd-name">${escapeHTML(v.legacy_name)}</div>
+            <span class="sd-field">${fieldLabel[mf]||mf}</span>
+            <span class="sd-eti ${etiCls}">${etiLabel}</span>
+            ${hits>0?`<span class="sd-hits">${hits}×</span>`:''}
+        </div>`;
+    }).join('');
+    dd.classList.remove('hidden');
+}
+
+// ========== ACTIVITY RIBBON ==========
+
+function pushRibbonEvent(query, isHit) {
+    const feed = document.getElementById('ribbonFeed');
+    if (!feed) return;
+    const el = document.createElement('span');
+    el.className = `ribbon-event ${isHit?'hit':'miss'}`;
+    el.innerHTML = `<span class="ribbon-dot ${isHit?'hit':'miss'}"></span>${escapeHTML(query)}`;
+    // Keep only 5 most recent
+    const existing = feed.querySelectorAll('.ribbon-event');
+    if (existing.length >= 5) existing[0].remove();
+    feed.appendChild(el);
+    // Update miss count
+    const missCount = STATE.searchIntelligence.globalMisses.size;
+    const missEl = document.getElementById('ribbonMissCount');
+    if (missEl) {
+        if (missCount > 0) {
+            missEl.textContent = `${missCount} miss${missCount!==1?'es':''} → miss queue`;
+            missEl.style.display = '';
+        } else missEl.style.display = 'none';
+    }
+}
+
+function updateMissQueueChip() {
+    const count = STATE.searchIntelligence.globalMisses.size;
+    const chip = document.getElementById('chip-missqueue');
+    const countEl = document.getElementById('chipMissQueue');
+    if (!chip) return;
+    if (count > 0) {
+        chip.style.display = '';
+        if (countEl) countEl.textContent = count;
+    } else {
+        chip.style.display = 'none';
+    }
+}
+
+function showMissQueuePanel() {
+    showDashboard();
+    setTimeout(() => {
+        setDashTab('search', document.getElementById('dashTab-search'));
+        setTimeout(() => setSITab('misses', document.getElementById('siTab-misses')), 100);
+    }, 50);
+}
+
+function showGapQueuePanel() {
+    showDashboard();
+    setTimeout(() => {
+        setDashTab('search', document.getElementById('dashTab-search'));
+        setTimeout(() => setSITab('gaps', document.getElementById('siTab-gaps')), 100);
+    }, 50);
+}
+
+function updateGapChip() {
+    const count = GAP_REGISTRY.size;
+    const chip  = document.getElementById('chip-gaps');
+    const el    = document.getElementById('chipGaps');
+    if (!chip) return;
+    if (count > 0) { chip.style.display = ''; if (el) el.textContent = count; }
+    else chip.style.display = 'none';
+}
+
 // ========== SEARCH INIT ==========
 
 function initSearch() {
@@ -5440,11 +6972,18 @@ function initSearch() {
         const val = this.value;
         clear?.classList.toggle('hidden', !val);
 
-        // Fast debounce — updates the UI list (180ms)
+        // Fast debounce — updates the UI list (180ms) + dropdown
         clearTimeout(STATE.ui.searchTimeout);
         STATE.ui.searchTimeout = setTimeout(() => {
             STATE.view.searchQuery = val;
             applyFilterChain();
+            const r = STATE.searchIntelligence._lastResult;
+            if (r && val.trim().length >= CONFIG.UI.MIN_SEARCH_CHARS) {
+                updateSearchDropdown(val.trim(), STATE.view.filteredVariants);
+            } else {
+                const dd = document.getElementById('searchDropdown');
+                if (dd) dd.classList.add('hidden');
+            }
         }, CONFIG.UI.SEARCH_DELAY);
 
         // Slow debounce — logs the search only when user settles (1200ms)
@@ -5483,6 +7022,11 @@ function initSearch() {
 // ========== EVENT LISTENERS ==========
 
 function attachEvents() {
+    document.addEventListener('click', e => {
+        const dd = document.getElementById('searchDropdown');
+        const si = document.getElementById('searchInput');
+        if (dd && !dd.contains(e.target) && e.target !== si) dd.classList.add('hidden');
+    });
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
             ['importModal','annotationModal','validationModal','deleteModal','dashboardModal','addEvidenceModal','allEvidenceModal']
@@ -5582,6 +7126,7 @@ async function init() {
     initSearch();
     initializeBulkImport();
     await loadVariants();
+    initHospital(); // must run after variants load so modal times correctly
 }
 
 document.addEventListener('DOMContentLoaded', init);
@@ -5641,6 +7186,11 @@ Object.assign(window, {
     showAllEvidence, closeAllEvidenceModal, copyToClipboard,
     downloadTemplate, processBulkImport,
     setDashTab, setSITab, exportSearchReport, exportSearchPDF, renderGeoTab,
+    showMissQueuePanel, showGapQueuePanel, updateIntelStrip, updateSearchDropdown,
+    analyseAndRegisterGap, renderGapQueue, updateGapChip,
+    renderGapQueue, renderCommandCentre, calculateGapScore,
+    showHospitalModal, confirmHospital, skipHospital, changeHospital,
+    selectHospital, filterHospitalSuggestions,
     toggleBookmark, isBookmarked
 });
 </script>
