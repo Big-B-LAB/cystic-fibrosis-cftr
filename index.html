@@ -1131,14 +1131,15 @@
         .si-tab { font-size:11px; font-weight:600; padding:6px 14px; border-radius:6px 6px 0 0; cursor:pointer; color:var(--text-tertiary); border:none; background:transparent; font-family:var(--font-body); transition:all .15s; border:1px solid transparent; border-bottom:none; }
         .si-tab.active { background:var(--white); color:var(--text-primary); border-color:var(--border); }
         .si-tab:hover:not(.active) { color:var(--text-secondary); }
-        .si-panel { display:none; } .si-panel.active { display:block; }
+        .si-panel { display:none; }
+        .si-panel.active { display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; }
         .si-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border-bottom:1px solid var(--border); }
         .si-kpi { background:var(--surface); padding:12px 14px; }
         .si-kpi-label { font-size:9px; font-weight:600; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.1em; margin-bottom:5px; }
         .si-kpi-val { font-size:19px; font-weight:700; font-family:var(--font-mono); line-height:1; color:var(--text-primary); }
         .si-kpi-val.g { color:#4ade80; } .si-kpi-val.r { color:#f87171; } .si-kpi-val.a { color:#fbbf24; } .si-kpi-val.b { color:#60a5fa; }
         .si-kpi-sub { font-size:10px; color:var(--text-tertiary); margin-top:3px; font-family:var(--font-mono); }
-        .si-body { padding:16px; display:flex; flex-direction:column; gap:14px; }
+        .si-body { padding:16px; display:flex; flex-direction:column; gap:14px; overflow-y:auto; }
         .si-card { background:var(--surface-alt); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
         .si-card-head { padding:9px 13px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
         .si-card-title { font-size:10px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.08em; display:flex; align-items:center; gap:7px; }
@@ -1175,6 +1176,36 @@
         .si-fb-seg { display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:600; letter-spacing:.04em; }
         .si-gap-badge { font-size:9px; font-weight:600; padding:1px 6px; border-radius:4px; background:rgba(248,113,113,0.08); color:#f87171; border:1px solid rgba(248,113,113,0.18); }
 
+
+        /* ---- Leaflet geo tooltip ---- */
+        .geo-tooltip {
+            background: #0a1220 !important;
+            border: 1px solid rgba(99,140,210,0.3) !important;
+            border-radius: 6px !important;
+            color: #f0f6ff !important;
+            font-family: var(--font-body) !important;
+            font-size: 11px !important;
+            padding: 5px 10px !important;
+            box-shadow: 0 4px 12px rgba(0,5,20,0.6) !important;
+        }
+        .geo-tooltip::before { display:none !important; }
+
+        /* Geography panel: map left, detail right */
+        .geo-split {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 12px;
+            height: 100%;
+        }
+        .geo-map-wrap {
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 300px;
+        }
+        .geo-detail {
+            overflow-y: auto;
+            padding-right: 2px;
+        }
 
         /* ---- Research gap engine ---- */
         .gap-queue-row { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
@@ -2205,6 +2236,14 @@
             padding: 16px;
             animation: fadeIn 150ms ease;
         }
+        /* Dashboard modal overlay — align to top so full height is usable */
+        #dashboardModal {
+            align-items: stretch;
+            padding: 16px;
+        }
+        #dashboardModal > .dashboard-modal {
+            margin: auto;
+        }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -2381,7 +2420,40 @@
            ANALYTICS DASHBOARD
            ============================================================ */
 
-        .dashboard-modal { max-width: 820px; }
+        /* Full-viewport analytics modal */
+        .dashboard-modal {
+            max-width: 100vw !important;
+            width: calc(100vw - 32px) !important;
+            max-height: calc(100vh - 32px) !important;
+            height: calc(100vh - 32px) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            border-radius: 12px !important;
+        }
+        .dashboard-modal .modal-header {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+        .dashboard-modal .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            min-height: 0;
+        }
+        .dashboard-modal .modal-footer {
+            flex-shrink: 0;
+            position: sticky;
+            bottom: 0;
+            z-index: 20;
+            padding: 12px 20px;
+        }
+        /* Inner content areas scroll independently */
+        .si-body { overflow-y: auto; max-height: none; }
+        .si-panel { height: 100%; }
+        #dashModalBody { display: flex; flex-direction: column; height: 100%; }
 
         .dash-grid {
             display: grid;
@@ -3058,7 +3130,7 @@
                 </button>
             </div>
         </div>
-        <div class="modal-body" id="dashModalBody">
+        <div class="modal-body" id="dashModalBody" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;">
             <div class="dash-kpis">
                 <div class="dash-kpi">
                     <div class="dash-kpi-value" id="dkTotal">—</div>
@@ -3229,24 +3301,27 @@
 
             <div id="siPanelGeo" class="si-panel" style="display:none;">
                 <div class="si-body">
-                    <div class="si-card">
+                    <div class="si-card" style="flex:1;">
                         <div class="si-card-head">
-                            <div class="si-card-title"><span style="width:6px;height:6px;border-radius:50%;background:#2979ff;display:inline-block;"></span>Search locations — where are clinicians searching from?</div>
+                            <div class="si-card-title">
+                                <span style="width:6px;height:6px;border-radius:50%;background:#2979ff;display:inline-block;"></span>
+                                Search locations — click a dot for details
+                            </div>
                             <div class="si-card-note" id="siGeoNote">Loading…</div>
                         </div>
-                        <div class="si-card-body">
-                            <div id="siGeoMap" style="height:240px;border-radius:6px;overflow:hidden;background:var(--surface);"></div>
+                        <div class="si-card-body" style="padding:10px;">
+                            <div class="geo-split">
+                                <div class="geo-map-wrap">
+                                    <div id="siGeoMap" style="height:360px;border-radius:6px;overflow:hidden;background:var(--surface);"></div>
+                                </div>
+                                <div class="geo-detail" id="siGeoCities">
+                                    <div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">Click a location dot on the map to see search details.</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="si-row2">
-                        <div class="si-card">
-                            <div class="si-card-head"><div class="si-card-title"><span style="width:6px;height:6px;border-radius:50%;background:#4ade80;display:inline-block;"></span>Top cities</div></div>
-                            <div class="si-card-body" id="siGeoCities"><div style="font-size:11px;color:var(--text-tertiary);">No location data yet</div></div>
-                        </div>
-                        <div class="si-card">
-                            <div class="si-card-head"><div class="si-card-title"><span style="width:6px;height:6px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>Top variants by region</div></div>
-                            <div class="si-card-body" id="siGeoVariants"><div style="font-size:11px;color:var(--text-tertiary);">No location data yet</div></div>
-                        </div>
+                    <div class="si-card" style="display:none;">
+                        <div class="si-card-body" id="siGeoVariants"></div>
                     </div>
                 </div>
             </div>
@@ -3301,14 +3376,20 @@
             </div>
         </div>
 
-        <div class="modal-footer" id="dashModalFooter">
-            <button onclick="exportFullReport()" class="btn btn-secondary" id="dashExportBtn">
-                <i class="fas fa-download"></i> Export Full Report
+        <div class="modal-footer" id="dashModalFooter" style="background:#0a1220;border-top:1px solid rgba(99,140,210,0.15);justify-content:space-between;">
+            <div style="display:flex;gap:8px;">
+                <button onclick="exportFullReport()" class="btn btn-secondary" id="dashExportBtn"
+                    style="background:rgba(41,121,255,0.12);border-color:rgba(41,121,255,0.35);color:#60a5fa;font-weight:600;">
+                    <i class="fas fa-download"></i> Export Clinical Report
+                </button>
+                <button onclick="exportSearchPDF()" class="btn btn-secondary" id="siExportBtn" style="display:none;background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.3);color:#f87171;font-weight:600;">
+                    <i class="fas fa-file-pdf"></i> Download Search Report PDF
+                </button>
+            </div>
+            <button onclick="closeDashboard()" class="btn btn-primary"
+                style="background:#2979ff;border-color:#2979ff;color:white;font-weight:600;padding:0 24px;">
+                <i class="fas fa-times" style="font-size:10px;"></i> Close
             </button>
-            <button onclick="exportSearchPDF()" class="btn btn-secondary" id="siExportBtn" style="display:none;">
-                <i class="fas fa-file-pdf" style="color:#f87171;"></i> Download Search Report PDF
-            </button>
-            <button onclick="closeDashboard()" class="btn btn-primary">Close</button>
         </div>
     </div>
 </div>
@@ -3869,19 +3950,20 @@ function getSearchTimeline() {
 
 // ---- Geography tab ----
 async function renderGeoTab() {
-    const noteEl = document.getElementById('siGeoNote');
-    const mapEl  = document.getElementById('siGeoMap');
+    const noteEl  = document.getElementById('siGeoNote');
+    const mapEl   = document.getElementById('siGeoMap');
     const citiesEl   = document.getElementById('siGeoCities');
     const variantsEl = document.getElementById('siGeoVariants');
 
-    if (noteEl) noteEl.textContent = 'Fetching location data…';
+    if (noteEl) noteEl.textContent = 'Loading location data…';
 
-    // Load Leaflet dynamically if not present
+    // Load Leaflet
     if (!window.L) {
         await Promise.all([
             new Promise((res,rej) => {
                 const l = document.createElement('link');
-                l.rel='stylesheet'; l.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+                l.rel='stylesheet';
+                l.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
                 l.onload=res; l.onerror=rej; document.head.appendChild(l);
             }),
             new Promise((res,rej) => {
@@ -3892,11 +3974,11 @@ async function renderGeoTab() {
         ]);
     }
 
-    // Fetch location data from search_logs
+    // Fetch location data
     try {
         const res = await fetch(
             `${CONFIG.SUPABASE.URL}/rest/v1/search_logs` +
-            `?select=query,is_hit,city,country,region,latitude,longitude` +
+            `?select=query,is_hit,city,country,region,latitude,longitude,hospital_name` +
             `&latitude=not.is.null&order=searched_at.desc&limit=1000`,
             { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
         );
@@ -3904,23 +3986,43 @@ async function renderGeoTab() {
 
         if (!rows.length) {
             if (noteEl) noteEl.textContent = 'No location data yet — search some variants first';
-            if (mapEl)  mapEl.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-tertiary);">Location data will appear after searches are logged</div>';
+            if (mapEl)  mapEl.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;">
+                <i class="fas fa-map-marker-alt" style="font-size:24px;color:var(--text-tertiary);opacity:0.4;"></i>
+                <span style="font-size:12px;color:var(--text-tertiary);">Location data will appear after searches are logged</span>
+            </div>`;
             return;
         }
 
         const hospital = STATE.searchIntelligence.hospital;
-        const note = rows.length + ' searches with location data';
+        const note = `${rows.length} searches with location data`;
         if (noteEl) noteEl.textContent = hospital && hospital !== 'Anonymous'
-            ? note + ' · ' + hospital
-            : note;
+            ? note + ' · ' + hospital : note;
 
-        // Init or reuse map
+        // Group by city
+        const points = new Map();
+        rows.forEach(r => {
+            const key = `${r.latitude},${r.longitude}`;
+            if (!points.has(key)) points.set(key, {
+                lat: r.latitude, lon: r.longitude,
+                city: r.city, country: r.country, region: r.region,
+                hits: 0, misses: 0, queries: [], hospitals: new Set()
+            });
+            const p = points.get(key);
+            if (r.is_hit) p.hits++; else p.misses++;
+            if (!p.queries.includes(r.query)) p.queries.push(r.query);
+            if (r.hospital_name) p.hospitals.add(r.hospital_name);
+        });
+
+        const allPoints = Array.from(points.values());
+        const maxCount  = Math.max(...allPoints.map(p => p.hits + p.misses));
+
+        // Init or reuse map — ensure proper height
+        if (mapEl) mapEl.style.height = '300px';
         if (!window._helixMap) {
             mapEl.style.zIndex = '1';
             window._helixMap = L.map('siGeoMap', { zoomControl: true, scrollWheelZoom: false });
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '© OpenStreetMap © CARTO',
-                maxZoom: 14
+                attribution: '© OpenStreetMap © CARTO', maxZoom: 14
             }).addTo(window._helixMap);
         }
 
@@ -3928,93 +4030,106 @@ async function renderGeoTab() {
         if (window._helixMarkers) window._helixMarkers.forEach(m => m.remove());
         window._helixMarkers = [];
 
-        // Group by lat/lon
-        const points = new Map();
-        rows.forEach(r => {
-            const key = `${r.latitude},${r.longitude}`;
-            if (!points.has(key)) points.set(key, { lat: r.latitude, lon: r.longitude, city: r.city, country: r.country, hits: 0, misses: 0, queries: [] });
-            const p = points.get(key);
-            if (r.is_hit) p.hits++; else p.misses++;
-            if (!p.queries.includes(r.query)) p.queries.push(r.query);
-        });
-
-        const allPoints = Array.from(points.values());
-        const maxCount  = Math.max(...allPoints.map(p => p.hits + p.misses));
+        // Track selected point for detail panel
+        let selectedPoint = null;
 
         allPoints.forEach(p => {
-            const total  = p.hits + p.misses;
-            const radius = Math.max(5, Math.min(18, 5 + (total / maxCount) * 13));
+            const total   = p.hits + p.misses;
+            const radius  = Math.max(8, Math.min(24, 8 + (total / maxCount) * 16));
             const hitRate = total > 0 ? Math.round((p.hits / total) * 100) : 0;
-            const color  = hitRate >= 70 ? '#4ade80' : hitRate >= 40 ? '#fbbf24' : '#f87171';
+            const color   = hitRate >= 70 ? '#4ade80' : hitRate >= 40 ? '#fbbf24' : '#f87171';
+
             const marker = L.circleMarker([p.lat, p.lon], {
-                radius, color, fillColor: color, fillOpacity: 0.5,
-                weight: 1.5, opacity: 0.9
+                radius, color, fillColor: color, fillOpacity: 0.55,
+                weight: 2, opacity: 0.9
             }).addTo(window._helixMap);
-            marker.bindPopup(
-                `<div style="font-family:monospace;font-size:12px;min-width:160px;">` +
-                `<strong>${p.city || 'Unknown city'}</strong><br>` +
-                `${p.country || ''}<br>` +
-                `<span style="color:#4ade80;">${p.hits} hits</span> · ` +
-                `<span style="color:#f87171;">${p.misses} misses</span><br>` +
-                `Hit rate: ${hitRate}%<br>` +
-                `Queries: ${p.queries.slice(0,3).join(', ')}${p.queries.length > 3 ? '…' : ''}` +
-                `</div>`
+
+            // Click → show detail panel
+            marker.on('click', () => {
+                selectedPoint = p;
+                renderGeoDetail(p, citiesEl, variantsEl);
+                // Highlight selected marker
+                window._helixMarkers.forEach(m => m.setStyle({ weight: 2, fillOpacity: 0.55 }));
+                marker.setStyle({ weight: 3.5, fillOpacity: 0.85 });
+            });
+
+            // Hover tooltip
+            marker.bindTooltip(
+                `<strong style="font-family:monospace;">${p.city || 'Unknown'}</strong><br>` +
+                `${p.hits} hits · ${p.misses} misses · ${hitRate}% hit rate`,
+                { className: 'geo-tooltip', sticky: true }
             );
+
             window._helixMarkers.push(marker);
         });
 
-        // Fit map to markers
+        // Fit bounds
         if (allPoints.length) {
             const bounds = L.latLngBounds(allPoints.map(p => [p.lat, p.lon]));
-            window._helixMap.fitBounds(bounds, { padding: [20, 20] });
+            window._helixMap.fitBounds(bounds, { padding: [24, 24] });
         }
 
-        // Top cities table
-        const cityMap = new Map();
-        rows.forEach(r => {
-            const key = r.city && r.country ? `${r.city}, ${r.country}` : (r.city || r.country || 'Unknown');
-            if (!cityMap.has(key)) cityMap.set(key, { hits:0, misses:0 });
-            const c = cityMap.get(key);
-            if (r.is_hit) c.hits++; else c.misses++;
-        });
-        const topCities = Array.from(cityMap.entries())
-            .sort((a,b) => (b[1].hits+b[1].misses) - (a[1].hits+a[1].misses))
-            .slice(0, 8);
-        const maxCity = topCities.length ? (topCities[0][1].hits + topCities[0][1].misses) : 1;
-        citiesEl.innerHTML = topCities.map(([city, d]) => {
-            const tot = d.hits + d.misses;
-            const pct = Math.round(tot / maxCity * 100);
-            return `<div class="si-bar-row">
-                <div class="si-bl" title="${city}">${city}</div>
-                <div class="si-bt"><div class="si-bf g" style="width:${pct}%"></div></div>
-                <div class="si-bn">${tot}</div>
-            </div>`;
-        }).join('') || '<div style="font-size:11px;color:var(--text-tertiary);">No data</div>';
-
-        // Top queries by region
-        const regionMap = new Map();
-        rows.filter(r => r.is_hit).forEach(r => {
-            const region = r.region || r.country || 'Unknown';
-            if (!regionMap.has(region)) regionMap.set(region, new Map());
-            const qMap = regionMap.get(region);
-            qMap.set(r.query, (qMap.get(r.query) || 0) + 1);
-        });
-        const topRegions = Array.from(regionMap.entries())
-            .sort((a,b) => b[1].size - a[1].size).slice(0, 6);
-        variantsEl.innerHTML = topRegions.map(([region, qMap]) => {
-            const top = Array.from(qMap.entries()).sort((a,b)=>b[1]-a[1])[0];
-            return `<div class="si-miss-row">
-                <div class="si-miss-q">${region}</div>
-                <div style="font-size:10px;font-family:var(--font-mono);color:#4ade80;">${top ? top[0] : '—'}</div>
-                <div class="si-miss-n">${top ? top[1]+'×' : ''}</div>
-            </div>`;
-        }).join('') || '<div style="font-size:11px;color:var(--text-tertiary);">No hit data yet</div>';
+        // Auto-select the largest point
+        const biggest = allPoints.sort((a,b) => (b.hits+b.misses)-(a.hits+a.misses))[0];
+        if (biggest) renderGeoDetail(biggest, citiesEl, variantsEl);
 
     } catch(e) {
         if (noteEl) noteEl.textContent = 'Failed to load location data';
         console.error('Geo tab error:', e);
     }
 }
+
+function renderGeoDetail(p, citiesEl, variantsEl) {
+    if (!p || !citiesEl || !variantsEl) return;
+    const total   = p.hits + p.misses;
+    const hitRate = total > 0 ? Math.round((p.hits / total) * 100) : 0;
+    const hrColor = hitRate >= 70 ? '#4ade80' : hitRate >= 40 ? '#fbbf24' : '#f87171';
+
+    // Left panel — location detail
+    citiesEl.innerHTML = `
+        <div style="margin-bottom:12px;">
+            <div style="font-size:14px;font-weight:700;font-family:var(--font-mono);color:var(--text-primary);margin-bottom:2px;">${escapeHTML(p.city||'Unknown city')}</div>
+            <div style="font-size:11px;color:var(--text-tertiary);">${escapeHTML(p.region||'')} ${escapeHTML(p.country||'')}</div>
+            ${p.hospitals.size ? `<div style="font-size:10px;color:#60a5fa;margin-top:4px;"><i class="fas fa-hospital" style="font-size:9px;margin-right:3px;"></i>${escapeHTML([...p.hospitals].join(', '))}</div>` : ''}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div style="background:var(--surface);border-radius:6px;padding:8px;text-align:center;">
+                <div style="font-size:16px;font-weight:700;font-family:var(--font-mono);color:#4ade80;">${p.hits}</div>
+                <div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;">Hits</div>
+            </div>
+            <div style="background:var(--surface);border-radius:6px;padding:8px;text-align:center;">
+                <div style="font-size:16px;font-weight:700;font-family:var(--font-mono);color:#f87171;">${p.misses}</div>
+                <div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;">Misses</div>
+            </div>
+            <div style="background:var(--surface);border-radius:6px;padding:8px;text-align:center;">
+                <div style="font-size:16px;font-weight:700;font-family:var(--font-mono);color:${hrColor};">${hitRate}%</div>
+                <div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;">Hit rate</div>
+            </div>
+        </div>
+        <div style="font-size:10px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Searched from here</div>
+        ${p.queries.slice(0,8).map(q => `
+            <div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);">
+                <span style="font-size:11px;font-family:var(--font-mono);color:var(--text-primary);flex:1;">${escapeHTML(q)}</span>
+            </div>`).join('')}
+        ${p.queries.length > 8 ? `<div style="font-size:10px;color:var(--text-tertiary);margin-top:4px;">+${p.queries.length-8} more</div>` : ''}`;
+
+    // Right panel — top variants by region (all data)
+    const regionMap = new Map();
+    // Re-use allPoints to get region breakdown
+    variantsEl.innerHTML = `
+        <div style="font-size:10px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">All locations</div>
+        ${window._helixMarkers ? Array.from(window._helixMap._layers)
+            .filter(l => l.options && l.options.fillColor)
+            .slice(0, 8)
+            .map(l => {
+                const latlng = l.getLatLng();
+                return '';
+            }).join('') : ''}
+        <div style="font-size:11px;color:var(--text-tertiary);line-height:1.8;">
+            Click any dot on the map to see detailed search analytics for that location.
+        </div>`;
+}
+
 
 // ---- Search Intelligence PDF Report ----
 async function exportSearchPDF() {
@@ -4028,12 +4143,12 @@ async function exportSearchPDF() {
                 document.head.appendChild(s);
             });
         } catch(e) {
-            showNotification('PDF library failed to load — check connection', 'error');
+            showNotification('PDF library failed to load - check connection', 'error');
             return;
         }
     }
 
-    showNotification('Generating report…', 'info', 3500);
+    showNotification('Generating report...', 'info', 3500);
 
     const { jsPDF } = window.jspdf;
     const doc  = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -4044,18 +4159,18 @@ async function exportSearchPDF() {
     const fmt  = n => Number(n).toLocaleString('en-GB');
     const dateStr = now.toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
     const hospital = (si.hospital && si.hospital !== 'Anonymous') ? si.hospital : null;
-    const reportId = 'ΔHEL-' + now.toISOString().replace(/[-:T]/g,'').slice(0,12);
+    const reportId = 'NHEL-' + now.toISOString().replace(/[-:T]/g,'').slice(0,12);
 
     // ---- Institutional branding ----
     const BRAND = {
         group:      'neumACt',
-        department: 'Servicio de Neumología',
+        department: 'Servicio de Neumologia',
         hospital:   'CHUAC',
-        full:       'neumACt  ·  Servicio de Neumología  ·  CHUAC',
-        hospitalFull: 'Complejo Hospitalario Universitario de A Coruña (CHUAC)',
+        full:       'neumACt  .  Servicio de Neumologia  .  CHUAC',
+        hospitalFull: 'Complejo Hospitalario Universitario de A Coruna (CHUAC)',
     };
 
-    // ---- Color palette — scientific, minimal ----
+    // ---- Color palette - scientific, minimal ----
     const C = {
         black:      [10, 10, 10],
         dark:       [30, 30, 30],
@@ -4092,6 +4207,8 @@ async function exportSearchPDF() {
         doc.setFont('courier', 'normal');
         doc.setTextColor(...(color || C.dark));
         doc.text(String(text), x, yPos);
+        // Always reset to helvetica after monospace — prevents bleed into next element
+        doc.setFont('helvetica', 'normal');
     };
 
     // Check for page break and add new page if needed
@@ -4100,7 +4217,7 @@ async function exportSearchPDF() {
             doc.addPage();
             // Subtle running header on continuation pages
             setFont(7, 'normal', C.verylight);
-            doc.text('neumACt · Servicio de Neumología · CHUAC  —  Δ Helix Search Intelligence Report', M, 8);
+            doc.text('neumACt . Servicio de Neumologia . CHUAC  -  Search Intelligence Report', M, 8);
             doc.text(reportId, W-M, 8, {align:'right'});
             rule(10, M, W-M, 0.2, C.rule);
             y = 18;
@@ -4132,7 +4249,7 @@ async function exportSearchPDF() {
         rule(y - 3.5, M, W-M, 0.35, C.rule);
         cols.forEach(col => {
             setFont(7.5, 'bold', C.mid);
-            // Small caps simulation — uppercase
+            // Small caps simulation - uppercase
             doc.text(col.label.toUpperCase(), col.x, y, col.align ? {align: col.align} : undefined);
         });
         y += 2.5;
@@ -4170,7 +4287,7 @@ async function exportSearchPDF() {
     // ================================================================
     y = 42;
 
-    // Top rule — double weight
+    // Top rule - double weight
     rule(y, M, W-M, 1, C.accent);
     y += 1.5;
     rule(y, M, W-M, 0.3, C.accent);
@@ -4178,27 +4295,28 @@ async function exportSearchPDF() {
 
     txt('Search Intelligence Report', M, y, 18, 'bold', C.accent);
     y += 8;
-    txt('Supplementary Data — CFTR Variant Search Activity Analysis', M, y, 11, 'normal', C.mid);
+    txt('Supplementary Data - CFTR Variant Search Activity Analysis', M, y, 11, 'normal', C.mid);
     y += 14;
     // Institutional branding block
     rule(y, M, W-M, 0.25, C.rule); y += 5;
     txt(BRAND.group, M, y, 11, 'bold', C.accent);
     y += 5.5;
-    txt('Servicio de Neumología  ·  Complejo Hospitalario Universitario de A Coruña (CHUAC)', M, y, 8.5, 'normal', C.mid);
+    txt('Servicio de Neumologia  .  Complejo Hospitalario Universitario de A Coruna (CHUAC)', M, y, 8.5, 'normal', C.mid);
     y += 5;
     rule(y, M, W-M, 0.25, C.rule); y += 5;
+    doc.setFont('helvetica', 'normal'); // reset after brand block
 
     rule(y, M, W-M, 0.3, C.rule);
     y += 8;
 
-    // Metadata block — like a journal paper
+    // Metadata block - like a journal paper
     const metaRows = [
         ['Research group', BRAND.group],
         ['Department',     BRAND.department],
         ['Hospital',       BRAND.hospitalFull],
-        ['Platform',       'Δ Helix CFTR Precision Medicine Platform'],
+        ['Platform',       'Delta Helix CFTR Precision Medicine Platform'],
         ['Report ID',      reportId],
-        ['Generated',      dateStr + '  ·  ' + now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'})],
+        ['Generated',      dateStr + '  .  ' + now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'})],
         ['Clinician site', hospital || 'Not specified'],
         ['Coverage',       rate.total > 0 ? `${rate.hitRate}% query resolution rate over ${fmt(rate.total)} searches` : 'No searches recorded'],
     ];
@@ -4218,15 +4336,24 @@ async function exportSearchPDF() {
     const hitRate = rate.total > 0 ? rate.hitRate : 0;
     const abstract =
         `This report summarises CFTR variant search activity recorded by the ${BRAND.group} research group ` +
-        `(${BRAND.department}, ${BRAND.hospitalFull}) on the Δ Helix precision medicine platform. ` +
+        `(${BRAND.department}, ${BRAND.hospitalFull}) on the Delta Helix precision medicine platform. ` +
         `A total of ${fmt(rate.total)} search events were analysed, of which ${fmt(rate.hits)} (${hitRate}%) resolved ` +
         `to a known variant entry across the three primary nomenclature fields (legacy name, HGVS protein notation, cDNA notation). ` +
         `${fmt(si.globalMisses.size)} unique query terms returned no result, representing potential gaps in database coverage ` +
         `that may warrant targeted literature review or variant curation.` +
         (hospital ? ` Session attributed to: ${hospital}.` : '');
 
+    // Explicitly reset to helvetica before abstract — previous courier calls can bleed
+    // Triple reset — ensure no font bleed from any previous mono() or brand rendering
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...C.dark);
+    // splitTextToSize uses current font for width calculation — font must be set first
     const abstractLines = doc.splitTextToSize(abstract, TW);
-    setFont(9, 'normal', C.dark);
+    // Reset again after split (splitTextToSize can sometimes affect state)
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...C.dark);
     abstractLines.forEach(line => { doc.text(line, M, y); y += 5; });
 
     y += 6;
@@ -4236,20 +4363,20 @@ async function exportSearchPDF() {
 
     // Confidential footer on title page
     txt(BRAND.full, W/2, 280, 7.5, 'normal', C.mid, 'center');
-    txt('CONFIDENTIAL — For authorised clinical and research personnel only', W/2, 286, 7, 'italic', C.light, 'center');
+    txt('CONFIDENTIAL - For authorised clinical and research personnel only', W/2, 286, 7, 'italic', C.light, 'center');
 
     // ================================================================
-    // PAGE 2 ONWARDS — Content
+    // PAGE 2 ONWARDS - Content
     // ================================================================
     doc.addPage();
     setFont(7, 'normal', C.verylight);
-    doc.text(BRAND.full + '  —  Search Intelligence Report', M, 8);
+    doc.text('neumACt  .  Servicio de Neumologia  .  CHUAC  -  Search Intelligence Report', M, 8);
     doc.text(reportId, W-M, 8, {align:'right'});
     rule(10, M, W-M, 0.2, C.rule);
     y = 22;
 
     // ================================================================
-    // SECTION 1 — Activity summary
+    // SECTION 1 - Activity summary
     // ================================================================
     sectionHeader('Activity Summary');
     tableCaption('Key performance indicators for the recorded search period.');
@@ -4262,7 +4389,7 @@ async function exportSearchPDF() {
     tableHeader(kpiCols);
 
     const kpiRows = [
-        ['Research group',                BRAND.group,                 BRAND.department + '  ·  ' + BRAND.hospital],
+        ['Research group',                BRAND.group,                 BRAND.department + '  .  ' + BRAND.hospital],
         ['Total search events',           fmt(rate.total),             'Unique settled queries after debounce'],
         ['Queries with result (hits)',     fmt(rate.hits),              'Matched in legacy, protein, or cDNA field'],
         ['Queries without result (misses)',fmt(rate.misses),            'Logged to research gap queue'],
@@ -4281,7 +4408,7 @@ async function exportSearchPDF() {
     tableFooter();
 
     // ================================================================
-    // SECTION 2 — Variant search frequency
+    // SECTION 2 - Variant search frequency
     // ================================================================
     sectionHeader('Variant Search Frequency');
     tableCaption('Queries resolved to a known CFTR variant, with clinical annotation. Sorted by search frequency descending.');
@@ -4300,13 +4427,14 @@ async function exportSearchPDF() {
     topHits.forEach((h, i) => {
         needsPage(7);
         const v = STATE.variants.find(vv => vv.legacy_name.toLowerCase() === h.query.toLowerCase());
+        const displayName = v ? v.legacy_name : h.query; // canonical case from DB
         const etiLabel = v ? (v.eti_prediction === 'responsive' ? 'Responsive'
-            : v.eti_prediction === 'non_responsive' ? 'Non-responsive' : 'Unknown') : '—';
-        const valStr = v ? (v.validation_count > 0 ? v.validation_count + '' : '0') : '—';
+            : v.eti_prediction === 'non_responsive' ? 'Non-responsive' : 'Unknown') : '-';
+        const valStr = v ? (v.validation_count > 0 ? v.validation_count + '' : '0') : '-';
         tableRow([
             {text: String(i+1).padStart(2,'0'), x: M, size:8, color: C.light},
-            {text: h.query, x: M+10, mono: true, size: 8.5},
-            {text: v ? ('Class ' + (v.cftr_class||'—')) : '—', x: M+82,  size:8, color: C.mid},
+            {text: displayName, x: M+10, mono: true, size: 8.5},
+            {text: v ? ('Class ' + (v.cftr_class||'-')) : '-', x: M+82,  size:8, color: C.mid},
             {text: etiLabel,  x: M+100, size:8, color: C.mid},
             {text: valStr,    x: M+132, size:8, color: C.mid},
             {text: fmt(h.count), x: W-M, size:8.5, bold:true, align:'right'},
@@ -4315,7 +4443,7 @@ async function exportSearchPDF() {
     tableFooter('ETI prediction: based on variant class rules and available evidence. Validation count reflects clinician-confirmed records.');
 
     // ================================================================
-    // SECTION 3 — Unresolved query analysis
+    // SECTION 3 - Unresolved query analysis
     // ================================================================
     const topMisses = getTopMisses(25);
     if (topMisses.length) {
@@ -4342,11 +4470,11 @@ async function exportSearchPDF() {
                 {text: statusMap[m.status] || 'Awaiting review', x: M+145, size:7.5, color: C.mid},
             ], i);
         });
-        tableFooter('Queries from multiple unique users are prioritised. A query appearing across ≥5 distinct sessions warrants expedited curation.');
+        tableFooter('Queries from multiple unique users are prioritised. A query appearing across 5+ distinct sessions warrants expedited curation.');
     }
 
     // ================================================================
-    // SECTION 4 — Geographic distribution
+    // SECTION 4 - Geographic distribution
     // ================================================================
     const loc = si.locationCache;
     if (loc && loc.city) {
@@ -4356,9 +4484,9 @@ async function exportSearchPDF() {
             {label:'Field', x:M}, {label:'Value', x:M+50}
         ]);
         const geoRows = [
-            ['City',    loc.city    || '—'],
-            ['Region',  loc.region  || '—'],
-            ['Country', loc.country || '—'],
+            ['City',    loc.city    || '-'],
+            ['Region',  loc.region  || '-'],
+            ['Country', loc.country || '-'],
             ['Source',  'ipapi.co (IP geolocation, city-level precision)'],
             ['Note',    'VPN or institutional proxy may affect accuracy'],
         ];
@@ -4372,7 +4500,7 @@ async function exportSearchPDF() {
     }
 
     // ================================================================
-    // SECTION 5 — Complete search log
+    // SECTION 5 - Complete search log
     // ================================================================
     sectionHeader('Complete Search Log');
 
@@ -4397,7 +4525,10 @@ async function exportSearchPDF() {
 
         dbHistory.forEach((r, i) => {
             needsPage(6);
-            const qd = (r.query||'').length > 28 ? r.query.slice(0,26)+'…' : r.query;
+            // Restore canonical case from variants index if possible
+            const vLog = STATE.variants.find(vv => vv.legacy_name.toLowerCase() === (r.query||'').toLowerCase());
+            const qRaw = vLog ? vLog.legacy_name : (r.query||'');
+            const qd = qRaw.length > 28 ? qRaw.slice(0,26)+'...' : qRaw;
             const dt = new Date(r.searched_at);
             const dtStr = dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}) +
                           '  ' + dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
@@ -4405,14 +4536,14 @@ async function exportSearchPDF() {
                 {text:qd,                    x:M,     mono:true, size:8},
                 {text:r.is_hit?'HIT':'MISS', x:M+68,  size:8, bold:true,
                     color: r.is_hit ? [20,100,40] : [150,30,30]},
-                {text:fLabel[r.matched_field]||'—', x:M+84,  size:8, color:C.mid},
-                {text:(r.city||'—').slice(0,14),    x:M+120, size:7.5, color:C.mid},
+                {text:fLabel[r.matched_field]||'-', x:M+84,  size:8, color:C.mid},
+                {text:(r.city||'-').slice(0,14),    x:M+120, size:7.5, color:C.mid},
                 {text:dtStr,                 x:W-M,   size:7.5, color:C.mid, align:'right'},
             ], i);
         });
         tableFooter('HIT = query resolved to a known variant. MISS = no matching record found in database.');
     } catch(e) {
-        txt('Search log unavailable — database connection required.', M, y, 9, 'italic', C.light);
+        txt('Search log unavailable - database connection required.', M, y, 9, 'italic', C.light);
         y += 8;
     }
 
@@ -4431,7 +4562,7 @@ async function exportSearchPDF() {
 
     const fname = 'neumACt-search-supplement-' + now.toISOString().split('T')[0] + '.pdf';
     doc.save(fname);
-    showNotification(`Report downloaded — ${pageCount} page${pageCount>1?'s':''}`, 'success');
+    showNotification(`Report downloaded - ${pageCount} page${pageCount>1?'s':''}`, 'success');
 }
 
 
@@ -4441,7 +4572,7 @@ function exportSearchReport() {
     const misses = getTopMisses(20);
     const rate   = getSearchHitRate();
     const lines  = [
-        'ΔHELIX — SEARCH INTELLIGENCE REPORT',
+        'neumACt - SEARCH INTELLIGENCE REPORT',
         'Generated: ' + new Date().toLocaleString('en-GB'),
         '',
         '=== SUMMARY ===',
