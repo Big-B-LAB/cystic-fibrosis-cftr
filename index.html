@@ -3003,7 +3003,8 @@ const CONFIG = {
     },
     UI: {
         ITEMS_PER_PAGE: 25,
-        SEARCH_DELAY: 180,
+        SEARCH_DELAY: 180,       // ms — UI filter debounce (fast, for responsiveness)
+        LOG_DELAY: 1200,          // ms — search log debounce (only fire when user settles)
         NOTIFICATION_DURATION: 4000,
         MIN_SEARCH_CHARS: 2
     },
@@ -3053,6 +3054,7 @@ const STATE = {
         evidenceContext: null,
         validatedJson: null,
         searchTimeout: null,
+        logTimeout: null,      // separate debounce — only logs when user settles
         renderTimeout: null
     },
     
@@ -3073,7 +3075,8 @@ const STATE = {
         timeline: [],
         sessionId: 'sess_' + Math.random().toString(36).slice(2,10),
         siCharts: {},
-        locationCache: null  // { country, region, city, latitude, longitude } — fetched once per session
+        locationCache: null,  // { country, region, city, latitude, longitude } — fetched once per session
+        _lastResult: null     // last search result metadata — used by log debounce
     }
 };
 
@@ -3238,8 +3241,15 @@ function searchVariants(query) {
         else matchedField = 'alt_names';
     }
 
-    const matchedVariantId = results.length > 0 ? results[0].id : null;
-    logSearch(query.trim(), results.length > 0, matchedField, matchedVariantId);
+    // NOTE: logSearch is NOT called here — it's called by initSearch
+    // after a separate 1200ms debounce so partial keystrokes don't pollute logs.
+    // We expose the last result metadata so initSearch can log it.
+    STATE.searchIntelligence._lastResult = {
+        query: query.trim(),
+        isHit: results.length > 0,
+        matchedField,
+        matchedVariantId: results.length > 0 ? results[0].id : null
+    };
     return results;
 }
 
@@ -5419,17 +5429,39 @@ function initSearch() {
     if (!input) return;
 
     input.addEventListener('input', function() {
+        const val = this.value;
+        clear?.classList.toggle('hidden', !val);
+
+        // Fast debounce — updates the UI list (180ms)
         clearTimeout(STATE.ui.searchTimeout);
-        clear?.classList.toggle('hidden', !this.value);
         STATE.ui.searchTimeout = setTimeout(() => {
-            STATE.view.searchQuery = this.value;
+            STATE.view.searchQuery = val;
             applyFilterChain();
         }, CONFIG.UI.SEARCH_DELAY);
+
+        // Slow debounce — logs the search only when user settles (1200ms)
+        // Prevents every keystroke from polluting search_logs
+        clearTimeout(STATE.ui.logTimeout);
+        STATE.ui.logTimeout = setTimeout(() => {
+            const r = STATE.searchIntelligence._lastResult;
+            if (r && r.query === val.trim() && val.trim().length >= CONFIG.UI.MIN_SEARCH_CHARS) {
+                logSearch(r.query, r.isHit, r.matchedField, r.matchedVariantId);
+            }
+        }, CONFIG.UI.LOG_DELAY);
     });
 
     input.addEventListener('keydown', e => {
         if (e.key === 'Escape') { clearSearch(); }
-        if (e.key === 'Enter') { STATE.view.searchQuery = input.value; applyFilterChain(); }
+        if (e.key === 'Enter') {
+            // On Enter — log immediately, don't wait for slow debounce
+            clearTimeout(STATE.ui.logTimeout);
+            STATE.view.searchQuery = input.value;
+            applyFilterChain();
+            const r = STATE.searchIntelligence._lastResult;
+            if (r && input.value.trim().length >= CONFIG.UI.MIN_SEARCH_CHARS) {
+                logSearch(r.query, r.isHit, r.matchedField, r.matchedVariantId);
+            }
+        }
     });
 
     document.addEventListener('keydown', e => {
