@@ -1493,6 +1493,86 @@
         }
         .hospital-badge:hover { border-color: rgba(41,121,255,0.4); color: #f0f6ff; }
 
+        /* ================================================================
+           HIT FLASH SYSTEM
+           Three tiers — panel only / panel+header / all three
+           CSS-driven, GPU composited, no layout reflow
+           ================================================================ */
+
+        /* Layer 1 — Full screen wash (exceptional hits only) */
+        @keyframes hitWashFade {
+            0%   { opacity: 0; }
+            15%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .hit-wash {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99990;
+            opacity: 0;
+        }
+        .hit-wash.flash-green {
+            background: rgba(74,222,128,0.06);
+            animation: hitWashFade 600ms cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        .hit-wash.flash-miss {
+            background: rgba(248,113,113,0.05);
+            animation: hitWashFade 250ms ease-out forwards;
+        }
+
+        /* Layer 2 — Header border sweep (responsive + exceptional) */
+        @keyframes headerSweep {
+            0%   { transform: scaleX(0); transform-origin: left; opacity: 0.9; }
+            60%  { transform: scaleX(1); transform-origin: left; opacity: 0.9; }
+            100% { transform: scaleX(1); transform-origin: left; opacity: 0; }
+        }
+        .header-flash-line {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+            pointer-events: none;
+            transform: scaleX(0);
+            transform-origin: left;
+            z-index: 100;
+        }
+        .header-flash-line.sweep-green {
+            background: linear-gradient(90deg, #4ade80, #34d399, #4ade80);
+            animation: headerSweep 450ms cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        .header-flash-line.sweep-exceptional {
+            background: linear-gradient(90deg, #fbbf24, #4ade80, #34d399);
+            animation: headerSweep 500ms cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+
+        /* Layer 3 — Detail panel border glow (all hits) */
+        @keyframes panelGlowFade {
+            0%   { box-shadow: 0 0 0 0px rgba(74,222,128,0); border-color: var(--border); }
+            20%  { box-shadow: 0 0 0 2px rgba(74,222,128,0.35), 0 0 16px rgba(74,222,128,0.12); border-color: rgba(74,222,128,0.5); }
+            100% { box-shadow: 0 0 0 0px rgba(74,222,128,0); border-color: var(--border); }
+        }
+        @keyframes panelGlowExceptional {
+            0%   { box-shadow: 0 0 0 0px rgba(251,191,36,0); border-color: var(--border); }
+            20%  { box-shadow: 0 0 0 3px rgba(251,191,36,0.4), 0 0 24px rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.6); }
+            100% { box-shadow: 0 0 0 0px rgba(251,191,36,0); border-color: var(--border); }
+        }
+        #variantDetail.panel-flash-hit {
+            animation: panelGlowFade 700ms ease-out forwards;
+        }
+        #variantDetail.panel-flash-exceptional {
+            animation: panelGlowExceptional 800ms ease-out forwards;
+        }
+
+        /* Search input miss flash */
+        @keyframes inputMissPulse {
+            0%   { box-shadow: 0 0 0 0px rgba(248,113,113,0); border-color: rgba(99,140,210,0.25); }
+            30%  { box-shadow: 0 0 0 3px rgba(248,113,113,0.25); border-color: rgba(248,113,113,0.6); }
+            100% { box-shadow: 0 0 0 0px rgba(248,113,113,0); border-color: rgba(99,140,210,0.25); }
+        }
+        .search-input.miss-flash {
+            animation: inputMissPulse 400ms ease-out forwards;
+        }
+
         /* ---- Ambient intelligence strip ---- */
         .intel-strip {
             display: flex; align-items: center; gap: 6px;
@@ -2929,6 +3009,9 @@
     <div class="dev-sub">Esta plataforma está en fase de desarrollo activo — funcionalidades pueden cambiar sin previo aviso</div>
 </div>
 
+<!-- Hit flash overlay (full screen wash) -->
+<div class="hit-wash" id="hitWash"></div>
+
 <!-- ================================================================
      APP SHELL
      ================================================================ -->
@@ -2937,7 +3020,9 @@
     <!-- ============================================================
          HEADER
          ============================================================ -->
-    <header class="app-header">
+    <header class="app-header" style="position:relative;">
+        <!-- Header sweep line -->
+        <div class="header-flash-line" id="headerFlashLine"></div>
         <div class="header-brand" id="headerBrand">
             <div class="brand-icon">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4103,6 +4188,14 @@ function logSearch(query, isHit, matchedField, matchedVariantId) {
     pushRibbonEvent(query, isHit);
     updateMissQueueChip();
 
+    // Hit / miss flash feedback
+    if (isHit && matchedVariantId) {
+        const flashVariant = STATE.variantsById.get(matchedVariantId);
+        if (flashVariant) requestAnimationFrame(() => triggerHitFlash(flashVariant));
+    } else if (!isHit) {
+        requestAnimationFrame(() => triggerMissFlash());
+    }
+
     // Persist to Supabase — fire-and-forget, never blocks UI
     persistSearchEvent(query, isHit, matchedField, matchedVariantId);
 }
@@ -5212,12 +5305,12 @@ function toggleSort() {
     applyFilterChain();
 }
 
-function selectVariant(name) {
+function selectVariant(name, fromSearch) {
     const variant = STATE.variantsByLegacyName.get(name);
     if (!variant) return;
     STATE.view.selectedVariant = variant;
     renderVariantList(); // update selection highlight
-    renderVariantDetail(variant);
+    renderVariantDetail(variant, fromSearch || false);
 }
 
 function clearSearch() {
@@ -5339,13 +5432,17 @@ function renderVariantList() {
 
 // ========== RENDER — VARIANT DETAIL ==========
 
-function renderVariantDetail(variant) {
+function renderVariantDetail(variant, fromSearch) {
     document.getElementById('detailEmpty').classList.add('hidden');
     const container = document.getElementById('variantDetail');
     container.classList.remove('hidden');
     // Run gap analysis — updates intel strip and registers in gap queue
     const gap = analyseAndRegisterGap(variant);
     setTimeout(() => updateIntelStrip(variant, gap), 50);
+    // Hit flash — only when result came from active search, not list browse
+    if (fromSearch) {
+        requestAnimationFrame(() => triggerHitFlash(variant));
+    }
 
     const cls = variant.cftr_class ? `c${variant.cftr_class.toLowerCase()}` : 'cx';
     const isResponsive = variant.eti_prediction === 'responsive';
@@ -6942,6 +7039,79 @@ function showNotification(msg, type='info', duration=CONFIG.UI.NOTIFICATION_DURA
     if (duration > 0) setTimeout(() => n.remove(), duration);
 }
 
+// ========== HIT FLASH ENGINE ==========
+// Three-tier visual feedback system
+// Tier 1 (normal hit):      detail panel glow only
+// Tier 2 (ETI responsive):  panel + header sweep
+// Tier 3 (exceptional):     panel + header + full screen wash
+// Miss:                     search input pulse (red, brief)
+
+function classifyHit(variant) {
+    if (!variant) return null;
+    const isResponsive  = variant.eti_prediction === 'responsive';
+    const isExceptional = variant.class_subtype === 'exceptional' ||
+                          (isResponsive && variant.cftr_class === 'I');
+    const isValidated   = (variant.validation_count || 0) > 0;
+
+    if (isExceptional && isResponsive) return 'exceptional';
+    if (isResponsive)                  return 'responsive';
+    return 'hit';
+}
+
+// Master flash controller — call once per search hit
+function triggerHitFlash(variant) {
+    if (!variant) return;
+    const tier = classifyHit(variant);
+
+    // Always: panel glow
+    const panel = document.getElementById('variantDetail');
+    if (panel) {
+        panel.classList.remove('panel-flash-hit', 'panel-flash-exceptional');
+        // Force reflow so re-triggering same class restarts animation
+        void panel.offsetWidth;
+        panel.classList.add(tier === 'exceptional' ? 'panel-flash-exceptional' : 'panel-flash-hit');
+        // Clean up after animation
+        setTimeout(() => {
+            panel.classList.remove('panel-flash-hit', 'panel-flash-exceptional');
+        }, tier === 'exceptional' ? 850 : 750);
+    }
+
+    // Tier 2+: header sweep
+    if (tier === 'responsive' || tier === 'exceptional') {
+        const line = document.getElementById('headerFlashLine');
+        if (line) {
+            line.classList.remove('sweep-green', 'sweep-exceptional');
+            void line.offsetWidth;
+            line.classList.add(tier === 'exceptional' ? 'sweep-exceptional' : 'sweep-green');
+            setTimeout(() => {
+                line.classList.remove('sweep-green', 'sweep-exceptional');
+            }, 520);
+        }
+    }
+
+    // Tier 3: full screen wash
+    if (tier === 'exceptional') {
+        const wash = document.getElementById('hitWash');
+        if (wash) {
+            wash.classList.remove('flash-green', 'flash-miss');
+            void wash.offsetWidth;
+            wash.classList.add('flash-green');
+            setTimeout(() => wash.classList.remove('flash-green'), 650);
+        }
+    }
+}
+
+// Miss flash — search input only, brief red pulse
+function triggerMissFlash() {
+    const input = document.getElementById('searchInput');
+    if (input) {
+        input.classList.remove('miss-flash');
+        void input.offsetWidth;
+        input.classList.add('miss-flash');
+        setTimeout(() => input.classList.remove('miss-flash'), 420);
+    }
+}
+
 // ========== RESEARCH GAP ENGINE ==========
 // Scores a variant 0-100 based on data completeness, evidence, and validation.
 // Persists to research_gaps table asynchronously. Never blocks the UI.
@@ -7609,7 +7779,7 @@ function updateSearchDropdown(query, results) {
         const etiLabel = v.eti_prediction==='responsive'?'ETI ✓':v.eti_prediction==='non_responsive'?'ETI ✗':'—';
         const hits = v.search_hit_count || 0;
         const val  = v.validation_count || 0;
-        return `<div class="sd-item" onclick="selectVariant('${escapeAttr(v.legacy_name)}');document.getElementById('searchDropdown').classList.add('hidden');">
+        return `<div class="sd-item" onclick="selectVariant('${escapeAttr(v.legacy_name)}', true);document.getElementById('searchDropdown').classList.add('hidden');">
             <div class="sd-val ${val>0?'validated':'unvalidated'}" title="${val>0?val+' validations':'Not validated'}"></div>
             <div class="sd-name">${escapeHTML(v.legacy_name)}</div>
             <span class="sd-field">${fieldLabel[mf]||mf}</span>
@@ -8068,6 +8238,7 @@ Object.assign(window, {
     downloadTemplate, processBulkImport,
     setDashTab, setSITab, exportSearchReport, exportSearchPDF, renderGeoTab,
     showMissQueuePanel, showGapQueuePanel, updateIntelStrip, updateSearchDropdown,
+    triggerHitFlash, triggerMissFlash, classifyHit,
     setGeoPeriod, toggleGeoLayer, renderGeoMarkers,
     analyseAndRegisterGap, renderGapQueue, updateGapChip,
     renderGapQueue, renderCommandCentre, calculateGapScore,
