@@ -316,6 +316,45 @@
             animation-delay: 0.25s;
         }
 
+        .load-sticker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 40px;
+            padding: 6px 14px;
+            background: rgba(251,191,36,0.05);
+            border: 1px solid rgba(251,191,36,0.18);
+            border-radius: 20px;
+            animation: loadFadeUp 0.6s ease both;
+            animation-delay: 0.8s;
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+        .load-sticker-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: #fbbf24;
+            box-shadow: 0 0 5px rgba(251,191,36,0.7);
+            animation: devBlink 1.8s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+        .load-sticker-text {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .08em;
+            color: rgba(251,191,36,0.7);
+        }
+        .load-sticker-divider {
+            width: 1px; height: 12px;
+            background: rgba(251,191,36,0.2);
+            flex-shrink: 0;
+        }
+        .load-sticker-contact {
+            font-size: 10px;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: .03em;
+        }
+
         @keyframes loadFadeUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -1189,22 +1228,184 @@
         }
         .geo-tooltip::before { display:none !important; }
 
+        /* Map control buttons — proper contrast on dark background */
+        .geo-ctrl-btn {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            padding: 4px 12px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.45);
+            cursor: pointer;
+            transition: background .15s, color .15s, border-color .15s;
+            white-space: nowrap;
+        }
+        .geo-ctrl-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.75);
+            border-color: rgba(255,255,255,0.2);
+        }
+        .geo-ctrl-btn.active {
+            background: rgba(255,255,255,0.14);
+            color: #ffffff;
+            border-color: rgba(255,255,255,0.35);
+        }
+        .geo-ctrl-btn.active.period { color: #60a5fa; border-color: rgba(96,165,250,0.5); background: rgba(96,165,250,0.1); }
+        .geo-ctrl-btn.active.layer-class { color: #4ade80; border-color: rgba(74,222,128,0.5); background: rgba(74,222,128,0.08); }
+        .geo-ctrl-btn.active.layer-miss  { color: #fbbf24; border-color: rgba(251,191,36,0.5); background: rgba(251,191,36,0.08); }
+        .geo-controls-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: rgba(4,8,20,0.7);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            flex-shrink: 0;
+        }
+        .geo-controls-sep { width:1px; height:16px; background:rgba(255,255,255,0.08); flex-shrink:0; margin:0 2px; }
+        .geo-region-table {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+            gap: 8px;
+            padding: 10px 0 4px;
+        }
+        .geo-region-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: border-color .15s;
+        }
+        .geo-region-card:hover { border-color: rgba(41,121,255,0.4); }
+        .geo-region-name { font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+        .geo-region-variant { font-family: var(--font-mono); font-size: 11px; color: #60a5fa; margin-bottom: 2px; }
+        .geo-region-meta { font-size: 10px; color: var(--text-tertiary); }
+        @keyframes missPulse {
+            0%, 100% { stroke-opacity: 0.7; r: var(--base-r, 8); }
+            50% { stroke-opacity: 1; }
+        }
+
         /* Geography panel: map left, detail right */
         .geo-split {
             display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 12px;
+            grid-template-columns: 1fr 320px;
+            gap: 0;
             height: 100%;
+            min-height: 360px;
         }
         .geo-map-wrap {
-            border-radius: 8px;
+            border-radius: 8px 0 0 8px;
             overflow: hidden;
-            min-height: 300px;
+            min-height: 360px;
         }
         .geo-detail {
             overflow-y: auto;
-            padding-right: 2px;
+            background: rgba(4,8,20,0.6);
+            border-radius: 0 8px 8px 0;
+            border-left: 1px solid rgba(41,121,255,0.12);
         }
+        /* Detail header — city name block */
+        .geo-city-header {
+            padding: 16px;
+            border-bottom: 1px solid rgba(41,121,255,0.12);
+            background: rgba(41,121,255,0.04);
+        }
+        .geo-city-name {
+            font-family: var(--font-mono);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+        .geo-city-sub {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-bottom: 6px;
+        }
+        .geo-hospital-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            color: #60a5fa;
+            background: rgba(96,165,250,0.08);
+            border: 1px solid rgba(96,165,250,0.15);
+            border-radius: 4px;
+            padding: 2px 8px;
+        }
+        /* Stat row */
+        .geo-stat-row {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            border-bottom: 1px solid rgba(41,121,255,0.12);
+        }
+        .geo-stat {
+            padding: 12px 10px;
+            text-align: center;
+            border-right: 1px solid rgba(41,121,255,0.12);
+        }
+        .geo-stat:last-child { border-right: none; }
+        .geo-stat-n {
+            font-family: var(--font-mono);
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 3px;
+        }
+        .geo-stat-l {
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--text-tertiary);
+        }
+        /* Hit rate bar */
+        .geo-hitrate-bar {
+            height: 3px;
+            border-radius: 2px;
+            margin: 0 16px;
+        }
+        /* Query list */
+        .geo-query-section {
+            padding: 10px 16px;
+        }
+        .geo-query-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+        }
+        .geo-query-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .geo-query-item:last-child { border-bottom: none; }
+        .geo-query-dot {
+            width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+        }
+        .geo-query-name {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-primary);
+            flex: 1;
+        }
+        .geo-query-badge {
+            font-size: 8px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+        .geo-query-badge.hit  { background: rgba(74,222,128,0.1); color:#4ade80; }
+        .geo-query-badge.miss { background: rgba(248,113,113,0.1); color:#f87171; }
 
         /* ---- Research gap engine ---- */
         .gap-queue-row { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
@@ -2419,6 +2620,30 @@
            ANALYTICS DASHBOARD
            ============================================================ */
 
+        /* Dashboard tab nav buttons */
+        .dash-nav-btn {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: rgba(255,255,255,0.45);
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap;
+            font-family: var(--font-body);
+        }
+        .dash-nav-btn:hover {
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.8);
+        }
+        .dash-nav-btn.active {
+            background: rgba(255,255,255,0.12);
+            color: #ffffff;
+            border-color: rgba(255,255,255,0.2);
+        }
+
         /* Full-viewport analytics modal */
         /* ================================================================
            ANALYTICS MODAL — Full viewport, scrollable tab panels
@@ -2646,6 +2871,14 @@
         <div class="load-variant-counter" id="loadVariantCounter"></div>
         <div class="load-hospital-greeting" id="loadHospitalGreeting"></div>
         <button class="load-retry-btn" id="loadRetryBtn" onclick="location.reload()">↺ Reintentar conexión</button>
+
+        <!-- Dev sticker on loading screen -->
+        <div class="load-sticker">
+            <span class="load-sticker-dot"></span>
+            <span class="load-sticker-text">v3.0-β &nbsp;·&nbsp; En desarrollo</span>
+            <span class="load-sticker-divider"></span>
+            <span class="load-sticker-contact">Contacto: Neumología · CHUAC</span>
+        </div>
     </div>
 </div>
 
@@ -3154,16 +3387,16 @@
         <div class="modal-header">
             <span class="modal-title" id="dashModalTitle">Analytics Dashboard</span>
             <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
-                <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;">
-                    <button class="si-tab active" id="dashTab-clinical" onclick="setDashTab('clinical',this)" style="border-radius:0;font-size:10px;padding:4px 10px;">Clinical</button>
-                    <button class="si-tab" id="dashTab-search" onclick="setDashTab('search',this)" style="border-radius:0;font-size:10px;padding:4px 10px;border-left:1px solid var(--border);">
-                        <i class="fas fa-chart-line" style="font-size:9px;margin-right:4px;"></i>Search
+                <div style="display:flex;gap:2px;">
+                    <button class="dash-nav-btn active" id="dashTab-clinical" onclick="setDashTab('clinical',this)">Clinical</button>
+                    <button class="dash-nav-btn" id="dashTab-search" onclick="setDashTab('search',this)">
+                        <i class="fas fa-chart-line" style="font-size:9px;"></i> Search
                     </button>
-                    <button class="si-tab" id="dashTab-gaps" onclick="setDashTab('gaps',this)" style="border-radius:0;font-size:10px;padding:4px 10px;border-left:1px solid var(--border);">
-                        <i class="fas fa-exclamation-triangle" style="font-size:9px;margin-right:4px;color:#fbbf24;"></i>Research Gaps
+                    <button class="dash-nav-btn" id="dashTab-gaps" onclick="setDashTab('gaps',this)">
+                        <i class="fas fa-exclamation-triangle" style="font-size:9px;color:#fbbf24;"></i> Gaps
                     </button>
-                    <button class="si-tab" id="dashTab-command" onclick="setDashTab('command',this)" style="border-radius:0;font-size:10px;padding:4px 10px;border-left:1px solid var(--border);">
-                        <i class="fas fa-terminal" style="font-size:9px;margin-right:4px;color:#60a5fa;"></i>Command Centre
+                    <button class="dash-nav-btn" id="dashTab-command" onclick="setDashTab('command',this)">
+                        <i class="fas fa-terminal" style="font-size:9px;color:#60a5fa;"></i> Command
                     </button>
                 </div>
                 <button class="btn btn-ghost btn-icon" onclick="closeDashboard()">
@@ -3208,7 +3441,13 @@
                 </div>
             </div>
             <div class="dash-card">
-                <div class="dash-card-title">Data Completeness</div>
+                <div class="dash-card-title">Data Completeness
+                    <span style="font-size:9px;font-weight:400;color:var(--text-tertiary);margin-left:8px;">
+                        <span style="color:#4ade80;">■</span> Complete (all clinical fields)
+                        &nbsp;&nbsp;
+                        <span style="color:#2979ff;">■</span> Minimal (name + class only)
+                    </span>
+                </div>
                 <div style="position:relative;height:80px;width:100%;">
                     <canvas id="completionChart"></canvas>
                 </div>
@@ -3350,28 +3589,46 @@
 
             <div id="siPanelGeo" class="si-panel" style="display:none;">
                 <div class="si-body">
-                    <div class="si-card" style="flex:1;">
-                        <div class="si-card-head">
+                    <div class="si-card" style="flex:1;overflow:hidden;padding:0;">
+                        <div class="si-card-head" style="padding:12px 16px;">
                             <div class="si-card-title">
-                                <span style="width:6px;height:6px;border-radius:50%;background:#2979ff;display:inline-block;"></span>
-                                Search locations — click a dot for details
+                                <span style="width:7px;height:7px;border-radius:50%;background:#2979ff;box-shadow:0 0 8px rgba(41,121,255,0.7);display:inline-block;"></span>
+                                Geographic search distribution
                             </div>
-                            <div class="si-card-note" id="siGeoNote">Loading…</div>
+                            <div class="si-card-note" id="siGeoNote" style="font-family:var(--font-mono);"></div>
                         </div>
-                        <div class="si-card-body" style="padding:10px;">
-                            <div class="geo-split">
-                                <div class="geo-map-wrap">
-                                    <div id="siGeoMap" style="height:360px;border-radius:6px;overflow:hidden;background:var(--surface);"></div>
-                                </div>
-                                <div class="geo-detail" id="siGeoCities">
-                                    <div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">Click a location dot on the map to see search details.</div>
+                        <!-- Controls bar -->
+                        <div class="geo-controls-bar">
+                            <button class="geo-ctrl-btn period active" id="geoPeriod7"  onclick="setGeoPeriod(7,  this)">7d</button>
+                            <button class="geo-ctrl-btn period"        id="geoPeriod30" onclick="setGeoPeriod(30, this)">30d</button>
+                            <button class="geo-ctrl-btn period"        id="geoPeriodAll"onclick="setGeoPeriod(0,  this)">All</button>
+                            <div class="geo-controls-sep"></div>
+                            <button class="geo-ctrl-btn layer-class active" id="geoLayerClass" onclick="toggleGeoLayer('class', this)">Class</button>
+                            <button class="geo-ctrl-btn layer-miss"         id="geoLayerMiss"  onclick="toggleGeoLayer('miss',  this)">Miss</button>
+                            <div style="margin-left:auto;font-size:9px;color:rgba(255,255,255,0.25);font-family:var(--font-mono);" id="geoLayerLegend">
+                                <span style="color:#ef4444;">■</span> I &nbsp;
+                                <span style="color:#f97316;">■</span> II &nbsp;
+                                <span style="color:#22c55e;">■</span> III &nbsp;
+                                <span style="color:#a78bfa;">■</span> IV+ &nbsp;
+                                <span style="color:#5a7aaa;">■</span> Unknown
+                            </div>
+                        </div>
+                        <!-- Map + detail panel -->
+                        <div class="geo-split">
+                            <div class="geo-map-wrap" style="border-radius:0 0 0 8px;">
+                                <div id="siGeoMap" style="height:360px;background:#050d1a;"></div>
+                            </div>
+                            <div class="geo-detail" id="siGeoCities">
+                                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:200px;gap:10px;padding:24px;text-align:center;opacity:0.5;">
+                                    <i class="fas fa-map-marker-alt" style="font-size:24px;color:var(--text-tertiary);"></i>
+                                    <div style="font-size:11px;color:var(--text-tertiary);line-height:1.7;">Click any dot<br>to explore that location</div>
                                 </div>
                             </div>
                         </div>
+                        <!-- Region table below map -->
+                        <div id="geoRegionTable" style="padding:10px 16px 4px;border-top:1px solid rgba(255,255,255,0.04);"></div>
                     </div>
-                    <div class="si-card" style="display:none;">
-                        <div class="si-card-body" id="siGeoVariants"></div>
-                    </div>
+                    <div id="siGeoVariants" style="display:none;"></div>
                 </div>
             </div>
 
@@ -3998,13 +4255,43 @@ function getSearchTimeline() {
 }
 
 // ---- Geography tab ----
-async function renderGeoTab() {
-    const noteEl  = document.getElementById('siGeoNote');
-    const mapEl   = document.getElementById('siGeoMap');
-    const citiesEl   = document.getElementById('siGeoCities');
-    const variantsEl = document.getElementById('siGeoVariants');
 
-    if (noteEl) noteEl.textContent = 'Loading location data…';
+// Global geo state
+window._geoState = {
+    allRows: [],      // full fetched dataset
+    period: 7,        // days (0 = all)
+    layerClass: true,
+    layerMiss: false,
+};
+
+function setGeoPeriod(days, btn) {
+    window._geoState.period = days;
+    document.querySelectorAll('.geo-ctrl-btn.period').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderGeoMarkers();
+}
+
+function toggleGeoLayer(layer, btn) {
+    const st = window._geoState;
+    if (layer === 'class') st.layerClass = !st.layerClass;
+    if (layer === 'miss')  st.layerMiss  = !st.layerMiss;
+    btn.classList.toggle('active');
+    renderGeoMarkers();
+}
+
+function getClassColor(dominantClass) {
+    const map = { 'I':'#ef4444', 'II':'#f97316', 'III':'#22c55e',
+                  'IV':'#a78bfa', 'V':'#a78bfa', 'VI':'#a78bfa' };
+    return map[dominantClass] || '#5a7aaa';
+}
+
+async function renderGeoTab() {
+    const noteEl    = document.getElementById('siGeoNote');
+    const mapEl     = document.getElementById('siGeoMap');
+    const citiesEl  = document.getElementById('siGeoCities');
+    const regionEl  = document.getElementById('geoRegionTable');
+
+    if (noteEl) noteEl.textContent = 'Loading…';
 
     // Load Leaflet
     if (!window.L) {
@@ -4023,159 +4310,300 @@ async function renderGeoTab() {
         ]);
     }
 
-    // Fetch location data
+    // Fetch all location data
     try {
         const res = await fetch(
             `${CONFIG.SUPABASE.URL}/rest/v1/search_logs` +
-            `?select=query,is_hit,city,country,region,latitude,longitude,hospital_name` +
-            `&latitude=not.is.null&order=searched_at.desc&limit=1000`,
+            `?select=query,is_hit,city,country,region,latitude,longitude,hospital_name,searched_at` +
+            `&latitude=not.is.null&order=searched_at.desc&limit=2000`,
             { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
         );
-        const rows = await res.json();
-
-        if (!rows.length) {
-            if (noteEl) noteEl.textContent = 'No location data yet — search some variants first';
-            if (mapEl)  mapEl.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;">
-                <i class="fas fa-map-marker-alt" style="font-size:24px;color:var(--text-tertiary);opacity:0.4;"></i>
-                <span style="font-size:12px;color:var(--text-tertiary);">Location data will appear after searches are logged</span>
-            </div>`;
-            return;
-        }
-
-        const hospital = STATE.searchIntelligence.hospital;
-        const note = `${rows.length} searches with location data`;
-        if (noteEl) noteEl.textContent = hospital && hospital !== 'Anonymous'
-            ? note + ' · ' + hospital : note;
-
-        // Group by city
-        const points = new Map();
-        rows.forEach(r => {
-            const key = `${r.latitude},${r.longitude}`;
-            if (!points.has(key)) points.set(key, {
-                lat: r.latitude, lon: r.longitude,
-                city: r.city, country: r.country, region: r.region,
-                hits: 0, misses: 0, queries: [], hospitals: new Set()
-            });
-            const p = points.get(key);
-            if (r.is_hit) p.hits++; else p.misses++;
-            if (!p.queries.includes(r.query)) p.queries.push(r.query);
-            if (r.hospital_name) p.hospitals.add(r.hospital_name);
-        });
-
-        const allPoints = Array.from(points.values());
-        const maxCount  = Math.max(...allPoints.map(p => p.hits + p.misses));
-
-        // Init or reuse map — ensure proper height
-        if (mapEl) mapEl.style.height = '300px';
-        if (!window._helixMap) {
-            mapEl.style.zIndex = '1';
-            window._helixMap = L.map('siGeoMap', { zoomControl: true, scrollWheelZoom: false });
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '© OpenStreetMap © CARTO', maxZoom: 14
-            }).addTo(window._helixMap);
-        }
-
-        // Clear old markers
-        if (window._helixMarkers) window._helixMarkers.forEach(m => m.remove());
-        window._helixMarkers = [];
-
-        // Track selected point for detail panel
-        let selectedPoint = null;
-
-        allPoints.forEach(p => {
-            const total   = p.hits + p.misses;
-            const radius  = Math.max(8, Math.min(24, 8 + (total / maxCount) * 16));
-            const hitRate = total > 0 ? Math.round((p.hits / total) * 100) : 0;
-            const color   = hitRate >= 70 ? '#4ade80' : hitRate >= 40 ? '#fbbf24' : '#f87171';
-
-            const marker = L.circleMarker([p.lat, p.lon], {
-                radius, color, fillColor: color, fillOpacity: 0.55,
-                weight: 2, opacity: 0.9
-            }).addTo(window._helixMap);
-
-            // Click → show detail panel
-            marker.on('click', () => {
-                selectedPoint = p;
-                renderGeoDetail(p, citiesEl, variantsEl);
-                // Highlight selected marker
-                window._helixMarkers.forEach(m => m.setStyle({ weight: 2, fillOpacity: 0.55 }));
-                marker.setStyle({ weight: 3.5, fillOpacity: 0.85 });
-            });
-
-            // Hover tooltip
-            marker.bindTooltip(
-                `<strong style="font-family:monospace;">${p.city || 'Unknown'}</strong><br>` +
-                `${p.hits} hits · ${p.misses} misses · ${hitRate}% hit rate`,
-                { className: 'geo-tooltip', sticky: true }
-            );
-
-            window._helixMarkers.push(marker);
-        });
-
-        // Fit bounds
-        if (allPoints.length) {
-            const bounds = L.latLngBounds(allPoints.map(p => [p.lat, p.lon]));
-            window._helixMap.fitBounds(bounds, { padding: [24, 24] });
-        }
-
-        // Auto-select the largest point
-        const biggest = allPoints.sort((a,b) => (b.hits+b.misses)-(a.hits+a.misses))[0];
-        if (biggest) renderGeoDetail(biggest, citiesEl, variantsEl);
-
+        window._geoState.allRows = await res.json();
     } catch(e) {
         if (noteEl) noteEl.textContent = 'Failed to load location data';
-        console.error('Geo tab error:', e);
+        return;
     }
+
+    // Init map once
+    if (!window._helixMap) {
+        window._helixMap = L.map('siGeoMap', { zoomControl: true, scrollWheelZoom: false });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap © CARTO', maxZoom: 14
+        }).addTo(window._helixMap);
+
+        // Load Spain autonomous communities GeoJSON
+        try {
+            const geoRes = await fetch('https://cdn.jsdelivr.net/npm/spain-atlas@0.1/es/autonomous-regions.json');
+            if (geoRes.ok) {
+                const geoJson = await geoRes.json();
+                L.geoJSON(geoJson, {
+                    style: {
+                        fillColor: 'transparent',
+                        color: 'rgba(41,121,255,0.18)',
+                        weight: 1,
+                        fillOpacity: 0,
+                    },
+                    onEachFeature: (feature, layer) => {
+                        layer.on('mouseover', function() {
+                            this.setStyle({ color: 'rgba(41,121,255,0.5)', weight: 1.5, fillColor: 'rgba(41,121,255,0.04)', fillOpacity: 1 });
+                        });
+                        layer.on('mouseout', function() {
+                            this.setStyle({ color: 'rgba(41,121,255,0.18)', weight: 1, fillOpacity: 0 });
+                        });
+                        const name = feature.properties?.name || feature.properties?.NAME_1 || '';
+                        if (name) layer.bindTooltip(name, { className: 'geo-tooltip', sticky: true });
+                    }
+                }).addTo(window._helixMap);
+            }
+        } catch(e) { /* GeoJSON optional — fail silently */ }
+    }
+
+    renderGeoMarkers();
 }
 
+function renderGeoMarkers() {
+    const st     = window._geoState;
+    const noteEl = document.getElementById('siGeoNote');
+    const regionEl = document.getElementById('geoRegionTable');
+
+    if (!window._helixMap || !st.allRows.length) return;
+
+    // Filter by period
+    const cutoff = st.period > 0
+        ? new Date(Date.now() - st.period * 86400000).toISOString()
+        : null;
+    const rows = cutoff
+        ? st.allRows.filter(r => r.searched_at >= cutoff)
+        : st.allRows;
+
+    const hospital = STATE.searchIntelligence.hospital;
+    if (noteEl) noteEl.textContent = `${rows.length} searches · ${hospital && hospital !== 'Anonymous' ? hospital.split('(')[0].trim() : 'all locations'}`;
+
+    // Group by HOSPITAL (feature 5 — separate dots per hospital)
+    const points = new Map();
+    rows.forEach(r => {
+        const hospKey = r.hospital_name || `${r.latitude},${r.longitude}`;
+        const key = `${hospKey}`;
+        if (!points.has(key)) points.set(key, {
+            lat: r.latitude, lon: r.longitude,
+            city: r.city, country: r.country, region: r.region,
+            hospital: r.hospital_name || null,
+            hospitals: new Set(),
+            hits: 0, misses: 0, queries: [],
+            classCounts: {},
+        });
+        const p = points.get(key);
+        if (r.hospital_name) p.hospitals.add(r.hospital_name);
+        if (r.is_hit) {
+            p.hits++;
+            // Look up CFTR class for this query (feature 1)
+            const v = STATE.variants.find(vv => vv.legacy_name.toLowerCase() === (r.query||'').toLowerCase());
+            if (v && v.cftr_class) {
+                p.classCounts[v.cftr_class] = (p.classCounts[v.cftr_class]||0) + 1;
+            }
+        } else {
+            p.misses++;
+        }
+        if (!p.queries.includes(r.query)) p.queries.push(r.query);
+    });
+
+    const allPoints = Array.from(points.values());
+    const maxCount  = Math.max(1, ...allPoints.map(p => p.hits + p.misses));
+
+    // Clear old markers
+    if (window._helixMarkers) window._helixMarkers.forEach(m => window._helixMap.removeLayer(m));
+    window._helixMarkers = [];
+
+    allPoints.forEach(p => {
+        const total   = p.hits + p.misses;
+        const hitRate = total > 0 ? Math.round((p.hits / total) * 100) : 0;
+        const radius  = Math.max(7, Math.min(22, 7 + (total / maxCount) * 15));
+
+        // Feature 1 — color by dominant class
+        let color = '#5a7aaa';
+        if (st.layerClass) {
+            const dominantClass = Object.entries(p.classCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+            color = getClassColor(dominantClass);
+        } else {
+            // Hit rate coloring when class layer off
+            color = hitRate >= 70 ? '#4ade80' : hitRate >= 40 ? '#fbbf24' : '#f87171';
+        }
+
+        // Feature 2 — miss rate pulse via Leaflet SVG marker
+        const missRate = total > 0 ? (p.misses / total) * 100 : 0;
+        const shouldPulse = st.layerMiss && missRate >= 40;
+
+        const svgSize = (radius + (shouldPulse ? 10 : 0)) * 2;
+        const center  = svgSize / 2;
+        const pulseSvg = shouldPulse ? `
+            <circle cx="${center}" cy="${center}" r="${radius + 6}" fill="none"
+                stroke="#fbbf24" stroke-width="1.5" opacity="0.6"
+                style="animation: missPulseAnim 2s ease-out infinite"/>
+            <circle cx="${center}" cy="${center}" r="${radius + 10}" fill="none"
+                stroke="#fbbf24" stroke-width="0.8" opacity="0.3"
+                style="animation: missPulseAnim 2s ease-out infinite 0.6s"/>
+        ` : '';
+
+        const svgIcon = L.divIcon({
+            className: '',
+            html: `<svg width="${svgSize}" height="${svgSize}" xmlns="http://www.w3.org/2000/svg">
+                <style>@keyframes missPulseAnim{0%{r:${radius+4};opacity:.7}100%{r:${radius+14};opacity:0}}</style>
+                ${pulseSvg}
+                <circle cx="${center}" cy="${center}" r="${radius}"
+                    fill="${color}" fill-opacity="0.75"
+                    stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+            </svg>`,
+            iconSize: [svgSize, svgSize],
+            iconAnchor: [center, center],
+        });
+
+        const marker = L.marker([p.lat, p.lon], { icon: svgIcon }).addTo(window._helixMap);
+
+        marker.on('click', () => {
+            renderGeoDetail(p, document.getElementById('siGeoCities'), null);
+            // Re-render all markers to reset selection, then highlight this one
+        });
+
+        marker.bindTooltip(
+            `<strong>${p.city || 'Unknown'}</strong>${p.hospital ? '<br>'+p.hospital.split('(')[0].trim() : ''}<br>${p.hits} hits · ${p.misses} misses · ${hitRate}% rate`,
+            { className: 'geo-tooltip', sticky: true }
+        );
+
+        window._helixMarkers.push(marker);
+    });
+
+    // Fit bounds
+    if (allPoints.length) {
+        window._helixMap.fitBounds(
+            L.latLngBounds(allPoints.map(p => [p.lat, p.lon])),
+            { padding: [20, 20] }
+        );
+    }
+
+    // Feature 6 — top variant per region table below map
+    if (regionEl) {
+        const byRegion = new Map();
+        rows.forEach(r => {
+            if (!r.region || !r.is_hit) return;
+            if (!byRegion.has(r.region)) byRegion.set(r.region, { queries: {}, hits: 0, total: 0 });
+            const reg = byRegion.get(r.region);
+            reg.total++;
+            if (r.is_hit) {
+                reg.hits++;
+                reg.queries[r.query] = (reg.queries[r.query]||0) + 1;
+            }
+        });
+
+        const regionCards = Array.from(byRegion.entries())
+            .sort((a,b) => b[1].total - a[1].total)
+            .slice(0, 6)
+            .map(([region, data]) => {
+                const topQ  = Object.entries(data.queries).sort((a,b)=>b[1]-a[1])[0];
+                const v     = topQ ? STATE.variants.find(vv => vv.legacy_name.toLowerCase() === topQ[0].toLowerCase()) : null;
+                const name  = v ? v.legacy_name : (topQ ? topQ[0] : '—');
+                const rate  = data.total > 0 ? Math.round((data.hits/data.total)*100) : 0;
+                const rateColor = rate >= 70 ? '#4ade80' : rate >= 40 ? '#fbbf24' : '#f87171';
+                return `<div class="geo-region-card">
+                    <div class="geo-region-name">${escapeHTML(region)}</div>
+                    <div class="geo-region-variant">${escapeHTML(name)}</div>
+                    <div class="geo-region-meta">${data.total} searches &nbsp;·&nbsp; <span style="color:${rateColor};">${rate}%</span> hit rate</div>
+                </div>`;
+            }).join('');
+
+        regionEl.innerHTML = regionCards ? `
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-tertiary);margin-bottom:8px;">Top variant by region</div>
+            <div class="geo-region-table">${regionCards}</div>` : '';
+    }
+
+    // Auto-select biggest point
+    const biggest = allPoints.sort((a,b) => (b.hits+b.misses)-(a.hits+a.misses))[0];
+    if (biggest) renderGeoDetail(biggest, document.getElementById('siGeoCities'), null);
+}
+
+
 function renderGeoDetail(p, citiesEl, variantsEl) {
-    if (!p || !citiesEl || !variantsEl) return;
+    if (!p || !citiesEl) return;
+
     const total   = p.hits + p.misses;
     const hitRate = total > 0 ? Math.round((p.hits / total) * 100) : 0;
     const hrColor = hitRate >= 70 ? '#4ade80' : hitRate >= 40 ? '#fbbf24' : '#f87171';
+    const hrLabel = hitRate >= 70 ? 'Strong' : hitRate >= 40 ? 'Mixed' : 'Weak';
 
-    // Left panel — location detail
+    // Look up canonical variant names from the query list
+    const queryItems = p.queries.map(q => {
+        const v = STATE.variants.find(vv => vv.legacy_name.toLowerCase() === q.toLowerCase());
+        return { raw: q, display: v ? v.legacy_name : q, isHit: !!v };
+    });
+
+    // Separate hits and misses in the query list
+    const hitQueries  = queryItems.filter(qi => qi.isHit);
+    const missQueries = queryItems.filter(qi => !qi.isHit);
+
+    // Hospital tags
+    const hospHtml = [...p.hospitals].map(h =>
+        `<div class="geo-hospital-tag"><i class="fas fa-hospital" style="font-size:8px;"></i>${escapeHTML(h)}</div>`
+    ).join('');
+
     citiesEl.innerHTML = `
-        <div style="margin-bottom:12px;">
-            <div style="font-size:14px;font-weight:700;font-family:var(--font-mono);color:var(--text-primary);margin-bottom:2px;">${escapeHTML(p.city||'Unknown city')}</div>
-            <div style="font-size:11px;color:var(--text-tertiary);">${escapeHTML(p.region||'')} ${escapeHTML(p.country||'')}</div>
-            ${p.hospitals.size ? `<div style="font-size:10px;color:#60a5fa;margin-top:4px;"><i class="fas fa-hospital" style="font-size:9px;margin-right:3px;"></i>${escapeHTML([...p.hospitals].join(', '))}</div>` : ''}
+        <!-- City header -->
+        <div class="geo-city-header">
+            <div class="geo-city-name">${escapeHTML(p.city || 'Unknown')}</div>
+            <div class="geo-city-sub">${escapeHTML([p.region, p.country].filter(Boolean).join(' · '))}</div>
+            ${p.hospitals.size ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${hospHtml}</div>` : ''}
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
-            <div style="background:var(--surface);border-radius:6px;padding:8px;text-align:center;">
-                <div style="font-size:16px;font-weight:700;font-family:var(--font-mono);color:#4ade80;">${p.hits}</div>
-                <div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;">Hits</div>
-            </div>
-            <div style="background:var(--surface);border-radius:6px;padding:8px;text-align:center;">
-                <div style="font-size:16px;font-weight:700;font-family:var(--font-mono);color:#f87171;">${p.misses}</div>
-                <div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;">Misses</div>
-            </div>
-            <div style="background:var(--surface);border-radius:6px;padding:8px;text-align:center;">
-                <div style="font-size:16px;font-weight:700;font-family:var(--font-mono);color:${hrColor};">${hitRate}%</div>
-                <div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;">Hit rate</div>
-            </div>
-        </div>
-        <div style="font-size:10px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Searched from here</div>
-        ${p.queries.slice(0,8).map(q => `
-            <div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);">
-                <span style="font-size:11px;font-family:var(--font-mono);color:var(--text-primary);flex:1;">${escapeHTML(q)}</span>
-            </div>`).join('')}
-        ${p.queries.length > 8 ? `<div style="font-size:10px;color:var(--text-tertiary);margin-top:4px;">+${p.queries.length-8} more</div>` : ''}`;
 
-    // Right panel — top variants by region (all data)
-    const regionMap = new Map();
-    // Re-use allPoints to get region breakdown
-    variantsEl.innerHTML = `
-        <div style="font-size:10px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">All locations</div>
-        ${window._helixMarkers ? Array.from(window._helixMap._layers)
-            .filter(l => l.options && l.options.fillColor)
-            .slice(0, 8)
-            .map(l => {
-                const latlng = l.getLatLng();
-                return '';
-            }).join('') : ''}
-        <div style="font-size:11px;color:var(--text-tertiary);line-height:1.8;">
-            Click any dot on the map to see detailed search analytics for that location.
+        <!-- Stats row -->
+        <div class="geo-stat-row">
+            <div class="geo-stat">
+                <div class="geo-stat-n" style="color:#4ade80;">${p.hits}</div>
+                <div class="geo-stat-l">Hits</div>
+            </div>
+            <div class="geo-stat">
+                <div class="geo-stat-n" style="color:#f87171;">${p.misses}</div>
+                <div class="geo-stat-l">Misses</div>
+            </div>
+            <div class="geo-stat">
+                <div class="geo-stat-n" style="color:${hrColor};">${hitRate}%</div>
+                <div class="geo-stat-l" style="color:${hrColor};">${hrLabel}</div>
+            </div>
+        </div>
+
+        <!-- Hit rate progress bar -->
+        <div style="padding:8px 16px;border-bottom:1px solid rgba(41,121,255,0.12);">
+            <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
+                <div style="height:100%;width:${hitRate}%;background:${hrColor};border-radius:2px;transition:width .5s ease;"></div>
+            </div>
+        </div>
+
+        <!-- Query list -->
+        <div class="geo-query-section">
+            ${hitQueries.length ? `
+                <div class="geo-query-label">Resolved searches (${hitQueries.length})</div>
+                ${hitQueries.slice(0,6).map(qi => `
+                    <div class="geo-query-item">
+                        <div class="geo-query-dot" style="background:#4ade80;"></div>
+                        <span class="geo-query-name">${escapeHTML(qi.display)}</span>
+                        <span class="geo-query-badge hit">HIT</span>
+                    </div>`).join('')}
+                ${hitQueries.length > 6 ? `<div style="font-size:10px;color:var(--text-tertiary);padding:4px 0;">+${hitQueries.length-6} more</div>` : ''}
+            ` : ''}
+            ${missQueries.length ? `
+                <div class="geo-query-label" style="margin-top:${hitQueries.length?'12px':'0'};">Unresolved searches (${missQueries.length})</div>
+                ${missQueries.slice(0,4).map(qi => `
+                    <div class="geo-query-item">
+                        <div class="geo-query-dot" style="background:#f87171;"></div>
+                        <span class="geo-query-name" style="color:var(--text-secondary);">${escapeHTML(qi.display)}</span>
+                        <span class="geo-query-badge miss">MISS</span>
+                    </div>`).join('')}
+            ` : ''}
+        </div>
+
+        <!-- Total activity footer -->
+        <div style="padding:10px 16px;border-top:1px solid rgba(41,121,255,0.12);background:rgba(41,121,255,0.03);">
+            <div style="font-size:10px;color:var(--text-tertiary);">
+                <span style="font-family:var(--font-mono);font-weight:700;color:var(--text-secondary);">${total}</span>
+                total search event${total!==1?'s':''} from this location
+            </div>
         </div>`;
 }
 
@@ -7076,7 +7504,7 @@ function renderCommandCentre() {
             { label:'Complete records',     val: s.complete.toLocaleString() + ' / ' + s.total,  ok: s.complete/s.total > 0.4 },
             { label:'ETI Responsive',       val: s.responsive.toLocaleString(),                   ok: true },
             { label:'Unclassified',         val: (s.total - (s.classI+s.classII+s.classIII+s.classIV+s.classV)).toLocaleString(), ok: false },
-            { label:'Search hit rate',      val: rate.total > 0 ? rate.hitRate+'%' : '—',        ok: rate.hitRate >= 80 },
+            { label:'Search hit rate',      val: rate.total > 0 ? rate.hitRate+'%' : '—',        ok: rate.hitRate >= 70, amber: rate.hitRate >= 50 && rate.hitRate < 70 },
             { label:'Open miss queue',      val: STATE.searchIntelligence.globalMisses.size,      ok: STATE.searchIntelligence.globalMisses.size === 0 },
             { label:'Critical gap variants',val: criticalGaps.toLocaleString(),                   ok: criticalGaps === 0 },
             { label:'Validated variants',   val: s.validated.toLocaleString(),                    ok: s.validated/s.total > 0.3 },
@@ -7085,7 +7513,7 @@ function renderCommandCentre() {
             items.map(item => `
                 <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:9px 10px;">
                     <div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;">${item.label}</div>
-                    <div style="font-size:14px;font-weight:700;font-family:var(--font-mono);color:${item.ok?'#34d399':'#f87171'};">${item.val}</div>
+                    <div style="font-size:14px;font-weight:700;font-family:var(--font-mono);color:${item.ok?'#34d399':item.amber?'#fbbf24':'#f87171'};">${item.val}</div>
                 </div>`).join('') + '</div>';
     }
 }
@@ -7640,6 +8068,7 @@ Object.assign(window, {
     downloadTemplate, processBulkImport,
     setDashTab, setSITab, exportSearchReport, exportSearchPDF, renderGeoTab,
     showMissQueuePanel, showGapQueuePanel, updateIntelStrip, updateSearchDropdown,
+    setGeoPeriod, toggleGeoLayer, renderGeoMarkers,
     analyseAndRegisterGap, renderGapQueue, updateGapChip,
     renderGapQueue, renderCommandCentre, calculateGapScore,
     showHospitalModal, confirmHospital, skipHospital, changeHospital,
