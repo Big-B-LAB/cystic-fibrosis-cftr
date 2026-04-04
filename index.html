@@ -10368,7 +10368,7 @@ setInterval(async () => {
 function heliosMonitorCurrentVariant() {
     const v = STATE.view.selectedVariant;
     if (!v) return showNotification('Select a variant first', 'warning');
-    heliosAddMonitor(v.id, v.legacy_name);
+    heliosAddMonitor(v.id, v.legacy_name);  
 }
 
 // ================================================================
