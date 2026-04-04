@@ -9223,6 +9223,14 @@ Object.assign(window, {
             <button class="helios-tab" id="htab-audit" onclick="heliosTab('audit')">
                 <i class="fas fa-scroll"></i> Audit Trail
             </button>
+            <button class="helios-tab" id="htab-validate" onclick="heliosTab('validate')">
+                <i class="fas fa-shield-alt"></i> Validate
+                <span class="helios-tab-badge" id="htabBadgeValidate" style="display:none;background:var(--helios-blue);"></span>
+            </button>
+            <button class="helios-tab" id="htab-validate" onclick="heliosTab('validate')">
+                <i class="fas fa-shield-alt"></i> Validate
+                <span class="helios-tab-badge" id="htabBadgeValidate" style="display:none;background:var(--helios-blue);"></span>
+            </button>
         </div>
 
         <div class="helios-status-row">
@@ -9345,8 +9353,14 @@ Object.assign(window, {
                         <button class="helios-btn helios-btn-ghost" onclick="heliosScanMissQueue()" id="hbtnMiss">
                             <i class="fas fa-question-circle"></i> Resolve Miss Queue
                         </button>
-                        <button class="helios-btn helios-btn-ghost" onclick="heliosCheckDrift()" id="hbtnDrift" style="grid-column:1/-1;border-color:rgba(251,191,36,0.2);color:var(--helios-sun2);">
+                        <button class="helios-btn helios-btn-ghost" onclick="heliosCheckDrift()" id="hbtnDrift" style="border-color:rgba(251,191,36,0.2);color:var(--helios-sun2);">
                             <i class="fas fa-history"></i> Check Value Drift
+                        </button>
+                        <button class="helios-btn helios-btn-ghost" onclick="heliosMissQueueIntelligence()" id="hbtnMissIntel" style="border-color:rgba(96,165,250,0.2);color:var(--helios-blue);">
+                            <i class="fas fa-project-diagram"></i> Miss Queue Intelligence
+                        </button>
+                        <button class="helios-btn helios-btn-ghost" onclick="heliosCheckEvidenceContradictions()" id="hbtnEvidence" style="grid-column:1/-1;border-color:rgba(248,113,113,0.2);color:var(--helios-red);">
+                            <i class="fas fa-flask"></i> Scan Evidence Contradictions
                         </button>
                     </div>
                     <div id="heliosScanProgress" style="display:none;">
@@ -9374,6 +9388,21 @@ Object.assign(window, {
                 <div class="helios-card-body" style="padding:0;">
                     <div class="helios-console" id="heliosConsole">
                         <div><span class="hlog-ts">--:--:--</span><span class="hlog-info">☀ Helios initialized. Ready.</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scan Run History -->
+            <div class="helios-card">
+                <div class="helios-card-head">
+                    <i class="fas fa-history"></i> Scan Run History
+                    <button class="helios-btn helios-btn-ghost" style="margin-left:auto;padding:3px 8px;font-size:10px;" onclick="heliosLoadScanHistory()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="helios-card-body" style="padding:0;" id="heliosScanHistory">
+                    <div class="helios-empty" style="padding:20px;">
+                        <p style="font-size:12px;color:var(--helios-text3);">Run a scan to see history</p>
                     </div>
                 </div>
             </div>
@@ -9445,6 +9474,118 @@ Object.assign(window, {
             </div>
         </div>
 
+        <!-- ===== VALIDATE PANEL ===== -->
+        <div class="helios-panel" id="hpanel-validate">
+
+            <!-- Header metrics -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+                <div class="helios-metric">
+                    <div class="helios-metric-val" id="hValTotal" style="color:var(--helios-text);">—</div>
+                    <div class="helios-metric-lbl">Total Variants</div>
+                </div>
+                <div class="helios-metric">
+                    <div class="helios-metric-val" id="hValValidated" style="color:var(--helios-green);">—</div>
+                    <div class="helios-metric-lbl">Validated</div>
+                </div>
+                <div class="helios-metric">
+                    <div class="helios-metric-val" id="hValUnvalidated" style="color:var(--helios-red);">—</div>
+                    <div class="helios-metric-lbl">Unvalidated</div>
+                </div>
+                <div class="helios-metric">
+                    <div class="helios-metric-val" id="hValRate" style="color:var(--helios-sun);">—%</div>
+                    <div class="helios-metric-lbl">Validation Rate</div>
+                </div>
+            </div>
+
+            <!-- Priority queue -->
+            <div class="helios-card" style="margin-bottom:14px;">
+                <div class="helios-card-head">
+                    <i class="fas fa-sort-amount-down" style="color:var(--helios-blue);"></i>
+                    Validation Priority Queue
+                    <span style="font-size:10px;color:var(--helios-text3);margin-left:6px;">Ordered by clinical urgency</span>
+                    <button class="helios-btn helios-btn-ghost" style="margin-left:auto;padding:4px 10px;font-size:10.5px;" onclick="heliosLoadValidationQueue()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div id="heliosValidationQueue" style="max-height:420px;overflow-y:auto;">
+                    <div class="helios-empty" style="padding:32px;">
+                        <div class="helios-empty-icon"><i class="fas fa-shield-alt"></i></div>
+                        <p>Click Refresh to load the validation queue</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geographic signal -->
+            <div class="helios-card">
+                <div class="helios-card-head">
+                    <i class="fas fa-globe-europe" style="color:var(--helios-blue);"></i>
+                    Geographic Demand Signal
+                    <span style="font-size:10px;color:var(--helios-text3);margin-left:6px;">Cross-institutional variant demand</span>
+                    <button class="helios-btn helios-btn-ghost" style="margin-left:auto;padding:4px 10px;font-size:10.5px;" onclick="heliosRunGeoSignal()">
+                        <i class="fas fa-satellite-dish"></i> Analyse
+                    </button>
+                </div>
+                <div id="heliosGeoSignal" style="max-height:280px;overflow-y:auto;">
+                    <div class="helios-empty" style="padding:24px;">
+                        <p style="font-size:12px;color:var(--helios-text3);">Click Analyse to detect cross-institutional demand patterns</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== VALIDATE PANEL ===== -->
+        <div class="helios-panel" id="hpanel-validate">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+                <div class="helios-metric">
+                    <div class="helios-metric-val" id="hValTotal" style="color:var(--helios-text);">--</div>
+                    <div class="helios-metric-lbl">Total Variants</div>
+                </div>
+                <div class="helios-metric">
+                    <div class="helios-metric-val" id="hValValidated" style="color:var(--helios-green);">--</div>
+                    <div class="helios-metric-lbl">Validated</div>
+                </div>
+                <div class="helios-metric">
+                    <div class="helios-metric-val" id="hValUnvalidated" style="color:var(--helios-red);">--</div>
+                    <div class="helios-metric-lbl">Unvalidated</div>
+                </div>
+                <div class="helios-metric">
+                    <div class="helios-metric-val" id="hValRate" style="color:var(--helios-sun);">--%</div>
+                    <div class="helios-metric-lbl">Validation Rate</div>
+                </div>
+            </div>
+            <div class="helios-card" style="margin-bottom:14px;">
+                <div class="helios-card-head">
+                    <i class="fas fa-sort-amount-down" style="color:var(--helios-blue);"></i>
+                    Validation Priority Queue
+                    <span style="font-size:10px;color:var(--helios-text3);margin-left:6px;">Ordered by clinical urgency</span>
+                    <button class="helios-btn helios-btn-ghost" style="margin-left:auto;padding:4px 10px;font-size:10.5px;" onclick="heliosLoadValidationQueue()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div id="heliosValidationQueue" style="max-height:420px;overflow-y:auto;">
+                    <div class="helios-empty" style="padding:32px;">
+                        <div class="helios-empty-icon"><i class="fas fa-shield-alt"></i></div>
+                        <p>Click Refresh to load the validation queue</p>
+                    </div>
+                </div>
+            </div>
+            <div class="helios-card">
+                <div class="helios-card-head">
+                    <i class="fas fa-globe-europe" style="color:var(--helios-blue);"></i>
+                    Geographic Demand Signal
+                    <span style="font-size:10px;color:var(--helios-text3);margin-left:6px;">Cross-institutional variant demand</span>
+                    <button class="helios-btn helios-btn-ghost" style="margin-left:auto;padding:4px 10px;font-size:10.5px;" onclick="heliosRunGeoSignal()">
+                        <i class="fas fa-satellite-dish"></i> Analyse
+                    </button>
+                </div>
+                <div id="heliosGeoSignal" style="max-height:280px;overflow-y:auto;">
+                    <div class="helios-empty" style="padding:24px;">
+                        <p style="font-size:12px;color:var(--helios-text3);">Click Analyse to detect cross-institutional demand patterns</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /helios-body -->
 </div><!-- /heliosOverlay -->
 
@@ -9468,7 +9609,134 @@ const HELIOS = {
     runningId: null,
     sources: { pubmed: true, cftr2: true, clinvar: true, internal: true },
     scanAbort: null,
+    calibration: {}  // { [item_type]: { n, approvalRate, blended, prior, calibrated, medianSpeed, diverging } }
 };
+
+// ================================================================
+// CALIBRATION ENGINE
+// Biological priors per item type — certainty before clinical data
+// ================================================================
+const HELIOS_PRIORS = {
+    INTERNAL_LOGIC:     { prior: 82, label: 'Logic Consistency' },
+    INTERNAL_NAMING:    { prior: 65, label: 'HGVS Notation'     },
+    INTERNAL_ORPHAN:    { prior: 88, label: 'Orphan Variant'     },
+    INTERNAL_DUPLICATE: { prior: 70, label: 'Duplicate Risk'     },
+    NEW_EVIDENCE:       { prior: 72, label: 'New Evidence'       },
+    MISS_RESOLVED:      { prior: 60, label: 'Miss Resolution'    },
+    DRIFT_ALERT:        { prior: 78, label: 'Value Drift'        },
+    CONTRADICTION:      { prior: 80, label: 'Contradiction'      },
+    EXTERNAL_GUIDELINE: { prior: 68, label: 'Guideline Update'   },
+    PATTERN_SIGNAL:     { prior: 62, label: 'Pattern Signal'     },
+    REGIONAL_SIGNAL:    { prior: 58, label: 'Regional Signal'    },
+};
+
+const CALIBRATION_THRESHOLD = 5; // decisions needed before calibrated mode activates
+
+async function heliosLoadCalibration() {
+    try {
+        // Fetch all approve/reject decisions from audit log
+        const r = await hFetch(
+            `helios_audit_log?action=in.(approved,rejected)&select=action,item_type,created_at&order=created_at.desc&limit=500`
+        );
+        if (!r.ok) return;
+        const entries = await r.json();
+
+        // Group by item_type
+        const byType = {};
+        for (const e of entries) {
+            if (!e.item_type) continue;
+            if (!byType[e.item_type]) byType[e.item_type] = { approved: 0, rejected: 0, total: 0 };
+            byType[e.item_type].total++;
+            if (e.action === 'approved') byType[e.item_type].approved++;
+            else byType[e.item_type].rejected++;
+        }
+
+        // Fetch decision speed data
+        const sr = await hFetch(
+            `helios_pending_review?status=in.(approved,rejected)&select=item_type,created_at,reviewed_at&limit=500`
+        );
+        const speedByType = {};
+        if (sr.ok) {
+            const speedEntries = await sr.json();
+            for (const e of speedEntries) {
+                if (!e.item_type || !e.created_at || !e.reviewed_at) continue;
+                const secs = (new Date(e.reviewed_at) - new Date(e.created_at)) / 1000;
+                if (secs <= 0 || secs > 86400) continue; // ignore outliers
+                if (!speedByType[e.item_type]) speedByType[e.item_type] = [];
+                speedByType[e.item_type].push(secs);
+            }
+        }
+
+        // Build calibration map per type
+        const cal = {};
+        for (const [type, counts] of Object.entries(byType)) {
+            const priorConf  = HELIOS_PRIORS[type]?.prior ?? 70;
+            const approvalRate = Math.round((counts.approved / counts.total) * 100);
+            const n          = counts.total;
+            const calibrated = n >= CALIBRATION_THRESHOLD;
+
+            // Bayesian blend: weight shifts from prior toward observed as n grows
+            const weight  = Math.min(n / (CALIBRATION_THRESHOLD * 2), 1);
+            const blended = Math.round(priorConf * (1 - weight) + approvalRate * weight);
+
+            // Median decision speed in seconds
+            const speeds = (speedByType[type] || []).sort((a, b) => a - b);
+            const medianSpeed = speeds.length > 0 ? speeds[Math.floor(speeds.length / 2)] : null;
+
+            // Divergence: recent 5 decisions strongly disagree with historical rate
+            let diverging = false;
+            if (n >= 10) {
+                const recent = entries.filter(e => e.item_type === type).slice(0, 5);
+                const recentRate = recent.filter(e => e.action === 'approved').length / recent.length * 100;
+                diverging = Math.abs(recentRate - approvalRate) > 30;
+            }
+
+            cal[type] = { n, approvalRate, blended, prior: priorConf, calibrated, medianSpeed, diverging };
+        }
+
+        HELIOS.calibration = cal;
+        heliosLog('info', `☀ Calibration loaded — ${Object.keys(cal).length} type${Object.keys(cal).length !== 1 ? 's' : ''} tracked`);
+    } catch(e) {
+        heliosLog('warn', `Calibration unavailable — using biological priors`);
+    }
+}
+
+// Returns rich calibration object for a given item type
+function heliosGetCalibratedConfidence(itemType, biologicalConf) {
+    const priorConf = HELIOS_PRIORS[itemType]?.prior ?? biologicalConf;
+    const label     = HELIOS_PRIORS[itemType]?.label ?? 'Confidence';
+    const cal       = HELIOS.calibration[itemType];
+
+    if (!cal || !cal.calibrated) {
+        return {
+            displayConf: priorConf,
+            prior:       priorConf,
+            n:           cal?.n ?? 0,
+            calibrated:  false,
+            label,
+            diverging:   false,
+            medianSpeed: cal?.medianSpeed ?? null,
+            sublabel:    cal?.n > 0
+                ? `${cal.n} decision${cal.n > 1 ? 's' : ''} recorded — ${CALIBRATION_THRESHOLD - cal.n} more needed to calibrate`
+                : 'No decisions yet — showing biological prior'
+        };
+    }
+
+    const speedStr = cal.medianSpeed !== null
+        ? ` · Avg review time: ${cal.medianSpeed < 60 ? Math.round(cal.medianSpeed) + 's' : Math.round(cal.medianSpeed / 60) + 'm'}`
+        : '';
+
+    return {
+        displayConf: cal.blended,
+        prior:       cal.prior,
+        n:           cal.n,
+        calibrated:  true,
+        label,
+        diverging:   cal.diverging,
+        medianSpeed: cal.medianSpeed,
+        sublabel:    `${cal.approvalRate}% confirmed across ${cal.n} decisions${speedStr}`
+    };
+}
 
 // ---- Type config ----
 const HELIOS_TYPES = {
@@ -9511,7 +9779,11 @@ function openHelios() {
     if (list) list.innerHTML = `<div class="helios-empty"><div class="helios-spinner" style="margin:0 auto 16px;"></div><p style="color:var(--helios-text2);font-size:13px;">Loading…</p></div>`;
     heliosUpdateGreeting();
     heliosTab('inbox');
-    requestAnimationFrame(() => setTimeout(() => heliosLoadInbox(), 0));
+    // Load calibration + inbox in parallel — calibration needed before items render
+    requestAnimationFrame(() => setTimeout(async () => {
+        await heliosLoadCalibration();
+        await heliosLoadInbox();
+    }, 0));
 }
 
 function closeHelios() {
@@ -9526,12 +9798,13 @@ function closeHelios() {
 // ---- Tab switching ----
 function heliosTab(tab) {
     HELIOS.currentTab = tab;
-    ['inbox','scanner','health','audit'].forEach(t => {
+    ['inbox','scanner','health','audit','validate'].forEach(t => {
         document.getElementById(`hpanel-${t}`)?.classList.toggle('active', t === tab);
         document.getElementById(`htab-${t}`)?.classList.toggle('active', t === tab);
     });
-    if (tab === 'audit')   heliosLoadAudit();
-    if (tab === 'scanner') heliosUpdateScannerStats();
+    if (tab === 'audit')    heliosLoadAudit();
+    if (tab === 'scanner')  heliosUpdateScannerStats();
+    if (tab === 'validate') heliosLoadValidationQueue();
     // health check only on explicit Run Check click
 }
 
@@ -9632,6 +9905,59 @@ function renderHeliosInbox(items) {
     list.innerHTML = items.map(item => renderHeliosItem(item)).join('');
 }
 
+// ================================================================
+// RENDER CALIBRATED CONFIDENCE BLOCK
+// ================================================================
+function renderHeliosConfidence(item) {
+    const cal = heliosGetCalibratedConfidence(item.item_type, item.bot_confidence ?? 0);
+    const c = cal.displayConf;
+    const color = c >= 75 ? 'var(--helios-green)' : c >= 45 ? 'var(--helios-sun)' : 'var(--helios-red)';
+    const priorColor = cal.prior >= 75 ? 'var(--helios-green)' : cal.prior >= 45 ? 'var(--helios-sun)' : 'var(--helios-red)';
+
+    const divergenceWarning = cal.diverging ? `
+        <div style="margin-top:8px;padding:7px 10px;border-radius:6px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.18);display:flex;align-items:center;gap:8px;">
+            <i class="fas fa-exclamation-triangle" style="color:var(--helios-sun);font-size:10px;flex-shrink:0;"></i>
+            <span style="font-size:11px;color:var(--helios-text2);">Clinician decisions diverging from prior — review pattern</span>
+        </div>` : '';
+
+    const speedWarning = cal.medianSpeed && cal.medianSpeed < 15 ? `
+        <div style="margin-top:6px;padding:6px 10px;border-radius:6px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.15);display:flex;align-items:center;gap:8px;">
+            <i class="fas fa-bolt" style="color:var(--helios-blue);font-size:10px;flex-shrink:0;"></i>
+            <span style="font-size:11px;color:var(--helios-text2);">Decisions made in under 15s on average — consider reviewing carefully</span>
+        </div>` : '';
+
+    const priorBar = cal.calibrated ? `
+        <div style="margin-top:5px;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:9.5px;color:var(--helios-text3);font-family:var(--helios-mono);width:80px;flex-shrink:0;">Prior</span>
+            <div class="helios-bar-track" style="flex:1;">
+                <div class="helios-bar-fill" style="width:${cal.prior}%;background:${priorColor};opacity:0.35;"></div>
+            </div>
+            <span style="font-size:9.5px;color:var(--helios-text3);font-family:var(--helios-mono);width:28px;text-align:right;">${cal.prior}%</span>
+        </div>` : '';
+
+    return `
+    <div style="margin:14px 0 10px;padding:12px 14px;background:rgba(0,0,0,0.2);border:1px solid var(--helios-border);border-radius:var(--helios-radius-sm);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:7px;">
+                <span style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--helios-text3);font-family:var(--helios-body);">${cal.label}</span>
+                ${cal.calibrated ? `<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(52,211,153,0.1);color:var(--helios-green);border:1px solid rgba(52,211,153,0.2);font-family:var(--helios-mono);">LIVE · ${cal.n} decisions</span>` : `<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(251,191,36,0.08);color:var(--helios-sun2);border:1px solid rgba(251,191,36,0.15);font-family:var(--helios-mono);">PRIOR · ${cal.n} decisions</span>`}
+            </div>
+            <span style="font-family:var(--helios-mono);font-size:18px;font-weight:700;color:${color};letter-spacing:-0.02em;">${c}%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="font-size:9.5px;color:var(--helios-text3);font-family:var(--helios-mono);width:80px;flex-shrink:0;">${cal.calibrated ? 'Calibrated' : 'Biological'}</span>
+            <div class="helios-bar-track" style="flex:1;">
+                <div class="helios-bar-fill" style="width:${c}%;background:${color};"></div>
+            </div>
+            <span style="font-size:9.5px;color:${color};font-family:var(--helios-mono);width:28px;text-align:right;">${c}%</span>
+        </div>
+        ${priorBar}
+        ${cal.sublabel ? `<div style="margin-top:7px;font-size:11px;color:var(--helios-text3);font-family:var(--helios-body);line-height:1.4;">${escapeHTML(cal.sublabel)}</div>` : ''}
+        ${divergenceWarning}
+        ${speedWarning}
+    </div>`;
+}
+
 function renderHeliosItem(item) {
     const tc = HELIOS_TYPES[item.item_type] || { icon:'fa-question', label: item.item_type, cls:'htype-internal_logic' };
     const pClass = item.priority.toLowerCase();
@@ -9698,16 +10024,10 @@ function renderHeliosItem(item) {
             </div>
         </div>
         <div class="helios-item-body" id="hbody-${item.id}">
-            <!-- Confidence -->
-            <div style="margin-bottom:10px;">
-                <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--helios-text3);margin-bottom:4px;">
-                    <span>Bot confidence</span>
-                    <span style="font-family:var(--helios-mono);color:${conf>=70?'var(--helios-green)':conf>=40?'var(--helios-sun)':'var(--helios-red)'};">${conf}%</span>
-                </div>
-                <div class="helios-bar-track"><div class="helios-bar-fill" style="width:${conf}%;background:${conf>=70?'var(--helios-green)':conf>=40?'linear-gradient(90deg,var(--helios-sun2),var(--helios-sun))':'var(--helios-red)'}"></div></div>
-            </div>
+            <!-- Calibrated Confidence -->
+            ${renderHeliosConfidence(item)}
             <!-- Reasoning -->
-            ${item.bot_reasoning ? `<div class="helios-evidence-box"><strong style="color:var(--helios-text);font-size:11px;">Bot reasoning:</strong><br>${escapeHTML(item.bot_reasoning)}</div>` : ''}
+            ${item.bot_reasoning ? `<div class="helios-evidence-box"><strong style="color:var(--helios-text);font-size:11px;">Reasoning:</strong><br>${escapeHTML(item.bot_reasoning)}</div>` : ''}
             <!-- Diff -->
             ${diffHTML}
             <!-- Evidence -->
@@ -9884,21 +10204,144 @@ async function heliosCreateVariantFromMiss(itemId) {
     showNotification(`Pre-filled with '${item.variant_name}' — add clinical details and save`, 'info');
 }
 
-// ---- Historical Accuracy Cache (Fix 5) ----
-const HELIOS_ACCURACY_CACHE = {};
-async function heliosGetHistoricalAccuracy(itemType) {
-    if (HELIOS_ACCURACY_CACHE[itemType] !== undefined) return HELIOS_ACCURACY_CACHE[itemType];
+// Calibration engine above replaces historical accuracy stub
+
+// ================================================================
+// EVIDENCE CONTRADICTION DETECTION
+// Reads evidence_links.cftr_class_claim + eti_claim
+// Compares against current variant classification
+// Flags contradictions and derives evidence-based confidence
+// ================================================================
+async function heliosCheckEvidenceContradictions() {
+    heliosLog('info', '🔬 Checking evidence chains for contradictions…');
+    heliosSetBotStatus('running');
+
     try {
-        const r = await hFetch(`helios_audit_log?item_type=eq.${itemType}&select=action&limit=200`);
-        if (!r.ok) return null;
-        const entries = await r.json();
-        if (!entries.length) return null;
-        const approved = entries.filter(e => e.action === 'approved').length;
-        const decided  = entries.filter(e => ['approved','rejected'].includes(e.action)).length;
-        const rate = decided > 0 ? Math.round((approved / decided) * 100) : null;
-        HELIOS_ACCURACY_CACHE[itemType] = rate;
-        return rate;
-    } catch { return null; }
+        // Fetch evidence links that have classification claims
+        const r = await hFetch(
+            `evidence_links?or=(cftr_class_claim.not.is.null,eti_claim.not.is.null)&select=variant_id,cftr_class_claim,eti_claim,title,source,year,quality_score,url&limit=500`
+        );
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const links = await r.json();
+
+        if (!links.length) {
+            heliosLog('info', 'No evidence claims found in evidence links');
+            heliosSetBotStatus('idle');
+            return;
+        }
+
+        // Group by variant_id
+        const byVariant = {};
+        links.forEach(l => {
+            if (!l.variant_id) return;
+            if (!byVariant[l.variant_id]) byVariant[l.variant_id] = [];
+            byVariant[l.variant_id].push(l);
+        });
+
+        const runId = crypto.randomUUID();
+        let contradictions = 0;
+        let confirmations  = 0;
+
+        for (const [variantId, evidenceLinks] of Object.entries(byVariant)) {
+            const v = STATE.variants.find(x => x.id == variantId);
+            if (!v) continue;
+
+            // Gather all class claims
+            const classClaims = evidenceLinks
+                .filter(l => l.cftr_class_claim)
+                .map(l => ({ claim: l.cftr_class_claim, source: l.source, title: l.title, year: l.year, quality: l.quality_score || 5 }));
+
+            const etiClaims = evidenceLinks
+                .filter(l => l.eti_claim)
+                .map(l => ({ claim: l.eti_claim, source: l.source, title: l.title, year: l.year, quality: l.quality_score || 5 }));
+
+            // Check class contradictions
+            if (v.cftr_class && classClaims.length > 0) {
+                const contradictingClass = classClaims.filter(c =>
+                    c.claim && c.claim.trim().toUpperCase() !== v.cftr_class.trim().toUpperCase()
+                );
+                const confirmingClass = classClaims.filter(c =>
+                    c.claim && c.claim.trim().toUpperCase() === v.cftr_class.trim().toUpperCase()
+                );
+
+                if (contradictingClass.length > 0) {
+                    // Weight by quality score
+                    const contradictWeight = contradictingClass.reduce((s,c) => s + c.quality, 0);
+                    const confirmWeight    = confirmingClass.reduce((s,c) => s + c.quality, 0);
+                    const confidence = Math.min(60 + contradictWeight * 5, 95);
+
+                    const sources = contradictingClass.slice(0,3)
+                        .map(c => `${c.source || 'Unknown'} (${c.year || '—'}): claims Class ${c.claim}`)
+                        .join('; ');
+
+                    await heliosCreatePendingItem({
+                        item_type:      'CONTRADICTION',
+                        variant_id:     v.id,
+                        variant_name:   v.legacy_name,
+                        bot_summary:    `Evidence contradicts Class ${v.cftr_class} — ${contradictingClass.length} source${contradictingClass.length!==1?'s':''} claim different classification`,
+                        bot_reasoning:  `Current classification: Class ${v.cftr_class}. ${contradictingClass.length} evidence source${contradictingClass.length!==1?'s':''} claim a different class: ${sources}. ${confirmingClass.length} source${confirmingClass.length!==1?'s':''} confirm current class. Review evidence chain carefully.`,
+                        bot_confidence: confidence,
+                        proposed_field: 'cftr_class',
+                        proposed_value: contradictingClass.sort((a,b) => b.quality - a.quality)[0].claim,
+                        current_value:  v.cftr_class,
+                        scan_source:    'EVIDENCE',
+                        scan_run_id:    runId,
+                        priority:       contradictWeight > confirmWeight ? 'URGENT' : 'ROUTINE',
+                        _priority:      contradictWeight > confirmWeight ? 'URGENT' : 'ROUTINE',
+                    });
+                    contradictions++;
+                    heliosLog('warn', `  ⚠ Contradiction: ${v.legacy_name} · Class ${v.cftr_class} vs evidence`);
+                } else if (confirmingClass.length >= 2) {
+                    confirmations++;
+                }
+            }
+
+            // Check ETI contradictions
+            if (v.eti_prediction && etiClaims.length > 0) {
+                const contradictingEti = etiClaims.filter(c =>
+                    c.claim && c.claim.toLowerCase() !== v.eti_prediction.toLowerCase()
+                        && c.claim.toLowerCase() !== 'unknown'
+                );
+
+                if (contradictingEti.length > 0) {
+                    const contradictWeight = contradictingEti.reduce((s,c) => s + c.quality, 0);
+                    const sources = contradictingEti.slice(0,2)
+                        .map(c => `${c.source || 'Unknown'}: claims ${c.claim}`)
+                        .join('; ');
+
+                    await heliosCreatePendingItem({
+                        item_type:      'CONTRADICTION',
+                        variant_id:     v.id,
+                        variant_name:   v.legacy_name,
+                        bot_summary:    `Evidence contradicts ETI prediction '${v.eti_prediction}'`,
+                        bot_reasoning:  `Current ETI prediction: ${v.eti_prediction}. ${contradictingEti.length} source${contradictingEti.length!==1?'s':''} suggest otherwise: ${sources}. This may affect treatment decisions — review urgently.`,
+                        bot_confidence: Math.min(55 + contradictWeight * 5, 90),
+                        proposed_field: 'eti_prediction',
+                        proposed_value: contradictingEti.sort((a,b) => b.quality - a.quality)[0].claim,
+                        current_value:  v.eti_prediction,
+                        scan_source:    'EVIDENCE',
+                        scan_run_id:    runId,
+                        priority:       'URGENT',
+                    });
+                    contradictions++;
+                    heliosLog('warn', `  ⚠ ETI contradiction: ${v.legacy_name} · ${v.eti_prediction} vs evidence`);
+                }
+            }
+        }
+
+        heliosSetBotStatus('idle');
+        heliosLog('success', `✅ Evidence scan: ${contradictions} contradiction${contradictions!==1?'s':''}, ${confirmations} confirmation${confirmations!==1?'s':''}`);
+        showNotification(
+            contradictions > 0
+                ? `${contradictions} evidence contradiction${contradictions!==1?'s':''} found — review required`
+                : `Evidence scan clean — ${confirmations} classification${confirmations!==1?'s':''} confirmed`,
+            contradictions > 0 ? 'warning' : 'success'
+        );
+        heliosUpdateBadge();
+    } catch(e) {
+        heliosSetBotStatus('idle');
+        heliosLog('error', `Evidence scan failed: ${e.message}`);
+    }
 }
 
 // ---- Drift Detection (Fix 1 novel) ----
@@ -10097,6 +10540,65 @@ function heliosUpdateScannerStats() {
     document.getElementById('hScanTotal').textContent = STATE.variants.length.toLocaleString();
     const pending = HELIOS.pendingItems.filter(i => i.status === 'pending').length;
     document.getElementById('hScanPending').textContent = pending;
+    heliosLoadScanHistory();
+}
+
+async function heliosLoadScanHistory() {
+    const container = document.getElementById('heliosScanHistory');
+    if (!container) return;
+    try {
+        const r = await hFetch(
+            `helios_bot_runs?order=started_at.desc&limit=8`
+        );
+        if (!r.ok) throw new Error();
+        const runs = await r.json();
+        if (!runs.length) {
+            container.innerHTML = `<div class="helios-empty" style="padding:20px;"><p style="font-size:12px;color:var(--helios-text3);">No scans recorded yet</p></div>`;
+            return;
+        }
+        const typeLabels = {
+            INTERNAL_SCAN: 'DB Consistency',
+            EXTERNAL_SCAN: 'Literature',
+            FULL_SCAN:     'Full Scan',
+            MANUAL_SINGLE: 'Single Variant',
+            SCHEDULED:     'Scheduled',
+        };
+        const statusColors = {
+            completed: 'var(--helios-green)',
+            running:   'var(--helios-sun)',
+            failed:    'var(--helios-red)',
+            partial:   'var(--helios-blue)',
+        };
+        container.innerHTML = runs.map(run => {
+            const duration = run.completed_at && run.started_at
+                ? Math.round((new Date(run.completed_at) - new Date(run.started_at)) / 1000)
+                : null;
+            const durationStr = duration
+                ? duration < 60 ? `${duration}s` : `${Math.round(duration/60)}m`
+                : run.status === 'running' ? 'Running…' : '—';
+            const date = run.started_at
+                ? new Date(run.started_at).toLocaleString('en-GB', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
+                : '—';
+            return `
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--helios-border);">
+                <div style="width:7px;height:7px;border-radius:50%;background:${statusColors[run.status]||'var(--helios-text3)'};flex-shrink:0;box-shadow:0 0 6px ${statusColors[run.status]||'transparent'};"></div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:12px;font-weight:600;color:var(--helios-text);font-family:var(--helios-body);">${typeLabels[run.run_type]||run.run_type}</div>
+                    <div style="font-size:10.5px;color:var(--helios-text3);font-family:var(--helios-mono);">${date} · ${durationStr}</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                    <div style="font-size:13px;font-weight:700;color:${run.findings_created>0?'var(--helios-sun)':'var(--helios-text3)'};font-family:var(--helios-display);">${run.findings_created||0}</div>
+                    <div style="font-size:9.5px;color:var(--helios-text3);font-family:var(--helios-mono);">findings</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                    <div style="font-size:12px;color:var(--helios-text2);font-family:var(--helios-mono);">${(run.variants_scanned||0).toLocaleString()}</div>
+                    <div style="font-size:9.5px;color:var(--helios-text3);font-family:var(--helios-mono);">scanned</div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch {
+        container.innerHTML = `<div class="helios-empty" style="padding:16px;"><p style="font-size:12px;color:var(--helios-text3);">Failed to load scan history</p></div>`;
+    }
 }
 
 function heliosToggleSource(key, btn) {
@@ -10363,7 +10865,101 @@ async function heliosScanSingle() {
     if (HELIOS.currentTab === 'scanner') heliosUpdateScannerStats();
 }
 
-// ---- Scan miss queue ----
+// ================================================================
+// MISS QUEUE INTELLIGENCE ENGINE
+// Detects cross-institutional demand patterns
+// and auto-escalates high-signal misses
+// ================================================================
+async function heliosMissQueueIntelligence() {
+    heliosLog('info', '🔍 Analysing miss queue for cross-institutional patterns…');
+    heliosSetBotStatus('running');
+
+    try {
+        // Fetch all pending misses with session + geographic data
+        const r = await hFetch(
+            `search_miss_queue?status=eq.pending&order=unique_sessions.desc&limit=100`
+        );
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const misses = await r.json();
+
+        let escalated = 0;
+        let signals   = 0;
+        const runId   = crypto.randomUUID();
+
+        for (const m of misses) {
+            // Cross-institutional threshold: 3+ unique sessions
+            const isCrossInstitutional = (m.unique_sessions || 0) >= 3;
+            // High frequency: searched 5+ times
+            const isHighFrequency      = (m.miss_count || 0) >= 5;
+            // Recent surge: last seen recently
+            const daysSinceLast = m.last_seen_at
+                ? (Date.now() - new Date(m.last_seen_at)) / 86400000
+                : 999;
+            const isRecent = daysSinceLast <= 7;
+
+            // Score the miss
+            let score = 0;
+            if (isCrossInstitutional) score += 40;
+            if (isHighFrequency)      score += 30;
+            if (isRecent)             score += 20;
+            if (m.top_hospital)       score += 10; // known hospital source
+
+            if (score < 40) continue; // not significant enough
+
+            const priority   = score >= 70 ? 'URGENT' : 'ROUTINE';
+            const confidence = Math.min(50 + score, 95);
+
+            // Build geographic context string
+            const geoCtx = m.top_hospital
+                ? `Last searched from ${m.top_hospital}.`
+                : '';
+
+            const reasoning = [
+                `'${m.query}' has been searched ${m.miss_count} time${m.miss_count!==1?'s':''} with no DB match.`,
+                `${m.unique_sessions} unique session${m.unique_sessions!==1?'s':''} — ${isCrossInstitutional ? 'cross-institutional demand confirmed.' : 'single institution.'}`,
+                isRecent ? `Last searched ${Math.round(daysSinceLast)} day${Math.round(daysSinceLast)!==1?'s':''} ago — active clinical need.` : '',
+                geoCtx,
+                score >= 70
+                    ? 'High-priority variant discovery candidate — consider adding to database.'
+                    : 'Moderate signal — PubMed search recommended before adding.',
+            ].filter(Boolean).join(' ');
+
+            await heliosCreatePendingItem({
+                item_type:      'MISS_RESOLVED',
+                variant_name:   m.query,
+                bot_summary:    `'${m.query}' — ${m.unique_sessions} institution${m.unique_sessions!==1?'s':''}, ${m.miss_count} search${m.miss_count!==1?'es':''} · score ${score}/100`,
+                bot_reasoning:  reasoning,
+                bot_confidence: confidence,
+                scan_source:    'MISS_INTELLIGENCE',
+                scan_run_id:    runId,
+                priority,
+            });
+
+            if (priority === 'URGENT') escalated++;
+            signals++;
+
+            heliosLog(
+                priority === 'URGENT' ? 'warn' : 'info',
+                `  ${priority === 'URGENT' ? '🚨' : '📡'} '${m.query}' · score ${score} · ${m.unique_sessions} sessions`
+            );
+        }
+
+        heliosSetBotStatus('idle');
+        heliosLog('success', `✅ Miss intelligence: ${signals} signal${signals!==1?'s':''} (${escalated} urgent)`);
+        showNotification(
+            escalated > 0
+                ? `${escalated} high-priority variant discovery signal${escalated!==1?'s':''}`
+                : `${signals} miss queue signal${signals!==1?'s':''} queued`,
+            escalated > 0 ? 'warning' : 'success'
+        );
+        heliosUpdateBadge();
+    } catch(e) {
+        heliosSetBotStatus('idle');
+        heliosLog('error', `Miss intelligence failed: ${e.message}`);
+    }
+}
+
+// ---- Scan miss queue (original — PubMed lookup) ----
 async function heliosScanMissQueue() {
     heliosLog('info', '❓ Scanning miss queue via PubMed…');
     const r = await hFetch('search_miss_queue?status=eq.pending&order=unique_sessions.desc&limit=10');
@@ -10688,18 +11284,217 @@ function heliosMonitorCurrentVariant() {
     heliosAddMonitor(v.id, v.legacy_name);
 }
 
+
+// ================================================================
+// VALIDATION PRIORITY QUEUE
+// Surfaces unvalidated variants ordered by clinical urgency:
+// score = search demand + classification completeness + time since update
+// ================================================================
+async function heliosLoadValidationQueue() {
+    const container = document.getElementById('heliosValidationQueue');
+    if (!container) return;
+    container.innerHTML = `<div style="display:flex;align-items:center;gap:12px;padding:20px;"><div class="helios-spinner"></div><span style="font-size:12px;color:var(--helios-text2);">Computing validation priorities…</span></div>`;
+
+    try {
+        const variants = STATE.variants;
+        const total     = variants.length;
+        const validated = variants.filter(v => (v.validation_count || 0) > 0).length;
+        const unval     = total - validated;
+        const rate      = total > 0 ? Math.round((validated / total) * 100) : 0;
+
+        // Update metrics
+        document.getElementById('hValTotal')?.setAttribute('textContent', total.toLocaleString()) ||
+            (document.getElementById('hValTotal') && (document.getElementById('hValTotal').textContent = total.toLocaleString()));
+        document.getElementById('hValValidated') && (document.getElementById('hValValidated').textContent = validated.toLocaleString());
+        document.getElementById('hValUnvalidated') && (document.getElementById('hValUnvalidated').textContent = unval.toLocaleString());
+        document.getElementById('hValRate') && (document.getElementById('hValRate').textContent = rate + '%');
+
+        // Update validate tab badge
+        const vBadge = document.getElementById('htabBadgeValidate');
+        if (vBadge) {
+            if (unval > 0) { vBadge.textContent = unval > 99 ? '99+' : unval; vBadge.style.display = 'flex'; }
+            else vBadge.style.display = 'none';
+        }
+
+        // Score unvalidated variants by urgency
+        const now = Date.now();
+        const scored = variants
+            .filter(v => (v.validation_count || 0) === 0)
+            .map(v => {
+                let score = 0;
+                // Search demand — most powerful signal
+                const hits = v.search_hit_count || 0;
+                score += Math.min(hits * 8, 50);
+                // Classification completeness — more complete = more urgent to validate
+                if (v.cftr_class)        score += 12;
+                if (v.eti_prediction && v.eti_prediction !== 'unknown') score += 12;
+                if (v.protein_name)      score += 6;
+                if (v.cdna_name)         score += 6;
+                // Staleness — not updated recently = more urgent
+                if (v.updated_at) {
+                    const daysSince = (now - new Date(v.updated_at)) / 86400000;
+                    score += Math.min(daysSince / 10, 14);
+                }
+                // Boost if no class assigned at all — high uncertainty
+                if (!v.cftr_class) score += 10;
+                return { v, score: Math.round(score) };
+            })
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 30); // top 30
+
+        if (!scored.length) {
+            container.innerHTML = `<div class="helios-empty" style="padding:32px;"><div class="helios-empty-icon"><i class="fas fa-check-circle" style="color:var(--helios-green);"></i></div><p>All variants validated</p></div>`;
+            return;
+        }
+
+        const urgencyColor = s => s >= 70 ? 'var(--helios-red)' : s >= 40 ? 'var(--helios-sun)' : 'var(--helios-text3)';
+        const urgencyLabel = s => s >= 70 ? 'HIGH' : s >= 40 ? 'MEDIUM' : 'LOW';
+        const urgencyBg    = s => s >= 70 ? 'rgba(248,113,113,0.1)' : s >= 40 ? 'rgba(251,191,36,0.08)' : 'rgba(61,74,107,0.2)';
+
+        container.innerHTML = scored.map(({ v, score }) => `
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--helios-border);cursor:pointer;transition:background var(--helios-transition);"
+                 onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''"
+                 onclick="closeHelios();quickSearch('${escapeAttr(v.legacy_name)}')">
+                <div style="width:36px;height:36px;border-radius:8px;background:${urgencyBg(score)};border:1px solid ${urgencyColor(score).replace('var(','').replace(')','')};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-family:var(--helios-display);font-size:13px;font-weight:800;color:${urgencyColor(score)};">${score}</span>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:600;color:var(--helios-text);font-family:var(--helios-body);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(v.legacy_name)}</div>
+                    <div style="font-size:11px;color:var(--helios-text3);font-family:var(--helios-mono);">
+                        ${v.cftr_class ? `Class ${v.cftr_class}` : 'No class'}
+                        ${v.search_hit_count ? ` · ${v.search_hit_count} searches` : ''}
+                        ${v.eti_prediction ? ` · ${v.eti_prediction}` : ''}
+                    </div>
+                </div>
+                <div style="flex-shrink:0;text-align:right;">
+                    <div style="font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:4px;background:${urgencyBg(score)};color:${urgencyColor(score)};font-family:var(--helios-mono);border:1px solid ${urgencyColor(score).replace('var(--helios-','rgba(').replace(')',',0.3)')};">${urgencyLabel(score)}</div>
+                </div>
+                <i class="fas fa-external-link-alt" style="font-size:10px;color:var(--helios-text3);flex-shrink:0;"></i>
+            </div>`).join('');
+
+    } catch(e) {
+        container.innerHTML = `<div class="helios-empty" style="padding:24px;"><p>Failed: ${escapeHTML(e.message)}</p></div>`;
+    }
+}
+
+// ================================================================
+// GEOGRAPHIC DEMAND SIGNAL
+// Reads search_logs to find variants that are being searched
+// across multiple institutions — even if they ARE in the DB.
+// This surfaces variants that are clinically active but may need
+// validation, evidence enrichment, or classification review.
+// ================================================================
+async function heliosRunGeoSignal() {
+    const container = document.getElementById('heliosGeoSignal');
+    if (!container) return;
+    container.innerHTML = `<div style="display:flex;align-items:center;gap:12px;padding:20px;"><div class="helios-spinner"></div><span style="font-size:12px;color:var(--helios-text2);">Analysing geographic demand…</span></div>`;
+
+    try {
+        // Fetch recent hit searches with hospital data
+        const r = await hFetch(
+            `search_logs?is_hit=eq.true&select=query,hospital_name,country,city,matched_variant_id&order=searched_at.desc&limit=1000`
+        );
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const logs = await r.json();
+
+        // Group by variant — count unique institutions
+        const byVariant = {};
+        for (const log of logs) {
+            const key = log.matched_variant_id || log.query;
+            if (!byVariant[key]) byVariant[key] = { query: log.query, variantId: log.matched_variant_id, hospitals: new Set(), countries: new Set(), count: 0 };
+            byVariant[key].count++;
+            if (log.hospital_name) byVariant[key].hospitals.add(log.hospital_name);
+            if (log.country)       byVariant[key].countries.add(log.country);
+        }
+
+        // Filter: cross-institutional = 2+ distinct hospitals OR 2+ countries
+        const signals = Object.values(byVariant)
+            .filter(d => d.hospitals.size >= 2 || d.countries.size >= 2)
+            .map(d => {
+                const v = d.variantId ? STATE.variants.find(x => x.id == d.variantId) : null;
+                return {
+                    name:       v?.legacy_name || d.query,
+                    variantId:  d.variantId,
+                    hospitals:  d.hospitals.size,
+                    countries:  d.countries.size,
+                    searches:   d.count,
+                    validated:  v ? (v.validation_count || 0) > 0 : false,
+                    hasClass:   v ? !!v.cftr_class : false,
+                    hospitalList: [...d.hospitals].slice(0,3).join(', '),
+                    countryList:  [...d.countries].slice(0,4).join(', '),
+                    urgency:    (d.hospitals.size >= 3 || d.countries.size >= 3) ? 'HIGH' : 'MEDIUM'
+                };
+            })
+            .sort((a, b) => (b.hospitals + b.countries * 2) - (a.hospitals + a.countries * 2))
+            .slice(0, 20);
+
+        if (!signals.length) {
+            container.innerHTML = `<div class="helios-empty" style="padding:24px;"><p style="font-size:12px;color:var(--helios-text3);">No cross-institutional demand detected in recent searches</p></div>`;
+            return;
+        }
+
+        // Flag any unvalidated or unclassified high-demand variants automatically
+        let autoFlagged = 0;
+        for (const s of signals.filter(x => x.urgency === 'HIGH' && (!x.validated || !x.hasClass))) {
+            await heliosCreatePendingItem({
+                item_type:      'REGIONAL_SIGNAL',
+                variant_id:     s.variantId || null,
+                variant_name:   s.name,
+                bot_summary:    `Cross-institutional demand: ${s.hospitals} hospital${s.hospitals!==1?'s':''} across ${s.countries} countr${s.countries!==1?'ies':'y'} — ${s.validated ? '' : 'not validated'}${!s.hasClass ? ', no class assigned' : ''}`,
+                bot_reasoning:  `'${s.name}' was searched ${s.searches} times from ${s.hospitals} institution${s.hospitals!==1?'s':''} (${s.countryList}). ${!s.validated ? 'This variant has never been clinician-validated.' : ''} ${!s.hasClass ? 'No CFTR class is assigned.' : ''} High multi-centre demand warrants urgent review.`,
+                bot_confidence: 75,
+                scan_source:    'GEO_SIGNAL',
+                priority:       'URGENT'
+            });
+            autoFlagged++;
+        }
+
+        if (autoFlagged > 0) {
+            heliosLog('warn', `📍 ${autoFlagged} high-demand unvalidated variant${autoFlagged!==1?'s':''} flagged to inbox`);
+            heliosUpdateBadge();
+        }
+
+        const urgencyColor = u => u === 'HIGH' ? 'var(--helios-red)' : 'var(--helios-sun)';
+        const urgencyBg    = u => u === 'HIGH' ? 'rgba(248,113,113,0.1)' : 'rgba(251,191,36,0.08)';
+
+        container.innerHTML = signals.map(s => `
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--helios-border);">
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+                        <span style="font-size:13px;font-weight:600;color:var(--helios-text);font-family:var(--helios-body);">${escapeHTML(s.name)}</span>
+                        ${!s.validated ? '<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(248,113,113,0.1);color:var(--helios-red);border:1px solid rgba(248,113,113,0.2);font-family:var(--helios-mono);">UNVALIDATED</span>' : ''}
+                        ${!s.hasClass  ? '<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(251,191,36,0.08);color:var(--helios-sun);border:1px solid rgba(251,191,36,0.2);font-family:var(--helios-mono);">NO CLASS</span>' : ''}
+                    </div>
+                    <div style="font-size:11px;color:var(--helios-text3);font-family:var(--helios-body);">
+                        <i class="fas fa-hospital" style="font-size:9px;margin-right:4px;"></i>${s.hospitals} institution${s.hospitals!==1?'s':''}
+                        &nbsp;·&nbsp;
+                        <i class="fas fa-globe" style="font-size:9px;margin-right:4px;"></i>${s.countries} countr${s.countries!==1?'ies':'y'}
+                        &nbsp;·&nbsp;${s.searches} searches
+                        ${s.countryList ? `&nbsp;·&nbsp;<span style="color:var(--helios-text2);">${escapeHTML(s.countryList)}</span>` : ''}
+                    </div>
+                </div>
+                <div style="font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:4px;background:${urgencyBg(s.urgency)};color:${urgencyColor(s.urgency)};font-family:var(--helios-mono);flex-shrink:0;">${s.urgency}</div>
+            </div>`).join('');
+
+    } catch(e) {
+        container.innerHTML = `<div class="helios-empty" style="padding:24px;"><p>Failed: ${escapeHTML(e.message)}</p></div>`;
+    }
+}
+
 // ================================================================
 // EXPOSE TO WINDOW
 // ================================================================
 Object.assign(window, {
     openHelios, closeHelios, heliosTab, heliosFilter,
     heliosApprove, heliosApproveWithNote, heliosReject, heliosDefer,
-    heliosMarkExceptional, heliosCreateVariantFromMiss, heliosCheckDrift,
+    heliosMarkExceptional, heliosCreateVariantFromMiss,
+    heliosCheckDrift, heliosMissQueueIntelligence, heliosCheckEvidenceContradictions,
+    heliosLoadValidationQueue, heliosRunGeoSignal,
     heliosAddNote, heliosApproveAllRoutine,
     heliosScanInternal, heliosScanExternal, heliosScanSingle, heliosScanMissQueue,
     heliosRunHealthCheck, heliosToggleItem, heliosClearConsole,
     heliosToggleSource, heliosMonitorCurrentVariant,
-    heliosRemoveMonitor, heliosLoadInbox, heliosLoadAudit
+    heliosRemoveMonitor, heliosLoadInbox, heliosLoadAudit, heliosLoadScanHistory
 });
 </script>
 </body>
