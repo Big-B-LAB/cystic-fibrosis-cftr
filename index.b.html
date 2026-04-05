@@ -3690,47 +3690,77 @@
             </div>
 
             <div id="siPanelGeo" class="si-panel" style="display:none;">
-                <div class="si-body">
-                    <div class="si-card" style="flex:1;overflow:hidden;padding:0;">
-                        <div class="si-card-head" style="padding:12px 16px;">
-                            <div class="si-card-title">
-                                <span style="width:7px;height:7px;border-radius:50%;background:#2979ff;box-shadow:0 0 8px rgba(41,121,255,0.7);display:inline-block;"></span>
-                                Geographic search distribution
-                            </div>
-                            <div class="si-card-note" id="siGeoNote" style="font-family:var(--font-mono);"></div>
+                <div style="display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;">
+                    <!-- AGGREGATE BAR -->
+                    <div style="display:flex;align-items:center;gap:0;height:44px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;background:var(--surface);padding:0 16px;">
+                        <div style="display:flex;align-items:center;gap:6px;margin-right:auto;">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;animation:geoPulseDot 2.5s ease-in-out infinite;"></span>
+                            <span style="font-size:11px;color:rgba(255,255,255,0.4);font-family:var(--font-mono);letter-spacing:.04em;" id="geoNoteV4">Geographic search distribution</span>
                         </div>
-                        <!-- Controls bar -->
-                        <div class="geo-controls-bar">
-                            <button class="geo-ctrl-btn period active" id="geoPeriod7"  onclick="setGeoPeriod(7,  this)">7d</button>
-                            <button class="geo-ctrl-btn period"        id="geoPeriod30" onclick="setGeoPeriod(30, this)">30d</button>
-                            <button class="geo-ctrl-btn period"        id="geoPeriodAll"onclick="setGeoPeriod(0,  this)">All</button>
-                            <div class="geo-controls-sep"></div>
-                            <button class="geo-ctrl-btn layer-class active" id="geoLayerClass" onclick="toggleGeoLayer('class', this)">Class</button>
-                            <button class="geo-ctrl-btn layer-miss"         id="geoLayerMiss"  onclick="toggleGeoLayer('miss',  this)">Miss</button>
-                            <div style="margin-left:auto;font-size:9px;color:rgba(255,255,255,0.25);font-family:var(--font-mono);" id="geoLayerLegend">
-                                <span style="color:#ef4444;">■</span> I &nbsp;
-                                <span style="color:#f97316;">■</span> II &nbsp;
-                                <span style="color:#22c55e;">■</span> III &nbsp;
-                                <span style="color:#a78bfa;">■</span> IV+ &nbsp;
-                                <span style="color:#5a7aaa;">■</span> Unknown
+                        <div style="display:flex;align-items:stretch;border-left:1px solid rgba(255,255,255,0.06);">
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;padding:0 14px;border-right:1px solid rgba(255,255,255,0.06);">
+                                <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:#fff;line-height:1;" id="geoStripSearches">—</span>
+                                <span style="font-size:8px;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Searches</span>
                             </div>
-                        </div>
-                        <!-- Map + detail panel -->
-                        <div class="geo-split">
-                            <div class="geo-map-wrap" style="border-radius:0 0 0 8px;">
-                                <div id="siGeoMap" style="height:360px;background:#050d1a;"></div>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;padding:0 14px;border-right:1px solid rgba(255,255,255,0.06);">
+                                <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:#fff;line-height:1;" id="geoStripLocs">—</span>
+                                <span style="font-size:8px;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Locations</span>
                             </div>
-                            <div class="geo-detail" id="siGeoCities">
-                                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:200px;gap:10px;padding:24px;text-align:center;opacity:0.5;">
-                                    <i class="fas fa-map-marker-alt" style="font-size:24px;color:var(--text-tertiary);"></i>
-                                    <div style="font-size:11px;color:var(--text-tertiary);line-height:1.7;">Click any dot<br>to explore that location</div>
-                                </div>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;padding:0 14px;border-right:1px solid rgba(255,255,255,0.06);">
+                                <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:#34d399;line-height:1;" id="geoStripRate">—</span>
+                                <span style="font-size:8px;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Hit rate</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;padding:0 0 0 14px;">
+                                <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:#fff;line-height:1;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="geoStripHosp">—</span>
+                                <span style="font-size:8px;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Institution</span>
                             </div>
                         </div>
-                        <!-- Region table below map -->
-                        <div id="geoRegionTable" style="padding:10px 16px 4px;border-top:1px solid rgba(255,255,255,0.04);"></div>
                     </div>
-                    <div id="siGeoVariants" style="display:none;"></div>
+                    <!-- CONTROL BAR -->
+                    <div style="display:flex;align-items:center;gap:6px;height:38px;padding:0 14px;background:rgba(4,8,20,0.7);border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;">
+                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;margin-right:2px;">Period</span>
+                        <button class="geo-v4-pill on-period" id="geoV4p7"   onclick="geoV4SetPeriod(7,this)">7 days</button>
+                        <button class="geo-v4-pill"           id="geoV4p30"  onclick="geoV4SetPeriod(30,this)">30 days</button>
+                        <button class="geo-v4-pill"           id="geoV4pAll" onclick="geoV4SetPeriod(0,this)">All time</button>
+                        <div style="width:1px;height:16px;background:rgba(255,255,255,0.08);margin:0 8px;flex-shrink:0;"></div>
+                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;margin-right:2px;">Layer</span>
+                        <button class="geo-v4-pill on-class" id="geoV4lClass" onclick="geoV4ToggleLayer('class',this)">CFTR Class</button>
+                        <button class="geo-v4-pill"          id="geoV4lMiss"  onclick="geoV4ToggleLayer('miss',this)">Miss signal</button>
+                        <div style="margin-left:auto;display:flex;align-items:center;gap:10px;" id="geoV4Legend">
+                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;"></span>I</div>
+                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#f97316;display:inline-block;"></span>II</div>
+                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#34d399;display:inline-block;"></span>III</div>
+                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#a78bfa;display:inline-block;"></span>IV</div>
+                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#ec4899;display:inline-block;"></span>V</div>
+                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#4b5563;display:inline-block;"></span>—</div>
+                        </div>
+                    </div>
+                    <!-- MAP + DETAIL -->
+                    <div style="display:grid;grid-template-columns:1fr 340px;flex:1;min-height:0;overflow:hidden;">
+                        <!-- MAP COLUMN -->
+                        <div style="display:flex;flex-direction:column;overflow:hidden;">
+                            <div id="siGeoMap" style="flex:1;min-height:320px;background:#060b14;"></div>
+                            <!-- REGION STRIP -->
+                            <div style="flex-shrink:0;border-top:1px solid rgba(255,255,255,0.06);background:rgba(8,15,29,0.95);padding:10px 14px 12px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Top variant by region</span>
+                                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);" id="geoRegionCount">—</span>
+                                </div>
+                                <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;" id="geoRegionCards"></div>
+                            </div>
+                        </div>
+                        <!-- DETAIL COLUMN -->
+                        <div style="border-left:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;overflow:hidden;background:var(--surface);">
+                            <div id="geoDetailEmpty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px;text-align:center;">
+                                <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;">
+                                    <i class="fas fa-map-marker-alt" style="font-size:14px;color:rgba(255,255,255,0.18);"></i>
+                                </div>
+                                <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.45);">Select a location</div>
+                                <div style="font-size:11px;color:rgba(255,255,255,0.22);line-height:1.7;">Click any marker on the map<br>to explore its search activity</div>
+                            </div>
+                            <div id="geoDetailContent" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -4385,46 +4415,56 @@ function getSearchTimeline() {
     };
 }
 
-// ---- Geography tab ----
+// ---- Geography tab v4 ----
 
-// Global geo state
 window._geoState = {
-    allRows: [],      // full fetched dataset
-    period: 7,        // days (0 = all)
+    allRows: [],
+    period: 7,
     layerClass: true,
     layerMiss: false,
+    selectedKey: null,
 };
 
-function setGeoPeriod(days, btn) {
+function setGeoPeriod(days, btn)    { geoV4SetPeriod(days, btn); }
+function toggleGeoLayer(layer, btn) { geoV4ToggleLayer(layer, btn); }
+function renderGeoMarkers()         { geoV4RenderMarkers(); }
+
+function geoV4SetPeriod(days, btn) {
     window._geoState.period = days;
-    document.querySelectorAll('.geo-ctrl-btn.period').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    renderGeoMarkers();
+    ['geoV4p7','geoV4p30','geoV4pAll'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('on-period');
+    });
+    if (btn) btn.classList.add('on-period');
+    geoV4RenderMarkers();
 }
 
-function toggleGeoLayer(layer, btn) {
+function geoV4ToggleLayer(layer, btn) {
     const st = window._geoState;
-    if (layer === 'class') st.layerClass = !st.layerClass;
-    if (layer === 'miss')  st.layerMiss  = !st.layerMiss;
-    btn.classList.toggle('active');
-    renderGeoMarkers();
+    if (layer === 'class') {
+        st.layerClass = !st.layerClass;
+        const el = document.getElementById('geoV4lClass');
+        if (el) el.classList.toggle('on-class', st.layerClass);
+        const leg = document.getElementById('geoV4Legend');
+        if (leg) leg.style.opacity = st.layerClass ? '1' : '0.3';
+    }
+    if (layer === 'miss') {
+        st.layerMiss = !st.layerMiss;
+        const el = document.getElementById('geoV4lMiss');
+        if (el) el.classList.toggle('on-miss', st.layerMiss);
+    }
+    geoV4RenderMarkers();
 }
 
-function getClassColor(dominantClass) {
-    const map = { 'I':'#ef4444', 'II':'#f97316', 'III':'#22c55e',
-                  'IV':'#a78bfa', 'V':'#a78bfa', 'VI':'#a78bfa' };
-    return map[dominantClass] || '#5a7aaa';
+function getClassColor(cls) {
+    const map = { 'I':'#ef4444','II':'#f97316','III':'#34d399','IV':'#a78bfa','V':'#ec4899','VI':'#22d3ee' };
+    return map[cls] || '#4b5563';
 }
 
 async function renderGeoTab() {
-    const noteEl    = document.getElementById('siGeoNote');
-    const mapEl     = document.getElementById('siGeoMap');
-    const citiesEl  = document.getElementById('siGeoCities');
-    const regionEl  = document.getElementById('geoRegionTable');
+    const mapEl = document.getElementById('siGeoMap');
+    if (!mapEl) return;
 
-    if (noteEl) noteEl.textContent = 'Loading…';
-
-    // Load Leaflet
     if (!window.L) {
         await Promise.all([
             new Promise((res,rej) => {
@@ -4441,7 +4481,6 @@ async function renderGeoTab() {
         ]);
     }
 
-    // Fetch all location data
     try {
         const res = await fetch(
             `${CONFIG.SUPABASE.URL}/rest/v1/search_logs` +
@@ -4451,293 +4490,276 @@ async function renderGeoTab() {
         );
         window._geoState.allRows = await res.json();
     } catch(e) {
-        if (noteEl) noteEl.textContent = 'Failed to load location data';
+        const n = document.getElementById('geoNoteV4');
+        if (n) n.textContent = 'Failed to load location data';
         return;
     }
 
-    // Init map once
     if (!window._helixMap) {
-        window._helixMap = L.map('siGeoMap', { zoomControl: true, scrollWheelZoom: false });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap © CARTO', maxZoom: 14
-        }).addTo(window._helixMap);
-
-        // Load Spain autonomous communities GeoJSON
+        window._helixMap = L.map('siGeoMap', { zoomControl:true, scrollWheelZoom:true, attributionControl:false });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom:14 })
+         .addTo(window._helixMap);
         try {
             const geoRes = await fetch('https://cdn.jsdelivr.net/npm/spain-atlas@0.1/es/autonomous-regions.json');
             if (geoRes.ok) {
                 const geoJson = await geoRes.json();
                 L.geoJSON(geoJson, {
-                    style: {
-                        fillColor: 'transparent',
-                        color: 'rgba(41,121,255,0.18)',
-                        weight: 1,
-                        fillOpacity: 0,
-                    },
+                    style: { fillColor:'transparent', color:'rgba(96,165,250,0.15)', weight:.8, fillOpacity:0 },
                     onEachFeature: (feature, layer) => {
-                        layer.on('mouseover', function() {
-                            this.setStyle({ color: 'rgba(41,121,255,0.5)', weight: 1.5, fillColor: 'rgba(41,121,255,0.04)', fillOpacity: 1 });
-                        });
-                        layer.on('mouseout', function() {
-                            this.setStyle({ color: 'rgba(41,121,255,0.18)', weight: 1, fillOpacity: 0 });
-                        });
+                        layer.on('mouseover', function() { this.setStyle({ color:'rgba(96,165,250,0.45)', weight:1, fillColor:'rgba(96,165,250,0.04)', fillOpacity:1 }); });
+                        layer.on('mouseout',  function() { this.setStyle({ color:'rgba(96,165,250,0.15)', weight:.8, fillOpacity:0 }); });
                         const name = feature.properties?.name || feature.properties?.NAME_1 || '';
-                        if (name) layer.bindTooltip(name, { className: 'geo-tooltip', sticky: true });
+                        if (name) layer.bindTooltip(name, { className:'geo-tooltip', sticky:true });
                     }
                 }).addTo(window._helixMap);
             }
-        } catch(e) { /* GeoJSON optional — fail silently */ }
+        } catch(e) {}
     }
 
-    renderGeoMarkers();
+    geoV4RenderMarkers();
 }
 
-function renderGeoMarkers() {
-    const st     = window._geoState;
-    const noteEl = document.getElementById('siGeoNote');
-    const regionEl = document.getElementById('geoRegionTable');
-
-    if (!window._helixMap || !st.allRows.length) return;
-
-    // Filter by period
-    const cutoff = st.period > 0
-        ? new Date(Date.now() - st.period * 86400000).toISOString()
-        : null;
-    const rows = cutoff
-        ? st.allRows.filter(r => r.searched_at >= cutoff)
-        : st.allRows;
-
-    const hospital = STATE.searchIntelligence.hospital;
-    if (noteEl) noteEl.textContent = `${rows.length} searches · ${hospital && hospital !== 'Anonymous' ? hospital.split('(')[0].trim() : 'all locations'}`;
-
-    // Group by HOSPITAL (feature 5 — separate dots per hospital)
-    const points = new Map();
+function geoV4BuildPoints(rows) {
+    const pts = new Map();
     rows.forEach(r => {
-        const hospKey = r.hospital_name || `${r.latitude},${r.longitude}`;
-        const key = `${hospKey}`;
-        if (!points.has(key)) points.set(key, {
-            lat: r.latitude, lon: r.longitude,
-            city: r.city, country: r.country, region: r.region,
-            hospital: r.hospital_name || null,
+        const key = r.hospital_name || `${parseFloat(r.latitude).toFixed(3)},${parseFloat(r.longitude).toFixed(3)}`;
+        if (!pts.has(key)) pts.set(key, {
+            key, lat:r.latitude, lon:r.longitude,
+            city:r.city, country:r.country, region:r.region,
+            hospital:r.hospital_name,
             hospitals: new Set(),
-            hits: 0, misses: 0, queries: [],
-            classCounts: {},
+            hits:0, misses:0, queryMap:{}, classCounts:{},
         });
-        const p = points.get(key);
+        const p = pts.get(key);
         if (r.hospital_name) p.hospitals.add(r.hospital_name);
         if (r.is_hit) {
             p.hits++;
-            // Look up CFTR class for this query (feature 1)
-            const v = STATE.variants.find(vv => vv.legacy_name.toLowerCase() === (r.query||'').toLowerCase());
-            if (v && v.cftr_class) {
-                p.classCounts[v.cftr_class] = (p.classCounts[v.cftr_class]||0) + 1;
-            }
-        } else {
-            p.misses++;
-        }
-        if (!p.queries.includes(r.query)) p.queries.push(r.query);
+            let v = STATE.variantsByLegacyName?.get((r.query||'').toUpperCase());
+            if (!v) v = STATE.variants?.find(vv => vv.legacy_name?.toLowerCase() === (r.query||'').toLowerCase());
+            if (v?.cftr_class) p.classCounts[v.cftr_class] = (p.classCounts[v.cftr_class]||0)+1;
+        } else { p.misses++; }
+        if (!p.queryMap[r.query]) p.queryMap[r.query] = { hit:0, miss:0 };
+        if (r.is_hit) p.queryMap[r.query].hit++; else p.queryMap[r.query].miss++;
     });
+    return Array.from(pts.values());
+}
 
-    const allPoints = Array.from(points.values());
-    const maxCount  = Math.max(1, ...allPoints.map(p => p.hits + p.misses));
+function geoV4RenderMarkers() {
+    const st = window._geoState;
+    if (!window._helixMap || !st.allRows.length) return;
 
-    // Clear old markers
+    const cutoff = st.period > 0 ? new Date(Date.now() - st.period*86400000).toISOString() : null;
+    const rows = cutoff ? st.allRows.filter(r => r.searched_at >= cutoff) : st.allRows;
+    const pts  = geoV4BuildPoints(rows);
+    const maxN = Math.max(1, ...pts.map(p => p.hits+p.misses));
+
     if (window._helixMarkers) window._helixMarkers.forEach(m => window._helixMap.removeLayer(m));
     window._helixMarkers = [];
 
-    allPoints.forEach(p => {
-        const total   = p.hits + p.misses;
-        const hitRate = total > 0 ? Math.round((p.hits / total) * 100) : 0;
-        const radius  = Math.max(7, Math.min(22, 7 + (total / maxCount) * 15));
+    pts.forEach(p => {
+        const total    = p.hits+p.misses;
+        const hitRate  = total > 0 ? p.hits/total : 0;
+        const missRate = total > 0 ? p.misses/total : 0;
+        const radius   = Math.max(7, Math.min(24, 7+(total/maxN)*17));
+        const isSelected  = p.key === st.selectedKey;
+        const shouldPulse = st.layerMiss && missRate >= .4;
 
-        // Feature 1 — color by dominant class
-        let color = '#5a7aaa';
+        let color = '#4b5563';
         if (st.layerClass) {
-            const dominantClass = Object.entries(p.classCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
-            color = getClassColor(dominantClass);
+            const dom = Object.entries(p.classCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+            color = getClassColor(dom);
         } else {
-            // Hit rate coloring when class layer off
-            color = hitRate >= 70 ? '#4ade80' : hitRate >= 40 ? '#fbbf24' : '#f87171';
+            color = hitRate >= .7 ? '#34d399' : hitRate >= .4 ? '#fbbf24' : '#fb7185';
         }
 
-        // Feature 2 — miss rate pulse via Leaflet SVG marker
-        const missRate = total > 0 ? (p.misses / total) * 100 : 0;
-        const shouldPulse = st.layerMiss && missRate >= 40;
+        const sz = (radius+(shouldPulse?12:0)+(isSelected?8:0))*2;
+        const cx = sz/2;
+        let extra = '';
+        if (shouldPulse) {
+            extra += `<circle cx="${cx}" cy="${cx}" r="${radius+5}" fill="none" stroke="#fb7185" stroke-width="1.2" opacity=".5" style="animation:geoMissPulse 1.8s ease-out infinite"/>`;
+            extra += `<circle cx="${cx}" cy="${cx}" r="${radius+9}" fill="none" stroke="#fb7185" stroke-width=".6" opacity=".25" style="animation:geoMissPulse 1.8s ease-out infinite .5s"/>`;
+        }
+        if (isSelected) extra += `<circle cx="${cx}" cy="${cx}" r="${radius+4}" fill="none" stroke="white" stroke-width="1.5" opacity=".6" style="animation:geoSelPing 2s ease-out infinite"/>`;
 
-        const svgSize = (radius + (shouldPulse ? 10 : 0)) * 2;
-        const center  = svgSize / 2;
-        const pulseSvg = shouldPulse ? `
-            <circle cx="${center}" cy="${center}" r="${radius + 6}" fill="none"
-                stroke="#fbbf24" stroke-width="1.5" opacity="0.6"
-                style="animation: missPulseAnim 2s ease-out infinite"/>
-            <circle cx="${center}" cy="${center}" r="${radius + 10}" fill="none"
-                stroke="#fbbf24" stroke-width="0.8" opacity="0.3"
-                style="animation: missPulseAnim 2s ease-out infinite 0.6s"/>
-        ` : '';
+        const svgHtml = `<svg width="${sz}" height="${sz}" xmlns="http://www.w3.org/2000/svg">
+            <style>@keyframes geoSelPing{0%{transform-box:fill-box;transform-origin:center;transform:scale(1);opacity:.6}100%{transform:scale(2.1);opacity:0}}@keyframes geoMissPulse{0%{opacity:.5}100%{opacity:0}}</style>
+            ${extra}
+            <circle cx="${cx}" cy="${cx}" r="${radius}" fill="${color}" fill-opacity="${isSelected?'0.95':'0.80'}" stroke="rgba(255,255,255,${isSelected?'0.7':'0.4'})" stroke-width="${isSelected?'2':'1.5'}"/>
+            ${isSelected?`<circle cx="${cx}" cy="${cx}" r="${radius*.42}" fill="rgba(255,255,255,0.55)"/>`:''}
+        </svg>`;
 
-        const svgIcon = L.divIcon({
-            className: '',
-            html: `<svg width="${svgSize}" height="${svgSize}" xmlns="http://www.w3.org/2000/svg">
-                <style>@keyframes missPulseAnim{0%{r:${radius+4};opacity:.7}100%{r:${radius+14};opacity:0}}</style>
-                ${pulseSvg}
-                <circle cx="${center}" cy="${center}" r="${radius}"
-                    fill="${color}" fill-opacity="0.75"
-                    stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
-            </svg>`,
-            iconSize: [svgSize, svgSize],
-            iconAnchor: [center, center],
-        });
-
-        const marker = L.marker([p.lat, p.lon], { icon: svgIcon }).addTo(window._helixMap);
-
-        marker.on('click', () => {
-            renderGeoDetail(p, document.getElementById('siGeoCities'), null);
-            // Re-render all markers to reset selection, then highlight this one
-        });
+        const icon = L.divIcon({ className:'', html:svgHtml, iconSize:[sz,sz], iconAnchor:[cx,cx] });
+        const marker = L.marker([p.lat, p.lon], { icon }).addTo(window._helixMap);
 
         marker.bindTooltip(
-            `<strong>${p.city || 'Unknown'}</strong>${p.hospital ? '<br>'+p.hospital.split('(')[0].trim() : ''}<br>${p.hits} hits · ${p.misses} misses · ${hitRate}% rate`,
-            { className: 'geo-tooltip', sticky: true }
+            `<strong style="font-size:13px;">${escapeHTML(p.city||'Unknown')}</strong><br>` +
+            `<span style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.5);">${escapeHTML(p.hospital||p.country||'')}</span><br>` +
+            `<span style="font-family:var(--font-mono);font-size:10px;">${p.hits} hits · ${p.misses} misses · ${Math.round(hitRate*100)}%</span>`,
+            { className:'geo-tooltip', sticky:true }
         );
-
+        marker.on('click', () => {
+            st.selectedKey = p.key;
+            geoV4RenderMarkers();
+            geoV4RenderDetail(p);
+        });
         window._helixMarkers.push(marker);
     });
 
-    // Fit bounds
-    if (allPoints.length) {
-        window._helixMap.fitBounds(
-            L.latLngBounds(allPoints.map(p => [p.lat, p.lon])),
-            { padding: [20, 20] }
-        );
+    if (!st.selectedKey && pts.length) {
+        window._helixMap.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lon])), { padding:[40,40] });
+        const biggest = [...pts].sort((a,b)=>(b.hits+b.misses)-(a.hits+a.misses))[0];
+        if (biggest) { st.selectedKey = biggest.key; geoV4RenderMarkers(); geoV4RenderDetail(biggest); return; }
     }
 
-    // Feature 6 — top variant per region table below map
-    if (regionEl) {
-        const byRegion = new Map();
-        rows.forEach(r => {
-            if (!r.region || !r.is_hit) return;
-            if (!byRegion.has(r.region)) byRegion.set(r.region, { queries: {}, hits: 0, total: 0 });
-            const reg = byRegion.get(r.region);
-            reg.total++;
-            if (r.is_hit) {
-                reg.hits++;
-                reg.queries[r.query] = (reg.queries[r.query]||0) + 1;
-            }
-        });
-
-        const regionCards = Array.from(byRegion.entries())
-            .sort((a,b) => b[1].total - a[1].total)
-            .slice(0, 6)
-            .map(([region, data]) => {
-                const topQ  = Object.entries(data.queries).sort((a,b)=>b[1]-a[1])[0];
-                const v     = topQ ? STATE.variants.find(vv => vv.legacy_name.toLowerCase() === topQ[0].toLowerCase()) : null;
-                const name  = v ? v.legacy_name : (topQ ? topQ[0] : '—');
-                const rate  = data.total > 0 ? Math.round((data.hits/data.total)*100) : 0;
-                const rateColor = rate >= 70 ? '#4ade80' : rate >= 40 ? '#fbbf24' : '#f87171';
-                return `<div class="geo-region-card">
-                    <div class="geo-region-name">${escapeHTML(region)}</div>
-                    <div class="geo-region-variant">${escapeHTML(name)}</div>
-                    <div class="geo-region-meta">${data.total} searches &nbsp;·&nbsp; <span style="color:${rateColor};">${rate}%</span> hit rate</div>
-                </div>`;
-            }).join('');
-
-        regionEl.innerHTML = regionCards ? `
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-tertiary);margin-bottom:8px;">Top variant by region</div>
-            <div class="geo-region-table">${regionCards}</div>` : '';
-    }
-
-    // Auto-select biggest point
-    const biggest = allPoints.sort((a,b) => (b.hits+b.misses)-(a.hits+a.misses))[0];
-    if (biggest) renderGeoDetail(biggest, document.getElementById('siGeoCities'), null);
+    const totalHits = rows.filter(r=>r.is_hit).length;
+    const hitRatePct = rows.length > 0 ? Math.round(totalHits/rows.length*100) : 0;
+    const hosp = STATE.searchIntelligence?.hospital;
+    const hospLabel = hosp && hosp !== 'Anonymous' ? hosp.split('(')[0].trim() : 'Multi-centre';
+    const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('geoNoteV4',        `${rows.length} searches · ${hospLabel}`);
+    set('geoStripSearches', rows.length.toLocaleString());
+    set('geoStripLocs',     pts.length);
+    set('geoStripRate',     hitRatePct+'%');
+    set('geoStripHosp',     hospLabel);
+    geoV4RenderRegions(rows);
 }
 
-
-function renderGeoDetail(p, citiesEl, variantsEl) {
-    if (!p || !citiesEl) return;
-
-    const total   = p.hits + p.misses;
-    const hitRate = total > 0 ? Math.round((p.hits / total) * 100) : 0;
-    const hrColor = hitRate >= 70 ? '#4ade80' : hitRate >= 40 ? '#fbbf24' : '#f87171';
-    const hrLabel = hitRate >= 70 ? 'Strong' : hitRate >= 40 ? 'Mixed' : 'Weak';
-
-    // Look up canonical variant names from the query list
-    const queryItems = p.queries.map(q => {
-        const v = STATE.variants.find(vv => vv.legacy_name.toLowerCase() === q.toLowerCase());
-        return { raw: q, display: v ? v.legacy_name : q, isHit: !!v };
+function geoV4RenderRegions(rows) {
+    const byRegion = new Map();
+    rows.forEach(r => {
+        if (!r.region) return;
+        if (!byRegion.has(r.region)) byRegion.set(r.region, { queries:{}, hits:0, total:0 });
+        const d = byRegion.get(r.region);
+        d.total++;
+        if (r.is_hit) { d.hits++; d.queries[r.query]=(d.queries[r.query]||0)+1; }
     });
-
-    // Separate hits and misses in the query list
-    const hitQueries  = queryItems.filter(qi => qi.isHit);
-    const missQueries = queryItems.filter(qi => !qi.isHit);
-
-    // Hospital tags
-    const hospHtml = [...p.hospitals].map(h =>
-        `<div class="geo-hospital-tag"><i class="fas fa-hospital" style="font-size:8px;"></i>${escapeHTML(h)}</div>`
-    ).join('');
-
-    citiesEl.innerHTML = `
-        <!-- City header -->
-        <div class="geo-city-header">
-            <div class="geo-city-name">${escapeHTML(p.city || 'Unknown')}</div>
-            <div class="geo-city-sub">${escapeHTML([p.region, p.country].filter(Boolean).join(' · '))}</div>
-            ${p.hospitals.size ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${hospHtml}</div>` : ''}
-        </div>
-
-        <!-- Stats row -->
-        <div class="geo-stat-row">
-            <div class="geo-stat">
-                <div class="geo-stat-n" style="color:#4ade80;">${p.hits}</div>
-                <div class="geo-stat-l">Hits</div>
-            </div>
-            <div class="geo-stat">
-                <div class="geo-stat-n" style="color:#f87171;">${p.misses}</div>
-                <div class="geo-stat-l">Misses</div>
-            </div>
-            <div class="geo-stat">
-                <div class="geo-stat-n" style="color:${hrColor};">${hitRate}%</div>
-                <div class="geo-stat-l" style="color:${hrColor};">${hrLabel}</div>
-            </div>
-        </div>
-
-        <!-- Hit rate progress bar -->
-        <div style="padding:8px 16px;border-bottom:1px solid rgba(41,121,255,0.12);">
-            <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
-                <div style="height:100%;width:${hitRate}%;background:${hrColor};border-radius:2px;transition:width .5s ease;"></div>
-            </div>
-        </div>
-
-        <!-- Query list -->
-        <div class="geo-query-section">
-            ${hitQueries.length ? `
-                <div class="geo-query-label">Resolved searches (${hitQueries.length})</div>
-                ${hitQueries.slice(0,6).map(qi => `
-                    <div class="geo-query-item">
-                        <div class="geo-query-dot" style="background:#4ade80;"></div>
-                        <span class="geo-query-name">${escapeHTML(qi.display)}</span>
-                        <span class="geo-query-badge hit">HIT</span>
-                    </div>`).join('')}
-                ${hitQueries.length > 6 ? `<div style="font-size:10px;color:var(--text-tertiary);padding:4px 0;">+${hitQueries.length-6} more</div>` : ''}
-            ` : ''}
-            ${missQueries.length ? `
-                <div class="geo-query-label" style="margin-top:${hitQueries.length?'12px':'0'};">Unresolved searches (${missQueries.length})</div>
-                ${missQueries.slice(0,4).map(qi => `
-                    <div class="geo-query-item">
-                        <div class="geo-query-dot" style="background:#f87171;"></div>
-                        <span class="geo-query-name" style="color:var(--text-secondary);">${escapeHTML(qi.display)}</span>
-                        <span class="geo-query-badge miss">MISS</span>
-                    </div>`).join('')}
-            ` : ''}
-        </div>
-
-        <!-- Total activity footer -->
-        <div style="padding:10px 16px;border-top:1px solid rgba(41,121,255,0.12);background:rgba(41,121,255,0.03);">
-            <div style="font-size:10px;color:var(--text-tertiary);">
-                <span style="font-family:var(--font-mono);font-weight:700;color:var(--text-secondary);">${total}</span>
-                total search event${total!==1?'s':''} from this location
+    const sorted = Array.from(byRegion.entries()).sort((a,b)=>b[1].total-a[1].total).slice(0,6);
+    const countEl = document.getElementById('geoRegionCount');
+    if (countEl) countEl.textContent = byRegion.size+' regions';
+    const cards = sorted.map(([region, data], i) => {
+        const topQ  = Object.entries(data.queries).sort((a,b)=>b[1]-a[1])[0];
+        const name  = topQ ? topQ[0] : '—';
+        const rate  = data.total > 0 ? Math.round(data.hits/data.total*100) : 0;
+        const color = rate>=70 ? '#34d399' : rate>=40 ? '#fbbf24' : '#fb7185';
+        return `<div class="geo-v4-region-card" style="--grc:${color};--grr:${rate/100};animation-delay:${i*0.04}s">
+            <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.55);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(region)}</div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:#fff;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(name)}</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.28);display:flex;align-items:center;gap:3px;">
+                <span style="color:${color};font-weight:600;">${rate}%</span><span>· ${data.total}</span>
             </div>
         </div>`;
+    }).join('');
+    const el = document.getElementById('geoRegionCards');
+    if (el) el.innerHTML = cards;
 }
 
+function geoV4RenderDetail(p) {
+    const total   = p.hits+p.misses;
+    const hitRate = total > 0 ? Math.round(p.hits/total*100) : 0;
+    const hrColor = hitRate>=70 ? '#34d399' : hitRate>=40 ? '#fbbf24' : '#fb7185';
+    const hrLabel = hitRate>=70 ? 'Strong' : hitRate>=40 ? 'Mixed' : 'Weak';
+
+    const classOrder = ['I','II','III','IV','V','VI'];
+    const maxCls = Math.max(1, ...Object.values(p.classCounts).concat([0]));
+    const classBars = classOrder.filter(c=>p.classCounts[c]).map(c => {
+        const n = p.classCounts[c];
+        return `<div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.4);width:38px;flex-shrink:0;">Class ${c}</span>
+            <div style="flex:1;height:4px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;">
+                <div style="height:100%;width:${Math.round(n/maxCls*100)}%;background:${getClassColor(c)};border-radius:100px;transition:width .5s cubic-bezier(.16,1,.3,1);"></div>
+            </div>
+            <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.28);width:18px;text-align:right;flex-shrink:0;">${n}</span>
+        </div>`;
+    }).join('');
+
+    const queryItems = Object.entries(p.queryMap)
+        .map(([q,v]) => ({ q, hits:v.hit, misses:v.miss, isHit:v.hit>0 }))
+        .sort((a,b) => b.hits-a.hits || b.misses-a.misses);
+    const hitQs  = queryItems.filter(qi=>qi.isHit);
+    const missQs = queryItems.filter(qi=>!qi.isHit);
+
+    const hospPills = [...p.hospitals].map(h =>
+        `<div style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#60a5fa;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.18);border-radius:100px;padding:2px 9px;font-family:var(--font-mono);"><i class="fas fa-hospital" style="font-size:7px;"></i>${escapeHTML(h)}</div>`
+    ).join('');
+
+    document.getElementById('geoDetailEmpty').style.display = 'none';
+    const dc = document.getElementById('geoDetailContent');
+    dc.style.display = 'flex';
+
+    dc.innerHTML = `
+        <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);flex-shrink:0;">
+            <div style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:#60a5fa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">
+                <span style="width:5px;height:5px;border-radius:50%;background:#60a5fa;display:inline-block;animation:geoPulseDot 2s infinite;"></span>
+                Selected location
+            </div>
+            <div style="font-size:22px;font-weight:800;letter-spacing:-.03em;color:#fff;line-height:1;margin-bottom:4px;">${escapeHTML(p.city||'Unknown')}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.32);font-family:var(--font-mono);margin-bottom:${p.hospitals.size?'10px':'0'};">${escapeHTML([p.region,p.country].filter(Boolean).join(' · '))}</div>
+            ${p.hospitals.size?`<div style="display:flex;flex-wrap:wrap;gap:4px;">${hospPills}</div>`:''}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
+            <div style="padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);">
+                <div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:#34d399;line-height:1;margin-bottom:4px;">${p.hits}</div>
+                <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.28);font-family:var(--font-mono);">Hits</div>
+            </div>
+            <div style="padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);">
+                <div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:#fb7185;line-height:1;margin-bottom:4px;">${p.misses}</div>
+                <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.28);font-family:var(--font-mono);">Misses</div>
+            </div>
+            <div style="padding:14px 10px;text-align:center;">
+                <div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:${hrColor};line-height:1;margin-bottom:4px;">${hitRate}%</div>
+                <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:${hrColor};font-family:var(--font-mono);">${hrLabel}</div>
+            </div>
+        </div>
+        <div style="padding:10px 18px 11px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.28);margin-bottom:6px;">
+                <span>Hit rate</span><span style="color:${hrColor};font-weight:600;">${hitRate}%</span>
+            </div>
+            <div style="height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;">
+                <div style="height:100%;width:${hitRate}%;background:${hrColor};border-radius:100px;transition:width .6s cubic-bezier(.16,1,.3,1);"></div>
+            </div>
+        </div>
+        ${classBars?`
+        <div style="padding:10px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
+            <div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">CFTR class breakdown</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">${classBars}</div>
+        </div>`:''}
+        <div style="flex:1;overflow-y:auto;min-height:0;">
+            ${hitQs.length?`
+                <div class="geo-v4-sticky-head">
+                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Resolved</span>
+                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);">${hitQs.length}</span>
+                </div>
+                ${hitQs.slice(0,8).map(qi=>`
+                    <div class="geo-v4-query-row">
+                        <div style="width:5px;height:5px;border-radius:50%;background:#34d399;flex-shrink:0;"></div>
+                        <span style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.85);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(qi.q)}</span>
+                        <span style="font-size:8px;font-family:var(--font-mono);padding:2px 7px;border-radius:100px;background:rgba(52,211,153,0.1);color:#34d399;border:1px solid rgba(52,211,153,0.3);flex-shrink:0;">hit</span>
+                    </div>`).join('')}
+                ${hitQs.length>8?`<div style="padding:6px 18px;font-size:10px;color:rgba(255,255,255,0.22);font-family:var(--font-mono);">+${hitQs.length-8} more</div>`:''}
+            `:''}
+            ${missQs.length?`
+                <div class="geo-v4-sticky-head">
+                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Unresolved</span>
+                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);">${missQs.length}</span>
+                </div>
+                ${missQs.slice(0,6).map(qi=>`
+                    <div class="geo-v4-query-row">
+                        <div style="width:5px;height:5px;border-radius:50%;background:#fb7185;flex-shrink:0;"></div>
+                        <span style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.32);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(qi.q)}</span>
+                        <span style="font-size:8px;font-family:var(--font-mono);padding:2px 7px;border-radius:100px;background:rgba(251,113,133,0.1);color:#fb7185;border:1px solid rgba(251,113,133,0.3);flex-shrink:0;">miss</span>
+                    </div>`).join('')}
+            `:''}
+        </div>
+        <div style="flex-shrink:0;border-top:1px solid rgba(255,255,255,0.06);padding:10px 18px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:11px;color:rgba(255,255,255,0.28);">
+                <span style="font-family:var(--font-mono);font-weight:600;color:rgba(255,255,255,0.52);">${total}</span> search events
+            </span>
+            <span style="font-size:10px;font-family:var(--font-mono);color:#60a5fa;cursor:pointer;opacity:.8;" onclick="showNotification('Flagged for Helios review','info')">Flag for review \u2192</span>
+        </div>
+    `;
+}
+
+function renderGeoDetail(p, citiesEl, variantsEl) { geoV4RenderDetail(p); }
 
 // ---- Search Intelligence PDF Report ----
 async function exportSearchPDF() {
