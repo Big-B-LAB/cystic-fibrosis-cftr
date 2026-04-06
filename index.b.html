@@ -1289,6 +1289,35 @@
         .geo-region-name { font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
         .geo-region-variant { font-family: var(--font-mono); font-size: 11px; color: #60a5fa; margin-bottom: 2px; }
         .geo-region-meta { font-size: 10px; color: var(--text-tertiary); }
+        /* ── GEO V4+V5 ── */
+        @keyframes geoPulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)}}
+        @keyframes geoFadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes geoSelPing{0%{transform-box:fill-box;transform-origin:center;transform:scale(1);opacity:.6}100%{transform:scale(2.2);opacity:0}}
+        @keyframes geoMissPulse{0%{opacity:.55}100%{opacity:0}}
+        @keyframes geoSlideIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+        .geo-v4-pill{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.04em;padding:3px 10px;border-radius:100px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:rgba(255,255,255,0.45);cursor:pointer;transition:all .15s;white-space:nowrap;}
+        .geo-v4-pill:hover{border-color:rgba(255,255,255,0.22);color:rgba(255,255,255,0.75);}
+        .geo-v4-pill.on-period{border-color:rgba(96,165,250,0.5);background:rgba(96,165,250,0.1);color:#60a5fa;}
+        .geo-v4-pill.on-class{border-color:rgba(52,211,153,0.5);background:rgba(52,211,153,0.08);color:#34d399;}
+        .geo-v4-pill.on-miss{border-color:rgba(251,113,133,0.5);background:rgba(251,113,133,0.08);color:#fb7185;}
+        .geo-v4-region-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:8px 10px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;animation:geoFadeUp .3s cubic-bezier(.16,1,.3,1) both;}
+        .geo-v4-region-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--grc,#60a5fa);transform:scaleX(var(--grr,0));transform-origin:left;}
+        .geo-v4-region-card:hover{border-color:rgba(255,255,255,0.16);background:rgba(255,255,255,0.05);}
+        .geo-v4-query-row{display:flex;align-items:center;gap:10px;padding:7px 18px;border-bottom:1px solid rgba(255,255,255,0.04);transition:background .12s;}
+        .geo-v4-query-row:hover{background:rgba(255,255,255,0.02);}
+        .geo-v4-query-row:last-child{border-bottom:none;}
+        .geo-v4-sticky-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;padding:7px 18px 6px;background:var(--surface);border-bottom:1px solid rgba(255,255,255,0.06);z-index:2;}
+        .geo-v5-view-btn{font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:100px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:rgba(255,255,255,0.38);cursor:pointer;transition:all .15s;}
+        .geo-v5-view-btn:hover{border-color:rgba(255,255,255,0.22);color:rgba(255,255,255,0.7);}
+        .geo-v5-view-btn.active{border-color:rgba(96,165,250,0.5);background:rgba(96,165,250,0.1);color:#60a5fa;}
+        .geo-v5-miss-row{display:flex;align-items:center;gap:10px;padding:8px 18px;border-bottom:1px solid rgba(255,255,255,0.04);transition:background .12s;cursor:pointer;}
+        .geo-v5-miss-row:hover{background:rgba(255,255,255,0.03);}
+        .geo-v5-compare-head{padding:10px 14px 8px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);flex-shrink:0;}
+        .geo-v5-scrubber{-webkit-appearance:none;appearance:none;width:100%;height:3px;background:rgba(255,255,255,0.08);border-radius:100px;outline:none;cursor:pointer;}
+        .geo-v5-scrubber::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#60a5fa;border:2px solid rgba(11,15,26,0.9);cursor:pointer;}
+        .geo-v5-flag-btn{font-size:9px;font-family:var(--font-mono);color:#60a5fa;border:1px solid rgba(96,165,250,0.25);background:rgba(96,165,250,0.06);border-radius:4px;padding:2px 8px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+        .geo-v5-flag-btn:hover{background:rgba(96,165,250,0.14);border-color:rgba(96,165,250,0.5);}
+        .geo-v5-slide{animation:geoSlideIn .25s cubic-bezier(.16,1,.3,1) both;}
         @keyframes missPulse {
             0%, 100% { stroke-opacity: 0.7; r: var(--base-r, 8); }
             50% { stroke-opacity: 1; }
@@ -3697,6 +3726,12 @@
                             <span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;animation:geoPulseDot 2.5s ease-in-out infinite;"></span>
                             <span style="font-size:11px;color:rgba(255,255,255,0.4);font-family:var(--font-mono);letter-spacing:.04em;" id="geoNoteV4">Geographic search distribution</span>
                         </div>
+                        <div style="display:flex;align-items:center;gap:5px;margin-right:16px;">
+                            <button class="geo-v5-view-btn active" id="geoViewMap"     onclick="geoV5SetView('map',this)">Map</button>
+                            <button class="geo-v5-view-btn"        id="geoViewMiss"    onclick="geoV5SetView('miss',this)">Miss intel</button>
+                            <button class="geo-v5-view-btn"        id="geoViewCompare" onclick="geoV5SetView('compare',this)">Compare</button>
+                            <button class="geo-v5-view-btn"        id="geoViewExport"  onclick="geoV5Export()">Export ↓</button>
+                        </div>
                         <div style="display:flex;align-items:stretch;border-left:1px solid rgba(255,255,255,0.06);">
                             <div style="display:flex;flex-direction:column;align-items:flex-end;padding:0 14px;border-right:1px solid rgba(255,255,255,0.06);">
                                 <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:#fff;line-height:1;" id="geoStripSearches">—</span>
@@ -3726,39 +3761,71 @@
                         <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;margin-right:2px;">Layer</span>
                         <button class="geo-v4-pill on-class" id="geoV4lClass" onclick="geoV4ToggleLayer('class',this)">CFTR Class</button>
                         <button class="geo-v4-pill"          id="geoV4lMiss"  onclick="geoV4ToggleLayer('miss',this)">Miss signal</button>
+                        <div style="width:1px;height:16px;background:rgba(255,255,255,0.08);margin:0 8px;flex-shrink:0;"></div>
+                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;margin-right:4px;">Timeline</span>
+                        <input type="range" class="geo-v5-scrubber" id="geoTimeline" min="0" max="100" value="100" style="width:110px;" oninput="geoV5TimelineScrub(this.value)" title="Scrub through time">
+                        <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.38);min-width:52px;" id="geoTimelineLabel">Live</span>
                         <div style="margin-left:auto;display:flex;align-items:center;gap:10px;" id="geoV4Legend">
                             <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;"></span>I</div>
                             <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#f97316;display:inline-block;"></span>II</div>
                             <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#34d399;display:inline-block;"></span>III</div>
                             <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#a78bfa;display:inline-block;"></span>IV</div>
                             <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#ec4899;display:inline-block;"></span>V</div>
-                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#4b5563;display:inline-block;"></span>—</div>
+                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#4b5563;display:inline-block;"></span>&#8212;</div>
                         </div>
                     </div>
-                    <!-- MAP + DETAIL -->
-                    <div style="display:grid;grid-template-columns:1fr 340px;flex:1;min-height:0;overflow:hidden;">
-                        <!-- MAP COLUMN -->
-                        <div style="display:flex;flex-direction:column;overflow:hidden;">
-                            <div id="siGeoMap" style="flex:1;min-height:320px;background:#060b14;"></div>
-                            <!-- REGION STRIP -->
-                            <div style="flex-shrink:0;border-top:1px solid rgba(255,255,255,0.06);background:rgba(8,15,29,0.95);padding:10px 14px 12px;">
-                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Top variant by region</span>
-                                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);" id="geoRegionCount">—</span>
+                    <!-- VIEW: MAP -->
+                    <div id="geoViewMapPane" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
+                        <div style="display:grid;grid-template-columns:1fr 340px;flex:1;min-height:0;overflow:hidden;">
+                            <div style="display:flex;flex-direction:column;overflow:hidden;">
+                                <div id="siGeoMap" style="flex:1;min-height:300px;background:#060b14;"></div>
+                                <div style="flex-shrink:0;border-top:1px solid rgba(255,255,255,0.06);background:rgba(8,15,29,0.95);padding:10px 14px 12px;">
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Top variant by region</span>
+                                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);" id="geoRegionCount">—</span>
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;" id="geoRegionCards"></div>
                                 </div>
-                                <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;" id="geoRegionCards"></div>
+                            </div>
+                            <div style="border-left:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;overflow:hidden;background:var(--surface);">
+                                <div id="geoDetailEmpty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px;text-align:center;">
+                                    <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;"><i class="fas fa-map-marker-alt" style="font-size:14px;color:rgba(255,255,255,0.18);"></i></div>
+                                    <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.45);">Select a location</div>
+                                    <div style="font-size:11px;color:rgba(255,255,255,0.22);line-height:1.7;">Click any marker on the map<br>to explore its search activity</div>
+                                </div>
+                                <div id="geoDetailContent" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;"></div>
                             </div>
                         </div>
-                        <!-- DETAIL COLUMN -->
-                        <div style="border-left:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;overflow:hidden;background:var(--surface);">
-                            <div id="geoDetailEmpty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px;text-align:center;">
-                                <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;">
-                                    <i class="fas fa-map-marker-alt" style="font-size:14px;color:rgba(255,255,255,0.18);"></i>
+                    </div>
+                    <!-- VIEW: MISS INTELLIGENCE -->
+                    <div id="geoViewMissPane" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;" class="geo-v5-slide">
+                        <div style="display:grid;grid-template-columns:1fr 300px;flex:1;min-height:0;overflow:hidden;">
+                            <div style="display:flex;flex-direction:column;overflow:hidden;border-right:1px solid rgba(255,255,255,0.06);">
+                                <div style="padding:10px 18px 8px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:rgba(255,255,255,0.02);">
+                                    <span style="font-size:11px;font-weight:500;color:rgba(255,255,255,0.65);">Unresolved queries — ranked by institutional reach</span>
+                                    <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.28);" id="geoMissTotal">—</span>
                                 </div>
-                                <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.45);">Select a location</div>
-                                <div style="font-size:11px;color:rgba(255,255,255,0.22);line-height:1.7;">Click any marker on the map<br>to explore its search activity</div>
+                                <div style="flex:1;overflow-y:auto;min-height:0;" id="geoMissList"></div>
                             </div>
-                            <div id="geoDetailContent" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;"></div>
+                            <div style="display:flex;flex-direction:column;overflow:hidden;background:var(--surface);" id="geoMissDetail">
+                                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:30px;text-align:center;color:rgba(255,255,255,0.22);">
+                                    <i class="fas fa-search" style="font-size:20px;opacity:.3;"></i>
+                                    <div style="font-size:12px;">Select a miss query<br>to see its geographic spread</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- VIEW: COMPARE -->
+                    <div id="geoViewComparePane" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;" class="geo-v5-slide">
+                        <div style="padding:10px 18px 8px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:12px;flex-shrink:0;background:rgba(255,255,255,0.02);">
+                            <span style="font-size:11px;color:rgba(255,255,255,0.45);">Compare two locations:</span>
+                            <select id="geoCompareA" onchange="geoV5RenderCompare()" style="font-family:var(--font-mono);font-size:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.8);padding:4px 10px;border-radius:6px;cursor:pointer;"><option value="">Location A…</option></select>
+                            <span style="font-size:11px;color:rgba(255,255,255,0.2);">vs</span>
+                            <select id="geoCompareB" onchange="geoV5RenderCompare()" style="font-family:var(--font-mono);font-size:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.8);padding:4px 10px;border-radius:6px;cursor:pointer;"><option value="">Location B…</option></select>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;min-height:0;overflow:hidden;" id="geoCompareGrid">
+                            <div style="display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.2);font-size:12px;border-right:1px solid rgba(255,255,255,0.06);">Select location A</div>
+                            <div style="display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.2);font-size:12px;">Select location B</div>
                         </div>
                     </div>
                 </div>
@@ -4415,351 +4482,433 @@ function getSearchTimeline() {
     };
 }
 
-// ---- Geography tab v4 ----
+// ---- Geography tab v5 ----
 
 window._geoState = {
-    allRows: [],
-    period: 7,
-    layerClass: true,
-    layerMiss: false,
-    selectedKey: null,
+    allRows:[], period:7, layerClass:true, layerMiss:false,
+    selectedKey:null, timelinePct:100, view:'map',
 };
 
-function setGeoPeriod(days, btn)    { geoV4SetPeriod(days, btn); }
-function toggleGeoLayer(layer, btn) { geoV4ToggleLayer(layer, btn); }
-function renderGeoMarkers()         { geoV4RenderMarkers(); }
+function setGeoPeriod(days,btn)    { geoV4SetPeriod(days,btn); }
+function toggleGeoLayer(layer,btn) { geoV4ToggleLayer(layer,btn); }
+function renderGeoMarkers()        { geoV4RenderMarkers(); }
 
-function geoV4SetPeriod(days, btn) {
+function geoV4SetPeriod(days,btn) {
     window._geoState.period = days;
-    ['geoV4p7','geoV4p30','geoV4pAll'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove('on-period');
-    });
-    if (btn) btn.classList.add('on-period');
+    ['geoV4p7','geoV4p30','geoV4pAll'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('on-period'); });
+    if(btn) btn.classList.add('on-period');
     geoV4RenderMarkers();
 }
 
-function geoV4ToggleLayer(layer, btn) {
-    const st = window._geoState;
-    if (layer === 'class') {
-        st.layerClass = !st.layerClass;
-        const el = document.getElementById('geoV4lClass');
-        if (el) el.classList.toggle('on-class', st.layerClass);
-        const leg = document.getElementById('geoV4Legend');
-        if (leg) leg.style.opacity = st.layerClass ? '1' : '0.3';
+function geoV4ToggleLayer(layer,btn) {
+    const st=window._geoState;
+    if(layer==='class'){
+        st.layerClass=!st.layerClass;
+        const el=document.getElementById('geoV4lClass'); if(el) el.classList.toggle('on-class',st.layerClass);
+        const leg=document.getElementById('geoV4Legend'); if(leg) leg.style.opacity=st.layerClass?'1':'0.3';
     }
-    if (layer === 'miss') {
-        st.layerMiss = !st.layerMiss;
-        const el = document.getElementById('geoV4lMiss');
-        if (el) el.classList.toggle('on-miss', st.layerMiss);
+    if(layer==='miss'){
+        st.layerMiss=!st.layerMiss;
+        const el=document.getElementById('geoV4lMiss'); if(el) el.classList.toggle('on-miss',st.layerMiss);
     }
     geoV4RenderMarkers();
 }
 
 function getClassColor(cls) {
-    const map = { 'I':'#ef4444','II':'#f97316','III':'#34d399','IV':'#a78bfa','V':'#ec4899','VI':'#22d3ee' };
-    return map[cls] || '#4b5563';
+    return({'I':'#ef4444','II':'#f97316','III':'#34d399','IV':'#a78bfa','V':'#ec4899','VI':'#22d3ee'})[cls]||'#4b5563';
 }
 
-async function renderGeoTab() {
-    const mapEl = document.getElementById('siGeoMap');
-    if (!mapEl) return;
-
-    if (!window.L) {
-        await Promise.all([
-            new Promise((res,rej) => {
-                const l = document.createElement('link');
-                l.rel='stylesheet';
-                l.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
-                l.onload=res; l.onerror=rej; document.head.appendChild(l);
-            }),
-            new Promise((res,rej) => {
-                const s = document.createElement('script');
-                s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-                s.onload=res; s.onerror=rej; document.head.appendChild(s);
-            })
-        ]);
+/* #1 TIMELINE */
+function geoV5TimelineScrub(pct) {
+    window._geoState.timelinePct = parseInt(pct,10);
+    const lbl=document.getElementById('geoTimelineLabel');
+    if(parseInt(pct)>=100){ if(lbl) lbl.textContent='Live'; }
+    else {
+        const rows=geoV5FilteredRows();
+        if(rows.length){
+            const dates=rows.map(r=>r.searched_at).sort();
+            const idx=Math.min(dates.length-1,Math.floor(parseInt(pct)/100*(dates.length-1)));
+            const d=new Date(dates[idx]);
+            if(lbl) lbl.textContent=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+        }
     }
-
-    try {
-        const res = await fetch(
-            `${CONFIG.SUPABASE.URL}/rest/v1/search_logs` +
-            `?select=query,is_hit,city,country,region,latitude,longitude,hospital_name,searched_at` +
-            `&latitude=not.is.null&order=searched_at.desc&limit=2000`,
-            { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
-        );
-        window._geoState.allRows = await res.json();
-    } catch(e) {
-        const n = document.getElementById('geoNoteV4');
-        if (n) n.textContent = 'Failed to load location data';
-        return;
-    }
-
-    if (!window._helixMap) {
-        window._helixMap = L.map('siGeoMap', { zoomControl:true, scrollWheelZoom:true, attributionControl:false });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom:14 })
-         .addTo(window._helixMap);
-        try {
-            const geoRes = await fetch('https://cdn.jsdelivr.net/npm/spain-atlas@0.1/es/autonomous-regions.json');
-            if (geoRes.ok) {
-                const geoJson = await geoRes.json();
-                L.geoJSON(geoJson, {
-                    style: { fillColor:'transparent', color:'rgba(96,165,250,0.15)', weight:.8, fillOpacity:0 },
-                    onEachFeature: (feature, layer) => {
-                        layer.on('mouseover', function() { this.setStyle({ color:'rgba(96,165,250,0.45)', weight:1, fillColor:'rgba(96,165,250,0.04)', fillOpacity:1 }); });
-                        layer.on('mouseout',  function() { this.setStyle({ color:'rgba(96,165,250,0.15)', weight:.8, fillOpacity:0 }); });
-                        const name = feature.properties?.name || feature.properties?.NAME_1 || '';
-                        if (name) layer.bindTooltip(name, { className:'geo-tooltip', sticky:true });
-                    }
-                }).addTo(window._helixMap);
-            }
-        } catch(e) {}
-    }
-
     geoV4RenderMarkers();
 }
 
-function geoV4BuildPoints(rows) {
-    const pts = new Map();
-    rows.forEach(r => {
-        const key = r.hospital_name || `${parseFloat(r.latitude).toFixed(3)},${parseFloat(r.longitude).toFixed(3)}`;
-        if (!pts.has(key)) pts.set(key, {
-            key, lat:r.latitude, lon:r.longitude,
-            city:r.city, country:r.country, region:r.region,
-            hospital:r.hospital_name,
-            hospitals: new Set(),
-            hits:0, misses:0, queryMap:{}, classCounts:{},
-        });
-        const p = pts.get(key);
-        if (r.hospital_name) p.hospitals.add(r.hospital_name);
-        if (r.is_hit) {
+/* #5 VIEW SWITCHER */
+function geoV5SetView(view,btn) {
+    window._geoState.view=view;
+    document.querySelectorAll('.geo-v5-view-btn').forEach(b=>b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    ['geoViewMapPane','geoViewMissPane','geoViewComparePane'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
+    if(view==='map')    { const el=document.getElementById('geoViewMapPane');     if(el){ el.style.display='flex'; } }
+    if(view==='miss')   { const el=document.getElementById('geoViewMissPane');    if(el){ el.style.display='flex'; geoV5RenderMissView(); } }
+    if(view==='compare'){ const el=document.getElementById('geoViewComparePane'); if(el){ el.style.display='flex'; geoV5PopulateCompareSelects(); } }
+}
+
+async function renderGeoTab() {
+    if(!document.getElementById('siGeoMap')) return;
+    if(!window.L){
+        await Promise.all([
+            new Promise((res,rej)=>{ const l=document.createElement('link');l.rel='stylesheet';l.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';l.onload=res;l.onerror=rej;document.head.appendChild(l); }),
+            new Promise((res,rej)=>{ const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s); })
+        ]);
+    }
+    /* #6 marker cluster */
+    if(!window.L.MarkerClusterGroup){
+        await Promise.all([
+            new Promise(res=>{ const l=document.createElement('link');l.rel='stylesheet';l.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css';l.onload=res;l.onerror=res;document.head.appendChild(l); }),
+            new Promise(res=>{ const l=document.createElement('link');l.rel='stylesheet';l.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css';l.onload=res;l.onerror=res;document.head.appendChild(l); }),
+            new Promise(res=>{ const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js';s.onload=res;s.onerror=res;document.head.appendChild(s); })
+        ]);
+    }
+    try {
+        const res=await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/search_logs?select=query,is_hit,city,country,region,latitude,longitude,hospital_name,searched_at&latitude=not.is.null&order=searched_at.desc&limit=2000`,
+            {headers:{'apikey':CONFIG.SUPABASE.KEY,'Authorization':`Bearer ${CONFIG.SUPABASE.KEY}`}});
+        window._geoState.allRows=await res.json();
+    } catch(e){ const n=document.getElementById('geoNoteV4'); if(n) n.textContent='Failed to load location data'; return; }
+    if(!window._helixMap){
+        window._helixMap=L.map('siGeoMap',{zoomControl:true,scrollWheelZoom:true,attributionControl:false});
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:14}).addTo(window._helixMap);
+        try {
+            const geoRes=await fetch('https://cdn.jsdelivr.net/npm/spain-atlas@0.1/es/autonomous-regions.json');
+            if(geoRes.ok){
+                const geoJson=await geoRes.json();
+                L.geoJSON(geoJson,{
+                    style:{fillColor:'transparent',color:'rgba(96,165,250,0.15)',weight:.8,fillOpacity:0},
+                    onEachFeature:(f,layer)=>{
+                        layer.on('mouseover',function(){this.setStyle({color:'rgba(96,165,250,0.45)',weight:1,fillColor:'rgba(96,165,250,0.04)',fillOpacity:1});});
+                        layer.on('mouseout', function(){this.setStyle({color:'rgba(96,165,250,0.15)',weight:.8,fillOpacity:0});});
+                        const name=f.properties?.name||f.properties?.NAME_1||'';
+                        if(name) layer.bindTooltip(name,{className:'geo-tooltip',sticky:true});
+                    }
+                }).addTo(window._helixMap);
+            }
+        } catch(e){}
+    }
+    geoV4RenderMarkers();
+}
+
+function geoV5FilteredRows(){
+    const st=window._geoState;
+    let rows=st.allRows;
+    if(st.period>0){ const c=new Date(Date.now()-st.period*86400000).toISOString(); rows=rows.filter(r=>r.searched_at>=c); }
+    if(st.timelinePct<100&&rows.length){
+        const sorted=[...rows].sort((a,b)=>a.searched_at.localeCompare(b.searched_at));
+        const idx=Math.floor(st.timelinePct/100*(sorted.length-1));
+        const cut=sorted[idx].searched_at;
+        rows=rows.filter(r=>r.searched_at<=cut);
+    }
+    return rows;
+}
+
+function geoV4BuildPoints(rows){
+    const pts=new Map();
+    rows.forEach(r=>{
+        const key=r.hospital_name||`${parseFloat(r.latitude).toFixed(3)},${parseFloat(r.longitude).toFixed(3)}`;
+        if(!pts.has(key)) pts.set(key,{key,lat:r.latitude,lon:r.longitude,city:r.city,country:r.country,region:r.region,hospital:r.hospital_name,hospitals:new Set(),hits:0,misses:0,queryMap:{},classCounts:{}});
+        const p=pts.get(key);
+        if(r.hospital_name) p.hospitals.add(r.hospital_name);
+        if(r.is_hit){
             p.hits++;
-            let v = STATE.variantsByLegacyName?.get((r.query||'').toUpperCase());
-            if (!v) v = STATE.variants?.find(vv => vv.legacy_name?.toLowerCase() === (r.query||'').toLowerCase());
-            if (v?.cftr_class) p.classCounts[v.cftr_class] = (p.classCounts[v.cftr_class]||0)+1;
+            let v=STATE.variantsByLegacyName?.get((r.query||'').toUpperCase());
+            if(!v) v=STATE.variants?.find(vv=>vv.legacy_name?.toLowerCase()===(r.query||'').toLowerCase());
+            if(v?.cftr_class) p.classCounts[v.cftr_class]=(p.classCounts[v.cftr_class]||0)+1;
         } else { p.misses++; }
-        if (!p.queryMap[r.query]) p.queryMap[r.query] = { hit:0, miss:0 };
-        if (r.is_hit) p.queryMap[r.query].hit++; else p.queryMap[r.query].miss++;
+        if(!p.queryMap[r.query]) p.queryMap[r.query]={hit:0,miss:0};
+        if(r.is_hit) p.queryMap[r.query].hit++; else p.queryMap[r.query].miss++;
     });
     return Array.from(pts.values());
 }
 
-function geoV4RenderMarkers() {
-    const st = window._geoState;
-    if (!window._helixMap || !st.allRows.length) return;
+/* #4 selection persists + #6 clustering */
+function geoV4RenderMarkers(){
+    const st=window._geoState;
+    if(!window._helixMap||!st.allRows.length) return;
+    const rows=geoV5FilteredRows();
+    const pts=geoV4BuildPoints(rows);
+    const maxN=Math.max(1,...pts.map(p=>p.hits+p.misses));
 
-    const cutoff = st.period > 0 ? new Date(Date.now() - st.period*86400000).toISOString() : null;
-    const rows = cutoff ? st.allRows.filter(r => r.searched_at >= cutoff) : st.allRows;
-    const pts  = geoV4BuildPoints(rows);
-    const maxN = Math.max(1, ...pts.map(p => p.hits+p.misses));
+    if(window._helixCluster){ try{window._helixMap.removeLayer(window._helixCluster);}catch(e){} }
+    if(window._helixMarkers) window._helixMarkers.forEach(m=>{ try{window._helixMap.removeLayer(m);}catch(e){} });
+    window._helixMarkers=[];
 
-    if (window._helixMarkers) window._helixMarkers.forEach(m => window._helixMap.removeLayer(m));
-    window._helixMarkers = [];
-
-    pts.forEach(p => {
-        const total    = p.hits+p.misses;
-        const hitRate  = total > 0 ? p.hits/total : 0;
-        const missRate = total > 0 ? p.misses/total : 0;
-        const radius   = Math.max(7, Math.min(24, 7+(total/maxN)*17));
-        const isSelected  = p.key === st.selectedKey;
-        const shouldPulse = st.layerMiss && missRate >= .4;
-
-        let color = '#4b5563';
-        if (st.layerClass) {
-            const dom = Object.entries(p.classCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
-            color = getClassColor(dom);
-        } else {
-            color = hitRate >= .7 ? '#34d399' : hitRate >= .4 ? '#fbbf24' : '#fb7185';
-        }
-
-        const sz = (radius+(shouldPulse?12:0)+(isSelected?8:0))*2;
-        const cx = sz/2;
-        let extra = '';
-        if (shouldPulse) {
-            extra += `<circle cx="${cx}" cy="${cx}" r="${radius+5}" fill="none" stroke="#fb7185" stroke-width="1.2" opacity=".5" style="animation:geoMissPulse 1.8s ease-out infinite"/>`;
-            extra += `<circle cx="${cx}" cy="${cx}" r="${radius+9}" fill="none" stroke="#fb7185" stroke-width=".6" opacity=".25" style="animation:geoMissPulse 1.8s ease-out infinite .5s"/>`;
-        }
-        if (isSelected) extra += `<circle cx="${cx}" cy="${cx}" r="${radius+4}" fill="none" stroke="white" stroke-width="1.5" opacity=".6" style="animation:geoSelPing 2s ease-out infinite"/>`;
-
-        const svgHtml = `<svg width="${sz}" height="${sz}" xmlns="http://www.w3.org/2000/svg">
-            <style>@keyframes geoSelPing{0%{transform-box:fill-box;transform-origin:center;transform:scale(1);opacity:.6}100%{transform:scale(2.1);opacity:0}}@keyframes geoMissPulse{0%{opacity:.5}100%{opacity:0}}</style>
-            ${extra}
-            <circle cx="${cx}" cy="${cx}" r="${radius}" fill="${color}" fill-opacity="${isSelected?'0.95':'0.80'}" stroke="rgba(255,255,255,${isSelected?'0.7':'0.4'})" stroke-width="${isSelected?'2':'1.5'}"/>
-            ${isSelected?`<circle cx="${cx}" cy="${cx}" r="${radius*.42}" fill="rgba(255,255,255,0.55)"/>`:''}
-        </svg>`;
-
-        const icon = L.divIcon({ className:'', html:svgHtml, iconSize:[sz,sz], iconAnchor:[cx,cx] });
-        const marker = L.marker([p.lat, p.lon], { icon }).addTo(window._helixMap);
-
-        marker.bindTooltip(
-            `<strong style="font-size:13px;">${escapeHTML(p.city||'Unknown')}</strong><br>` +
-            `<span style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.5);">${escapeHTML(p.hospital||p.country||'')}</span><br>` +
-            `<span style="font-family:var(--font-mono);font-size:10px;">${p.hits} hits · ${p.misses} misses · ${Math.round(hitRate*100)}%</span>`,
-            { className:'geo-tooltip', sticky:true }
-        );
-        marker.on('click', () => {
-            st.selectedKey = p.key;
-            geoV4RenderMarkers();
-            geoV4RenderDetail(p);
+    const useCluster=!!window.L?.MarkerClusterGroup;
+    let layer;
+    if(useCluster){
+        layer=L.markerClusterGroup({
+            maxClusterRadius:50,showCoverageOnHover:false,spiderfyOnMaxZoom:true,
+            iconCreateFunction:function(c){
+                const n=c.getChildCount();
+                const sz=Math.max(32,Math.min(52,28+n*1.4));
+                return L.divIcon({className:'',html:`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:rgba(96,165,250,0.2);border:1.5px solid rgba(96,165,250,0.55);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;font-weight:600;color:#fff;">${n}</div>`,iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
+            }
         });
+        window._helixCluster=layer;
+    } else { layer={addLayer:m=>m.addTo(window._helixMap)}; }
+
+    pts.forEach(p=>{
+        const total=p.hits+p.misses;
+        const hitRate=total>0?p.hits/total:0;
+        const missRate=total>0?p.misses/total:0;
+        const radius=Math.max(7,Math.min(24,7+(total/maxN)*17));
+        const isSelected=p.key===st.selectedKey;
+        const shouldPulse=st.layerMiss&&missRate>=.4;
+        let color='#4b5563';
+        if(st.layerClass){ const dom=Object.entries(p.classCounts).sort((a,b)=>b[1]-a[1])[0]?.[0]; color=getClassColor(dom); }
+        else { color=hitRate>=.7?'#34d399':hitRate>=.4?'#fbbf24':'#fb7185'; }
+        const sz=(radius+(shouldPulse?12:0)+(isSelected?8:0))*2; const cx=sz/2;
+        let extra='';
+        if(shouldPulse){ extra+=`<circle cx="${cx}" cy="${cx}" r="${radius+5}" fill="none" stroke="#fb7185" stroke-width="1.2" opacity=".5" style="animation:geoMissPulse 1.8s ease-out infinite"/>`; extra+=`<circle cx="${cx}" cy="${cx}" r="${radius+9}" fill="none" stroke="#fb7185" stroke-width=".6" opacity=".25" style="animation:geoMissPulse 1.8s ease-out infinite .5s"/>`; }
+        if(isSelected) extra+=`<circle cx="${cx}" cy="${cx}" r="${radius+4}" fill="none" stroke="white" stroke-width="1.5" opacity=".6" style="animation:geoSelPing 2s ease-out infinite"/>`;
+        const svgHtml=`<svg width="${sz}" height="${sz}" xmlns="http://www.w3.org/2000/svg"><style>@keyframes geoSelPing{0%{transform-box:fill-box;transform-origin:center;transform:scale(1);opacity:.6}100%{transform:scale(2.1);opacity:0}}@keyframes geoMissPulse{0%{opacity:.5}100%{opacity:0}}</style>${extra}<circle cx="${cx}" cy="${cx}" r="${radius}" fill="${color}" fill-opacity="${isSelected?'0.95':'0.80'}" stroke="rgba(255,255,255,${isSelected?'0.7':'0.4'})" stroke-width="${isSelected?'2':'1.5'}"/>${isSelected?`<circle cx="${cx}" cy="${cx}" r="${radius*.42}" fill="rgba(255,255,255,0.55)"/>`:''}
+        </svg>`;
+        const icon=L.divIcon({className:'',html:svgHtml,iconSize:[sz,sz],iconAnchor:[cx,cx]});
+        const marker=L.marker([p.lat,p.lon],{icon});
+        marker.bindTooltip(`<strong style="font-size:13px;">${escapeHTML(p.city||'Unknown')}</strong><br><span style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.5);">${escapeHTML(p.hospital||p.country||'')}</span><br><span style="font-family:var(--font-mono);font-size:10px;">${p.hits} hits \xB7 ${p.misses} misses \xB7 ${Math.round(hitRate*100)}%</span>`,{className:'geo-tooltip',sticky:true});
+        marker.on('click',()=>{ st.selectedKey=p.key; geoV4RenderMarkers(); geoV4RenderDetail(p); });
+        layer.addLayer(marker);
         window._helixMarkers.push(marker);
     });
 
-    if (!st.selectedKey && pts.length) {
-        window._helixMap.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lon])), { padding:[40,40] });
-        const biggest = [...pts].sort((a,b)=>(b.hits+b.misses)-(a.hits+a.misses))[0];
-        if (biggest) { st.selectedKey = biggest.key; geoV4RenderMarkers(); geoV4RenderDetail(biggest); return; }
+    if(useCluster) window._helixMap.addLayer(layer);
+
+    /* #4 persist selection */
+    if(!st.selectedKey&&pts.length){
+        window._helixMap.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lon])),{padding:[40,40]});
+        const biggest=[...pts].sort((a,b)=>(b.hits+b.misses)-(a.hits+a.misses))[0];
+        if(biggest){ st.selectedKey=biggest.key; geoV4RenderMarkers(); geoV4RenderDetail(biggest); return; }
+    } else if(st.selectedKey){
+        const cur=pts.find(p=>p.key===st.selectedKey);
+        if(cur) geoV4RenderDetail(cur);
     }
 
-    const totalHits = rows.filter(r=>r.is_hit).length;
-    const hitRatePct = rows.length > 0 ? Math.round(totalHits/rows.length*100) : 0;
-    const hosp = STATE.searchIntelligence?.hospital;
-    const hospLabel = hosp && hosp !== 'Anonymous' ? hosp.split('(')[0].trim() : 'Multi-centre';
-    const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-    set('geoNoteV4',        `${rows.length} searches · ${hospLabel}`);
-    set('geoStripSearches', rows.length.toLocaleString());
-    set('geoStripLocs',     pts.length);
-    set('geoStripRate',     hitRatePct+'%');
-    set('geoStripHosp',     hospLabel);
+    const totalHits=rows.filter(r=>r.is_hit).length;
+    const hitRatePct=rows.length>0?Math.round(totalHits/rows.length*100):0;
+    const hosp=STATE.searchIntelligence?.hospital;
+    const hospLabel=hosp&&hosp!=='Anonymous'?hosp.split('(')[0].trim():'Multi-centre';
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('geoNoteV4',`${rows.length} searches \xB7 ${hospLabel}`);
+    set('geoStripSearches',rows.length.toLocaleString());
+    set('geoStripLocs',pts.length);
+    set('geoStripRate',hitRatePct+'%');
+    set('geoStripHosp',hospLabel);
     geoV4RenderRegions(rows);
 }
 
-function geoV4RenderRegions(rows) {
-    const byRegion = new Map();
-    rows.forEach(r => {
-        if (!r.region) return;
-        if (!byRegion.has(r.region)) byRegion.set(r.region, { queries:{}, hits:0, total:0 });
-        const d = byRegion.get(r.region);
-        d.total++;
-        if (r.is_hit) { d.hits++; d.queries[r.query]=(d.queries[r.query]||0)+1; }
+/* #7 REGION STRIP — country-aware */
+function geoV4RenderRegions(rows){
+    const FLAGS={'Spain':'\uD83C\uDDEA\uD83C\uDDF8','UK':'\uD83C\uDDEC\uD83C\uDDE7','France':'\uD83C\uDDEB\uD83C\uDDF7','Germany':'\uD83C\uDDE9\uD83C\uDDEA','Denmark':'\uD83C\uDDE9\uD83C\uDDF0','Sweden':'\uD83C\uDDF8\uD83C\uDDEA','USA':'\uD83C\uDDFA\uD83C\uDDF8','Canada':'\uD83C\uDDE8\uD83C\uDDE6','Australia':'\uD83C\uDDE6\uD83C\uDDFA','Italy':'\uD83C\uDDEE\uD83C\uDDF9','Netherlands':'\uD83C\uDDF3\uD83C\uDDF1'};
+    const byRegion=new Map();
+    rows.forEach(r=>{
+        if(!r.region) return;
+        const rk=r.country&&r.country!=='Spain'?`${r.region}__${r.country}`:r.region;
+        if(!byRegion.has(rk)) byRegion.set(rk,{region:r.region,country:r.country||'',queries:{},hits:0,total:0});
+        const d=byRegion.get(rk); d.total++;
+        if(r.is_hit){ d.hits++; d.queries[r.query]=(d.queries[r.query]||0)+1; }
     });
-    const sorted = Array.from(byRegion.entries()).sort((a,b)=>b[1].total-a[1].total).slice(0,6);
-    const countEl = document.getElementById('geoRegionCount');
-    if (countEl) countEl.textContent = byRegion.size+' regions';
-    const cards = sorted.map(([region, data], i) => {
-        const topQ  = Object.entries(data.queries).sort((a,b)=>b[1]-a[1])[0];
-        const name  = topQ ? topQ[0] : '—';
-        const rate  = data.total > 0 ? Math.round(data.hits/data.total*100) : 0;
-        const color = rate>=70 ? '#34d399' : rate>=40 ? '#fbbf24' : '#fb7185';
-        return `<div class="geo-v4-region-card" style="--grc:${color};--grr:${rate/100};animation-delay:${i*0.04}s">
-            <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.55);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(region)}</div>
+    const sorted=Array.from(byRegion.values()).sort((a,b)=>b.total-a.total).slice(0,6);
+    const cEl=document.getElementById('geoRegionCount'); if(cEl) cEl.textContent=byRegion.size+' regions';
+    const cards=sorted.map((data,i)=>{
+        const topQ=Object.entries(data.queries).sort((a,b)=>b[1]-a[1])[0];
+        const name=topQ?topQ[0]:'—';
+        const rate=data.total>0?Math.round(data.hits/data.total*100):0;
+        const color=rate>=70?'#34d399':rate>=40?'#fbbf24':'#fb7185';
+        const flag=FLAGS[data.country]||'';
+        const intl=data.country&&data.country!=='Spain';
+        return `<div class="geo-v4-region-card" style="--grc:${color};--grr:${rate/100};animation-delay:${i*0.04}s;${intl?'border-color:rgba(96,165,250,0.2);':''}">
+            <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.55);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${flag?flag+' ':''}${escapeHTML(data.region)}</div>
             <div style="font-family:var(--font-mono);font-size:10px;color:#fff;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(name)}</div>
-            <div style="font-size:9px;color:rgba(255,255,255,0.28);display:flex;align-items:center;gap:3px;">
-                <span style="color:${color};font-weight:600;">${rate}%</span><span>· ${data.total}</span>
-            </div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.28);display:flex;align-items:center;gap:3px;"><span style="color:${color};font-weight:600;">${rate}%</span><span>\xB7 ${data.total}</span></div>
         </div>`;
     }).join('');
-    const el = document.getElementById('geoRegionCards');
-    if (el) el.innerHTML = cards;
+    const el=document.getElementById('geoRegionCards'); if(el) el.innerHTML=cards;
 }
 
-function geoV4RenderDetail(p) {
-    const total   = p.hits+p.misses;
-    const hitRate = total > 0 ? Math.round(p.hits/total*100) : 0;
-    const hrColor = hitRate>=70 ? '#34d399' : hitRate>=40 ? '#fbbf24' : '#fb7185';
-    const hrLabel = hitRate>=70 ? 'Strong' : hitRate>=40 ? 'Mixed' : 'Weak';
-
-    const classOrder = ['I','II','III','IV','V','VI'];
-    const maxCls = Math.max(1, ...Object.values(p.classCounts).concat([0]));
-    const classBars = classOrder.filter(c=>p.classCounts[c]).map(c => {
-        const n = p.classCounts[c];
-        return `<div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.4);width:38px;flex-shrink:0;">Class ${c}</span>
-            <div style="flex:1;height:4px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;">
-                <div style="height:100%;width:${Math.round(n/maxCls*100)}%;background:${getClassColor(c)};border-radius:100px;transition:width .5s cubic-bezier(.16,1,.3,1);"></div>
+/* #2 MISS INTELLIGENCE */
+function geoV5RenderMissView(){
+    const rows=geoV5FilteredRows();
+    const missMap=new Map();
+    rows.forEach(r=>{
+        if(r.is_hit) return;
+        if(!missMap.has(r.query)) missMap.set(r.query,{query:r.query,count:0,institutions:new Set(),countries:new Set(),cities:[]});
+        const m=missMap.get(r.query); m.count++;
+        if(r.hospital_name) m.institutions.add(r.hospital_name);
+        if(r.country)       m.countries.add(r.country);
+        if(r.city&&!m.cities.includes(r.city)) m.cities.push(r.city);
+    });
+    const sorted=Array.from(missMap.values()).sort((a,b)=>b.institutions.size-a.institutions.size||b.count-a.count);
+    const tEl=document.getElementById('geoMissTotal'); if(tEl) tEl.textContent=sorted.length+' unique queries';
+    const listEl=document.getElementById('geoMissList'); if(!listEl) return;
+    if(!sorted.length){ listEl.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.22);font-size:12px;">No miss data in this period</div>'; return; }
+    const maxC=sorted[0].count;
+    listEl.innerHTML=sorted.map((m,i)=>{
+        const urgency=m.institutions.size>=3?'#fb7185':m.institutions.size>=2?'#fbbf24':'rgba(255,255,255,0.28)';
+        const pct=Math.round(m.count/maxC*100);
+        const qSafe=m.query.replace(/'/g,"\\'");
+        return `<div class="geo-v5-miss-row" onclick="geoV5ShowMissDetail('${qSafe}')">
+            <div style="width:22px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.22);flex-shrink:0;text-align:right;">${i+1}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,0.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">${escapeHTML(m.query)}</div>
+                <div style="height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${urgency};border-radius:100px;"></div></div>
             </div>
-            <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.28);width:18px;text-align:right;flex-shrink:0;">${n}</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;margin-left:10px;">
+                <span style="font-family:var(--font-mono);font-size:11px;color:${urgency};font-weight:600;">${m.institutions.size} <span style="font-size:8px;font-weight:400;color:rgba(255,255,255,0.25);">inst.</span></span>
+                <span style="font-size:9px;color:rgba(255,255,255,0.25);">${m.count} searches</span>
+            </div>
+            <button class="geo-v5-flag-btn" onclick="event.stopPropagation();showNotification('${qSafe} flagged for curation','info')">+ Add</button>
         </div>`;
     }).join('');
+}
 
-    const queryItems = Object.entries(p.queryMap)
-        .map(([q,v]) => ({ q, hits:v.hit, misses:v.miss, isHit:v.hit>0 }))
-        .sort((a,b) => b.hits-a.hits || b.misses-a.misses);
-    const hitQs  = queryItems.filter(qi=>qi.isHit);
-    const missQs = queryItems.filter(qi=>!qi.isHit);
+function geoV5ShowMissDetail(query){
+    const rows=geoV5FilteredRows().filter(r=>!r.is_hit&&r.query===query);
+    const detailEl=document.getElementById('geoMissDetail'); if(!detailEl) return;
+    const byInst=new Map();
+    rows.forEach(r=>{ const k=r.hospital_name||r.city||r.country||'Unknown'; if(!byInst.has(k)) byInst.set(k,{name:k,country:r.country||'',count:0}); byInst.get(k).count++; });
+    const insts=Array.from(byInst.values()).sort((a,b)=>b.count-a.count);
+    const countries=[...new Set(rows.map(r=>r.country).filter(Boolean))];
+    detailEl.innerHTML=`
+        <div style="padding:14px 16px 10px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
+            <div style="font-family:var(--font-mono);font-size:15px;font-weight:700;color:#fb7185;margin-bottom:4px;">${escapeHTML(query)}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.28);">${rows.length} searches \xB7 ${insts.length} institutions \xB7 ${countries.length} countries</div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:10px 14px;">
+            <div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Searching institutions</div>
+            ${insts.map(inst=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><div style="flex:1;font-size:11px;color:rgba(255,255,255,0.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(inst.name)}</div><span style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.32);">${inst.count}</span></div>`).join('')}
+        </div>
+        <div style="padding:10px 14px;border-top:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
+            <button class="geo-v5-flag-btn" style="width:100%;padding:7px;font-size:10px;justify-content:center;display:flex;align-items:center;gap:6px;" onclick="showNotification('${query.replace(/'/g,"\\'")} queued for variant creation','success')"><i class="fas fa-plus" style="font-size:9px;"></i>Create variant record</button>
+        </div>`;
+    detailEl.style.display='flex';
+    detailEl.style.flexDirection='column';
+}
 
-    const hospPills = [...p.hospitals].map(h =>
-        `<div style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#60a5fa;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.18);border-radius:100px;padding:2px 9px;font-family:var(--font-mono);"><i class="fas fa-hospital" style="font-size:7px;"></i>${escapeHTML(h)}</div>`
-    ).join('');
+/* #3 COMPARE */
+function geoV5PopulateCompareSelects(){
+    const rows=geoV5FilteredRows();
+    const pts=[...geoV4BuildPoints(rows)].sort((a,b)=>(b.hits+b.misses)-(a.hits+a.misses));
+    ['geoCompareA','geoCompareB'].forEach(id=>{
+        const el=document.getElementById(id); if(!el) return;
+        const cur=el.value;
+        el.innerHTML='<option value="">Location…</option>'+pts.map(p=>`<option value="${escapeHTML(p.key)}">${escapeHTML(p.city||p.key)}${p.country?' ('+p.country+')':''}</option>`).join('');
+        el.value=cur;
+    });
+    geoV5RenderCompare();
+}
 
-    document.getElementById('geoDetailEmpty').style.display = 'none';
-    const dc = document.getElementById('geoDetailContent');
-    dc.style.display = 'flex';
-
-    dc.innerHTML = `
-        <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);flex-shrink:0;">
-            <div style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:#60a5fa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">
-                <span style="width:5px;height:5px;border-radius:50%;background:#60a5fa;display:inline-block;animation:geoPulseDot 2s infinite;"></span>
-                Selected location
+function geoV5RenderCompare(){
+    const keyA=document.getElementById('geoCompareA')?.value;
+    const keyB=document.getElementById('geoCompareB')?.value;
+    const grid=document.getElementById('geoCompareGrid'); if(!grid) return;
+    const pts=geoV4BuildPoints(geoV5FilteredRows());
+    const pA=pts.find(p=>p.key===keyA);
+    const pB=pts.find(p=>p.key===keyB);
+    const col=(p,side)=>{
+        if(!p) return `<div style="display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.2);font-size:12px;${side==='A'?'border-right:1px solid rgba(255,255,255,0.06);':''}padding:40px;text-align:center;">Select location ${side}</div>`;
+        const total=p.hits+p.misses;
+        const hitRate=total>0?Math.round(p.hits/total*100):0;
+        const hrColor=hitRate>=70?'#34d399':hitRate>=40?'#fbbf24':'#fb7185';
+        const classOrder=['I','II','III','IV','V','VI'];
+        const maxCls=Math.max(1,...Object.values(p.classCounts).concat([0]));
+        const bars=classOrder.filter(c=>p.classCounts[c]).map(c=>{
+            const n=p.classCounts[c];
+            return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.38);width:34px;flex-shrink:0;">Cls ${c}</span><div style="flex:1;height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;"><div style="height:100%;width:${Math.round(n/maxCls*100)}%;background:${getClassColor(c)};border-radius:100px;"></div></div><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.25);">${n}</span></div>`;
+        }).join('');
+        const topQ=Object.entries(p.queryMap).sort((a,b)=>(b[1].hit+b[1].miss)-(a[1].hit+a[1].miss)).slice(0,5);
+        return `<div style="display:flex;flex-direction:column;overflow:hidden;${side==='A'?'border-right:1px solid rgba(255,255,255,0.06);':''}">
+            <div class="geo-v5-compare-head"><div style="font-size:18px;font-weight:800;letter-spacing:-.03em;color:#fff;margin-bottom:2px;">${escapeHTML(p.city||'Unknown')}</div><div style="font-size:10px;color:rgba(255,255,255,0.3);font-family:var(--font-mono);">${escapeHTML([p.region,p.country].filter(Boolean).join(' \xB7 '))}</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,0.06);">
+                <div style="padding:10px 6px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);"><div style="font-size:20px;font-weight:800;color:#34d399;">${p.hits}</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.25);">Hits</div></div>
+                <div style="padding:10px 6px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);"><div style="font-size:20px;font-weight:800;color:#fb7185;">${p.misses}</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.25);">Misses</div></div>
+                <div style="padding:10px 6px;text-align:center;"><div style="font-size:20px;font-weight:800;color:${hrColor};">${hitRate}%</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:${hrColor};">Rate</div></div>
             </div>
+            <div style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06);"><div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Class breakdown</div>${bars||'<div style="font-size:10px;color:rgba(255,255,255,0.18);">No class data</div>'}</div>
+            <div style="flex:1;overflow-y:auto;padding:10px 12px;"><div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Top queries</div>${topQ.map(([q,v])=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><div style="width:5px;height:5px;border-radius:50%;background:${v.hit>0?'#34d399':'#fb7185'};flex-shrink:0;"></div><span style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.7);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(q)}</span><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.25);">${v.hit+v.miss}</span></div>`).join('')}</div>
+        </div>`;
+    };
+    grid.innerHTML=col(pA,'A')+col(pB,'B');
+}
+
+/* #5 EXPORT — CSV */
+function geoV5Export(){
+    const rows=geoV5FilteredRows();
+    const pts=geoV4BuildPoints(rows);
+    const hosp=STATE.searchIntelligence?.hospital||'Unknown';
+    const missMap=new Map();
+    rows.forEach(r=>{ if(r.is_hit) return; if(!missMap.has(r.query)) missMap.set(r.query,{count:0,institutions:new Set(),countries:new Set()}); const m=missMap.get(r.query); m.count++; if(r.hospital_name) m.institutions.add(r.hospital_name); if(r.country) m.countries.add(r.country); });
+    const lines=[
+        `\u0394 Helix Geographic Intelligence Export`,
+        `Generated: ${new Date().toISOString()}`,
+        `Institution: ${hosp}`,
+        `Period: ${window._geoState.period>0?window._geoState.period+'d':'All time'}`,
+        `Total searches: ${rows.length} | Locations: ${pts.length}`,
+        ``,`=== LOCATION SUMMARY ===`,
+        `Location,Country,Hospital,Hits,Misses,Hit Rate,Top Class`,
+        ...[...pts].sort((a,b)=>(b.hits+b.misses)-(a.hits+a.misses)).map(p=>{
+            const total=p.hits+p.misses;
+            const hr=total>0?Math.round(p.hits/total*100):0;
+            const tc=Object.entries(p.classCounts).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+            return `"${p.city||''}","${p.country||''}","${p.hospital||''}",${p.hits},${p.misses},${hr}%,${tc}`;
+        }),
+        ``,`=== MISS QUEUE ===`,
+        `Query,Searches,Institutions,Countries`,
+        ...Array.from(missMap.entries()).sort((a,b)=>b[1].institutions.size-a[1].institutions.size||b[1].count-a[1].count)
+            .map(([q,m])=>`"${q}",${m.count},${m.institutions.size},${m.countries.size}`),
+    ];
+    const blob=new Blob([lines.join('\n')],{type:'text/csv'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=`helix-geo-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    showNotification('Geographic report exported','success');
+}
+
+/* DETAIL PANEL */
+function geoV4RenderDetail(p){
+    const total=p.hits+p.misses;
+    const hitRate=total>0?Math.round(p.hits/total*100):0;
+    const hrColor=hitRate>=70?'#34d399':hitRate>=40?'#fbbf24':'#fb7185';
+    const hrLabel=hitRate>=70?'Strong':hitRate>=40?'Mixed':'Weak';
+    const classOrder=['I','II','III','IV','V','VI'];
+    const maxCls=Math.max(1,...Object.values(p.classCounts).concat([0]));
+    const classBars=classOrder.filter(c=>p.classCounts[c]).map(c=>{
+        const n=p.classCounts[c];
+        return `<div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.4);width:38px;flex-shrink:0;">Class ${c}</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;"><div style="height:100%;width:${Math.round(n/maxCls*100)}%;background:${getClassColor(c)};border-radius:100px;transition:width .5s cubic-bezier(.16,1,.3,1);"></div></div><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.28);width:18px;text-align:right;flex-shrink:0;">${n}</span></div>`;
+    }).join('');
+    const queryItems=Object.entries(p.queryMap).map(([q,v])=>({q,hits:v.hit,misses:v.miss,isHit:v.hit>0})).sort((a,b)=>b.hits-a.hits||b.misses-a.misses);
+    const hitQs=queryItems.filter(qi=>qi.isHit); const missQs=queryItems.filter(qi=>!qi.isHit);
+    const hospPills=[...p.hospitals].map(h=>`<div style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#60a5fa;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.18);border-radius:100px;padding:2px 9px;font-family:var(--font-mono);"><i class="fas fa-hospital" style="font-size:7px;"></i>${escapeHTML(h)}</div>`).join('');
+    document.getElementById('geoDetailEmpty').style.display='none';
+    const dc=document.getElementById('geoDetailContent');
+    dc.style.display='flex'; dc.className='geo-v5-slide';
+    dc.innerHTML=`
+        <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);flex-shrink:0;">
+            <div style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:#60a5fa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;"><span style="width:5px;height:5px;border-radius:50%;background:#60a5fa;display:inline-block;animation:geoPulseDot 2s infinite;"></span>Selected location</div>
             <div style="font-size:22px;font-weight:800;letter-spacing:-.03em;color:#fff;line-height:1;margin-bottom:4px;">${escapeHTML(p.city||'Unknown')}</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.32);font-family:var(--font-mono);margin-bottom:${p.hospitals.size?'10px':'0'};">${escapeHTML([p.region,p.country].filter(Boolean).join(' · '))}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.32);font-family:var(--font-mono);margin-bottom:${p.hospitals.size?'10px':'0'};">${escapeHTML([p.region,p.country].filter(Boolean).join(' \xB7 '))}</div>
             ${p.hospitals.size?`<div style="display:flex;flex-wrap:wrap;gap:4px;">${hospPills}</div>`:''}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
-            <div style="padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);">
-                <div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:#34d399;line-height:1;margin-bottom:4px;">${p.hits}</div>
-                <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.28);font-family:var(--font-mono);">Hits</div>
-            </div>
-            <div style="padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);">
-                <div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:#fb7185;line-height:1;margin-bottom:4px;">${p.misses}</div>
-                <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.28);font-family:var(--font-mono);">Misses</div>
-            </div>
-            <div style="padding:14px 10px;text-align:center;">
-                <div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:${hrColor};line-height:1;margin-bottom:4px;">${hitRate}%</div>
-                <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:${hrColor};font-family:var(--font-mono);">${hrLabel}</div>
-            </div>
+            <div style="padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);"><div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:#34d399;line-height:1;margin-bottom:4px;">${p.hits}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.28);font-family:var(--font-mono);">Hits</div></div>
+            <div style="padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);"><div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:#fb7185;line-height:1;margin-bottom:4px;">${p.misses}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.28);font-family:var(--font-mono);">Misses</div></div>
+            <div style="padding:14px 10px;text-align:center;"><div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:${hrColor};line-height:1;margin-bottom:4px;">${hitRate}%</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:${hrColor};font-family:var(--font-mono);">${hrLabel}</div></div>
         </div>
         <div style="padding:10px 18px 11px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
-            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.28);margin-bottom:6px;">
-                <span>Hit rate</span><span style="color:${hrColor};font-weight:600;">${hitRate}%</span>
-            </div>
-            <div style="height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;">
-                <div style="height:100%;width:${hitRate}%;background:${hrColor};border-radius:100px;transition:width .6s cubic-bezier(.16,1,.3,1);"></div>
-            </div>
+            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.28);margin-bottom:6px;"><span>Hit rate</span><span style="color:${hrColor};font-weight:600;">${hitRate}%</span></div>
+            <div style="height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;"><div style="height:100%;width:${hitRate}%;background:${hrColor};border-radius:100px;transition:width .6s cubic-bezier(.16,1,.3,1);"></div></div>
         </div>
-        ${classBars?`
-        <div style="padding:10px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
-            <div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">CFTR class breakdown</div>
-            <div style="display:flex;flex-direction:column;gap:5px;">${classBars}</div>
-        </div>`:''}
+        ${classBars?`<div style="padding:10px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;"><div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">CFTR class breakdown</div><div style="display:flex;flex-direction:column;gap:5px;">${classBars}</div></div>`:''}
         <div style="flex:1;overflow-y:auto;min-height:0;">
-            ${hitQs.length?`
-                <div class="geo-v4-sticky-head">
-                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Resolved</span>
-                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);">${hitQs.length}</span>
-                </div>
-                ${hitQs.slice(0,8).map(qi=>`
-                    <div class="geo-v4-query-row">
-                        <div style="width:5px;height:5px;border-radius:50%;background:#34d399;flex-shrink:0;"></div>
-                        <span style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.85);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(qi.q)}</span>
-                        <span style="font-size:8px;font-family:var(--font-mono);padding:2px 7px;border-radius:100px;background:rgba(52,211,153,0.1);color:#34d399;border:1px solid rgba(52,211,153,0.3);flex-shrink:0;">hit</span>
-                    </div>`).join('')}
-                ${hitQs.length>8?`<div style="padding:6px 18px;font-size:10px;color:rgba(255,255,255,0.22);font-family:var(--font-mono);">+${hitQs.length-8} more</div>`:''}
-            `:''}
-            ${missQs.length?`
-                <div class="geo-v4-sticky-head">
-                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Unresolved</span>
-                    <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);">${missQs.length}</span>
-                </div>
-                ${missQs.slice(0,6).map(qi=>`
-                    <div class="geo-v4-query-row">
-                        <div style="width:5px;height:5px;border-radius:50%;background:#fb7185;flex-shrink:0;"></div>
-                        <span style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.32);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(qi.q)}</span>
-                        <span style="font-size:8px;font-family:var(--font-mono);padding:2px 7px;border-radius:100px;background:rgba(251,113,133,0.1);color:#fb7185;border:1px solid rgba(251,113,133,0.3);flex-shrink:0;">miss</span>
-                    </div>`).join('')}
-            `:''}
+            ${hitQs.length?`<div class="geo-v4-sticky-head"><span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Resolved</span><span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);">${hitQs.length}</span></div>${hitQs.slice(0,8).map(qi=>`<div class="geo-v4-query-row"><div style="width:5px;height:5px;border-radius:50%;background:#34d399;flex-shrink:0;"></div><span style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.85);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(qi.q)}</span><span style="font-size:8px;font-family:var(--font-mono);padding:2px 7px;border-radius:100px;background:rgba(52,211,153,0.1);color:#34d399;border:1px solid rgba(52,211,153,0.3);flex-shrink:0;">hit</span></div>`).join('')}${hitQs.length>8?`<div style="padding:6px 18px;font-size:10px;color:rgba(255,255,255,0.22);font-family:var(--font-mono);">+${hitQs.length-8} more</div>`:''}`:''}
+            ${missQs.length?`<div class="geo-v4-sticky-head"><span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Unresolved</span><span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);">${missQs.length}</span></div>${missQs.slice(0,6).map(qi=>`<div class="geo-v4-query-row"><div style="width:5px;height:5px;border-radius:50%;background:#fb7185;flex-shrink:0;"></div><span style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.32);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(qi.q)}</span><span style="font-size:8px;font-family:var(--font-mono);padding:2px 7px;border-radius:100px;background:rgba(251,113,133,0.1);color:#fb7185;border:1px solid rgba(251,113,133,0.3);flex-shrink:0;">miss</span></div>`).join('')}`:''}
         </div>
         <div style="flex-shrink:0;border-top:1px solid rgba(255,255,255,0.06);padding:10px 18px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:space-between;">
-            <span style="font-size:11px;color:rgba(255,255,255,0.28);">
-                <span style="font-family:var(--font-mono);font-weight:600;color:rgba(255,255,255,0.52);">${total}</span> search events
-            </span>
+            <span style="font-size:11px;color:rgba(255,255,255,0.28);"><span style="font-family:var(--font-mono);font-weight:600;color:rgba(255,255,255,0.52);">${total}</span> search events</span>
             <span style="font-size:10px;font-family:var(--font-mono);color:#60a5fa;cursor:pointer;opacity:.8;" onclick="showNotification('Flagged for Helios review','info')">Flag for review \u2192</span>
-        </div>
-    `;
+        </div>`;
 }
 
-function renderGeoDetail(p, citiesEl, variantsEl) { geoV4RenderDetail(p); }
+function renderGeoDetail(p,citiesEl,variantsEl){ geoV4RenderDetail(p); }
 
 // ---- Search Intelligence PDF Report ----
 async function exportSearchPDF() {
