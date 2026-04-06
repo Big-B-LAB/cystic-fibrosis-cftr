@@ -2935,6 +2935,125 @@
             80%      { transform: translateX(4px); }
         }
 
+        /* ============================================================
+           RESPONSIVE — TABLET & MOBILE
+           ============================================================ */
+
+        @media (max-width: 900px) {
+            :root {
+                --sidebar-width: 260px;
+                --header-height: 52px;
+            }
+
+            .header-stats { display: none; }
+            .brand-sub    { display: none; }
+
+            .app-shell {
+                grid-template-columns: var(--sidebar-width) 1fr;
+            }
+
+            /* Auto-collapse sidebar on tablet */
+            .app-shell:not(.sidebar-collapsed) {
+                grid-template-columns: var(--sidebar-collapsed) 1fr;
+            }
+            .app-shell:not(.sidebar-collapsed) .app-sidebar {
+                width: var(--sidebar-collapsed);
+                min-width: var(--sidebar-collapsed);
+            }
+            .app-shell:not(.sidebar-collapsed) .brand-text,
+            .app-shell:not(.sidebar-collapsed) .sidebar-search,
+            .app-shell:not(.sidebar-collapsed) .sidebar-filters,
+            .app-shell:not(.sidebar-collapsed) .class-filter-bar,
+            .app-shell:not(.sidebar-collapsed) .list-meta,
+            .app-shell:not(.sidebar-collapsed) .variant-list,
+            .app-shell:not(.sidebar-collapsed) .list-pagination,
+            .app-shell:not(.sidebar-collapsed) .activity-ribbon {
+                display: none;
+            }
+
+            /* Bigger touch targets for Helios action buttons */
+            .helios-btn {
+                min-height: 44px !important;
+                padding: 10px 14px !important;
+                font-size: 13px !important;
+            }
+
+            /* Hospital modal full-width on mobile */
+            .hospital-modal {
+                width: calc(100vw - 32px) !important;
+                max-width: 440px;
+                padding: 24px 20px !important;
+            }
+
+            /* Dashboard modal full screen on tablet */
+            .dashboard-modal .modal-content {
+                width: 100vw !important;
+                height: 100vh !important;
+                max-width: 100vw !important;
+                border-radius: 0 !important;
+            }
+
+            /* Write mode modal full width */
+            #writeModeModal > div {
+                width: calc(100vw - 32px) !important;
+                max-width: 380px;
+            }
+
+            /* Detail grid stacks vertically */
+            .detail-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Nomenclature row wraps */
+            .nomenclature-row {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Header actions — hide labels on small screens */
+            .header-actions .btn span:not(.chip-count) {
+                display: none;
+            }
+            .header-actions .btn {
+                padding: 0 10px !important;
+            }
+
+            #connStatusLabel { display: none; }
+        }
+
+        @media (max-width: 600px) {
+            :root { --header-height: 48px; }
+
+            .app-header { padding: 0 8px 0 0; }
+
+            /* On phone — sidebar fully hidden, show only with toggle */
+            .app-shell {
+                grid-template-columns: 0px 1fr;
+            }
+            .app-shell.sidebar-open {
+                grid-template-columns: var(--sidebar-width) 1fr;
+            }
+            .app-sidebar {
+                position: fixed;
+                left: 0; top: var(--header-height);
+                height: calc(100vh - var(--header-height));
+                z-index: 500;
+                transform: translateX(-100%);
+                transition: transform var(--transition-slow);
+                box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+            }
+            .app-shell.sidebar-open .app-sidebar {
+                transform: translateX(0);
+                width: var(--sidebar-width);
+                min-width: var(--sidebar-width);
+                display: flex;
+            }
+
+            .detail-actions {
+                flex-wrap: wrap;
+                gap: 6px !important;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -5019,7 +5138,12 @@ async function renderGeoTab() {
         badge.style.display = '';
     }
 
-    if(!window.L){
+    // Use cached geo rows if fetched within last 5 minutes
+    const GEO_CACHE_TTL = 5 * 60 * 1000;
+    const cacheAge = window._geoState._fetchedAt ? Date.now() - window._geoState._fetchedAt : Infinity;
+    const useCached = window._geoState.allRows.length > 0 && cacheAge < GEO_CACHE_TTL;
+
+    if (!window.L){
         await Promise.all([
             new Promise((res,rej)=>{ const l=document.createElement('link');l.rel='stylesheet';l.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';l.onload=res;l.onerror=rej;document.head.appendChild(l); }),
             new Promise((res,rej)=>{ const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s); })
@@ -5034,9 +5158,12 @@ async function renderGeoTab() {
         ]);
     }
     try {
-        const res=await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/search_logs?select=query,is_hit,city,country,region,latitude,longitude,hospital_name,searched_at&latitude=not.is.null&order=searched_at.desc&limit=2000`,
-            {headers:{'apikey':CONFIG.SUPABASE.KEY,'Authorization':`Bearer ${CONFIG.SUPABASE.KEY}`}});
-        window._geoState.allRows=await res.json();
+        if (!useCached) {
+            const res=await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/search_logs?select=query,is_hit,city,country,region,latitude,longitude,hospital_name,searched_at&latitude=not.is.null&order=searched_at.desc&limit=2000`,
+                {headers:{'apikey':CONFIG.SUPABASE.KEY,'Authorization':`Bearer ${CONFIG.SUPABASE.KEY}`}});
+            window._geoState.allRows=await res.json();
+            window._geoState._fetchedAt = Date.now();
+        }
     } catch(e){ const n=document.getElementById('geoNoteV4'); if(n) n.textContent='Failed to load location data'; return; }
 
     // If no geo rows — show a helpful diagnostic instead of an empty map
@@ -6182,9 +6309,15 @@ function quickSearch(name) {
 // ========== SIDEBAR TOGGLE ==========
 
 function toggleSidebar() {
-    STATE.ui.sidebarCollapsed = !STATE.ui.sidebarCollapsed;
     const shell = document.getElementById('appShell');
-    shell.classList.toggle('sidebar-collapsed', STATE.ui.sidebarCollapsed);
+    const isMobile = window.innerWidth <= 600;
+    if (isMobile) {
+        shell.classList.toggle('sidebar-open');
+        STATE.ui.sidebarCollapsed = !shell.classList.contains('sidebar-open');
+    } else {
+        STATE.ui.sidebarCollapsed = !STATE.ui.sidebarCollapsed;
+        shell.classList.toggle('sidebar-collapsed', STATE.ui.sidebarCollapsed);
+    }
 }
 
 // ========== RENDER — VARIANT LIST ==========
@@ -6534,15 +6667,56 @@ function renderEvidenceLink(link) {
     const iconMap = { pubmed: 'fa-book-open', cftr2: 'fa-dna', clinvar: 'fa-hospital', other: 'fa-link' };
     const icon = iconMap[link.type?.toLowerCase()] || 'fa-link';
     const typeClass = link.type?.toLowerCase() || 'other';
-    
+
+    // Quality score bar (0-100)
+    const qs = link.quality_score || 0;
+    const qsColor = qs >= 70 ? '#34d399' : qs >= 40 ? '#fbbf24' : '#f87171';
+    const qsLabel = qs >= 70 ? 'High' : qs >= 40 ? 'Moderate' : qs > 0 ? 'Low' : null;
+
+    // Study type badge
+    const STUDY_LABELS = {
+        'RCT': 'RCT', 'randomized': 'RCT', 'clinical_trial': 'Trial',
+        'case_study': 'Case', 'case_report': 'Case', 'review': 'Review',
+        'systematic_review': 'Sys. review', 'functional': 'Functional',
+        'in_vitro': 'In vitro', 'observational': 'Observational', 'cohort': 'Cohort'
+    };
+    const studyLabel = link.study_type ? (STUDY_LABELS[link.study_type] || link.study_type) : null;
+
+    // Claim agreement check
+    const variant = STATE.view.selectedVariant;
+    let classClaim = null, etiClaim = null;
+    if (link.cftr_class_claim && variant?.cftr_class) {
+        const agrees = link.cftr_class_claim === variant.cftr_class;
+        classClaim = { text: `Class ${link.cftr_class_claim}`, agrees };
+    }
+    if (link.eti_claim && variant?.eti_prediction) {
+        const agrees = link.eti_claim === variant.eti_prediction;
+        etiClaim = { text: link.eti_claim.replace('_',' '), agrees };
+    }
+
     return `
-    <a href="${escapeHTML(link.url || '#')}" target="_blank" class="evidence-item" onclick="event.stopPropagation()">
-        <div class="evidence-type-icon ${typeClass}"><i class="fas ${icon}"></i></div>
-        <div class="evidence-info">
-            <div class="evidence-title">${escapeHTML(link.title || 'Untitled')}</div>
-            <div class="evidence-source">${escapeHTML(link.source || link.type || 'Source')}</div>
+    <a href="${escapeHTML(link.url || '#')}" target="_blank" class="evidence-item" onclick="event.stopPropagation()" style="flex-direction:column;align-items:stretch;gap:6px;padding:10px 12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div class="evidence-type-icon ${typeClass}"><i class="fas ${icon}"></i></div>
+            <div class="evidence-info" style="flex:1;min-width:0;">
+                <div class="evidence-title">${escapeHTML(link.title || 'Untitled')}</div>
+                <div class="evidence-source" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px;">
+                    <span>${escapeHTML(link.source || link.type || 'Source')}</span>
+                    ${link.year ? `<span style="color:var(--text-tertiary);">· ${link.year}</span>` : ''}
+                    ${link.journal ? `<span style="color:var(--text-tertiary);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;">${escapeHTML(link.journal)}</span>` : ''}
+                    ${link.sample_size ? `<span style="color:var(--text-tertiary);">n=${link.sample_size.toLocaleString()}</span>` : ''}
+                    ${link.citation_count > 0 ? `<span style="color:var(--text-tertiary);">${link.citation_count} citations</span>` : ''}
+                </div>
+            </div>
+            <i class="fas fa-external-link-alt evidence-arrow"></i>
         </div>
-        <i class="fas fa-external-link-alt evidence-arrow"></i>
+        ${(qs > 0 || studyLabel || classClaim || etiClaim) ? `
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:4px;border-top:1px solid var(--border);">
+            ${studyLabel ? `<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);font-family:var(--font-mono);">${escapeHTML(studyLabel)}</span>` : ''}
+            ${qs > 0 ? `<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(0,0,0,0.2);color:${qsColor};border:1px solid ${qsColor}33;font-family:var(--font-mono);">Q:${qs} ${qsLabel||''}</span>` : ''}
+            ${classClaim ? `<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:${classClaim.agrees?'rgba(52,211,153,0.08)':'rgba(248,113,113,0.08)'};color:${classClaim.agrees?'#34d399':'#f87171'};border:1px solid ${classClaim.agrees?'rgba(52,211,153,0.2)':'rgba(248,113,113,0.2)'};font-family:var(--font-mono);">${classClaim.agrees?'✓':'⚡'} ${escapeHTML(classClaim.text)}</span>` : ''}
+            ${etiClaim ? `<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:${etiClaim.agrees?'rgba(52,211,153,0.08)':'rgba(248,113,113,0.08)'};color:${etiClaim.agrees?'#34d399':'#f87171'};border:1px solid ${etiClaim.agrees?'rgba(52,211,153,0.2)':'rgba(248,113,113,0.2)'};font-family:var(--font-mono);">${etiClaim.agrees?'✓':'⚡'} ETI:${escapeHTML(etiClaim.text)}</span>` : ''}
+        </div>` : ''}
     </a>`;
 }
 
@@ -7706,23 +7880,30 @@ function renderCharts() {
     if (!window.Chart) return;
     const s = STATE.masterStats;
 
+    // Dark-mode safe colour palette
+    const GRID  = 'rgba(99,140,210,0.12)';
+    const TICK  = 'rgba(240,246,255,0.45)';
+    const TIP   = { bg: '#0d1526', border: 'rgba(99,140,210,0.25)', title: '#f0f6ff', body: '#9ab8e0' };
+
     const classCfg = {
         type: 'doughnut',
         data: {
             labels: ['I','II','III','IV','V'],
             datasets: [{
                 data: [s.classI, s.classII, s.classIII, s.classIV, s.classV],
-                backgroundColor: ['#c0392b','#b7610a','#0b6e6d','#1a56a5','#6b3fa0'],
-                borderWidth: 3,
-                borderColor: '#fff'
+                backgroundColor: ['#f87171','#fb923c','#34d399','#60a5fa','#c084fc'],
+                borderWidth: 2,
+                borderColor: '#0a1220'
             }]
         },
-        options: { 
-            responsive: true, 
-            cutout: '68%', 
-            plugins: { 
-                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, color:'rgba(255,255,255,0.75)', padding:10 } } 
-            } 
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, color: TICK, padding: 10 } },
+                tooltip: { backgroundColor: TIP.bg, borderColor: TIP.border, borderWidth: 1, titleColor: TIP.title, bodyColor: TIP.body }
+            }
         }
     };
 
@@ -7732,18 +7913,24 @@ function renderCharts() {
             labels: ['Responsive','Non-responsive','Unknown'],
             datasets: [{
                 data: [s.responsive, s.nonResponsive, s.unknown],
-                backgroundColor: ['#0b6e6d','#c0392b','#b7610a'],
+                backgroundColor: ['rgba(52,211,153,0.75)','rgba(248,113,113,0.75)','rgba(251,191,36,0.65)'],
+                borderColor:     ['#34d399','#f87171','#fbbf24'],
+                borderWidth: 1,
                 borderRadius: 6,
                 borderSkipped: false
             }]
         },
-        options: { 
-            responsive: true, 
-            plugins: { legend: { display: false } },
-            scales: { 
-                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                x: { grid: { display: false } }
-            } 
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: TIP.bg, borderColor: TIP.border, borderWidth: 1, titleColor: TIP.title, bodyColor: TIP.body }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: GRID }, ticks: { color: TICK, font: { size: 10 } } },
+                x: { grid: { display: false }, ticks: { color: TICK, font: { size: 10 } } }
+            }
         }
     };
 
@@ -7753,19 +7940,25 @@ function renderCharts() {
             labels: ['Complete','Partial','Minimal'],
             datasets: [{
                 data: [s.complete, s.clinical - s.complete, s.total - s.clinical],
-                backgroundColor: ['#0b6e6d','#1a56a5','#e4e8ef'],
+                backgroundColor: ['rgba(52,211,153,0.75)','rgba(96,165,250,0.65)','rgba(99,140,210,0.3)'],
+                borderColor:     ['#34d399','#60a5fa','rgba(99,140,210,0.5)'],
+                borderWidth: 1,
                 borderRadius: 6,
                 borderSkipped: false
             }]
         },
-        options: { 
+        options: {
             indexAxis: 'y',
-            responsive: true, 
-            plugins: { legend: { display: false } },
-            scales: { 
-                x: { beginAtZero: true, max: s.total, grid: { color: '#f1f5f9' } },
-                y: { grid: { display: false } }
-            } 
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: TIP.bg, borderColor: TIP.border, borderWidth: 1, titleColor: TIP.title, bodyColor: TIP.body }
+            },
+            scales: {
+                x: { beginAtZero: true, max: s.total, grid: { color: GRID }, ticks: { color: TICK, font: { size: 10 } } },
+                y: { grid: { display: false }, ticks: { color: TICK, font: { size: 10 } } }
+            }
         }
     };
 
@@ -7773,12 +7966,7 @@ function renderCharts() {
         const canvas = document.getElementById(id);
         if (!canvas) return;
         if (STATE.ui.charts[id]) STATE.ui.charts[id].destroy();
-        let cfg = id === 'classChart' ? classCfg : id === 'responseChart' ? respCfg : compCfg;
-        // Ensure charts never overflow their fixed-height containers
-        cfg = JSON.parse(JSON.stringify(cfg));
-        cfg.options = cfg.options || {};
-        cfg.options.responsive = true;
-        cfg.options.maintainAspectRatio = false;
+        const cfg = id === 'classChart' ? classCfg : id === 'responseChart' ? respCfg : compCfg;
         STATE.ui.charts[id] = new Chart(canvas, cfg);
     });
 }
@@ -8054,9 +8242,12 @@ const GAP_REGISTRY = new Map(); // variant_id -> gap result
 
 function analyseAndRegisterGap(variant) {
     if (!variant) return null;
+    // Return cached result if variant hasn't changed since last analysis
+    const cached = GAP_REGISTRY.get(variant.id);
+    if (cached && cached._updatedAt === variant.updated_at) return cached;
+
     const result = calculateGapScore(variant);
     if (!result || !variant.id) return result;
-    // Normalise shape for GAP_REGISTRY (used by sidebar chip + intel strip)
     const gap = {
         variant_id:      variant.id,
         gap_score:       result.score,
@@ -8064,11 +8255,11 @@ function analyseAndRegisterGap(variant) {
         missing_types:   result.missing,
         recommendations: result.recommendations,
         color:           gapLevelColor(result.gapLevel),
-        analyzed_at:     new Date().toISOString()
+        analyzed_at:     new Date().toISOString(),
+        _updatedAt:      variant.updated_at  // cache key
     };
     GAP_REGISTRY.set(variant.id, gap);
     variant._gap = gap;
-    // Persist asynchronously with old engine signature
     persistGapScore(variant.id, result.score, result.gapLevel, result.missing, result.recommendations);
     setTimeout(updateGapChip, 0);
     return gap;
