@@ -5250,21 +5250,76 @@ function geoV5FilteredRows(){
 
 function geoV4BuildPoints(rows){
     const pts=new Map();
+    // Raw accumulator for coordinate averaging per city group
+    const coordAccum=new Map();
+
     rows.forEach(r=>{
-        const key=r.hospital_name||`${parseFloat(r.latitude).toFixed(3)},${parseFloat(r.longitude).toFixed(3)}`;
-        if(!pts.has(key)) pts.set(key,{key,lat:r.latitude,lon:r.longitude,city:r.city,country:r.country,region:r.region,hospital:r.hospital_name,hospitals:new Set(),hits:0,misses:0,queryMap:{},classCounts:{}});
+        // Priority: named hospital > city+country > raw coordinates
+        // This merges anonymous searches from the same city into one marker
+        let key;
+        if(r.hospital_name && r.hospital_name !== 'Anonymous'){
+            key = r.hospital_name;
+        } else if(r.city && r.country){
+            key = `${r.city.toLowerCase().trim()}__${r.country.toLowerCase().trim()}`;
+        } else if(r.latitude && r.longitude){
+            key = `${parseFloat(r.latitude).toFixed(2)},${parseFloat(r.longitude).toFixed(2)}`;
+        } else {
+            return; // no location at all — skip
+        }
+
+        if(!pts.has(key)){
+            pts.set(key,{
+                key,
+                lat:  r.latitude,
+                lon:  r.longitude,
+                city: r.city,
+                country: r.country,
+                region:  r.region,
+                hospital: r.hospital_name && r.hospital_name !== 'Anonymous' ? r.hospital_name : null,
+                hospitals: new Set(),
+                hits: 0, misses: 0,
+                queryMap: {},
+                classCounts: {},
+                _latSum: 0, _lonSum: 0, _coordCount: 0
+            });
+        }
+
         const p=pts.get(key);
-        if(r.hospital_name) p.hospitals.add(r.hospital_name);
+
+        // Accumulate coordinates for centroid averaging
+        if(r.latitude && r.longitude){
+            p._latSum  += parseFloat(r.latitude);
+            p._lonSum  += parseFloat(r.longitude);
+            p._coordCount++;
+        }
+
+        if(r.hospital_name && r.hospital_name !== 'Anonymous') p.hospitals.add(r.hospital_name);
+
         if(r.is_hit){
             p.hits++;
             let v=STATE.variantsByLegacyName?.get((r.query||'').toUpperCase());
             if(!v) v=STATE.variants?.find(vv=>vv.legacy_name?.toLowerCase()===(r.query||'').toLowerCase());
             if(v?.cftr_class) p.classCounts[v.cftr_class]=(p.classCounts[v.cftr_class]||0)+1;
         } else { p.misses++; }
+
         if(!p.queryMap[r.query]) p.queryMap[r.query]={hit:0,miss:0};
         if(r.is_hit) p.queryMap[r.query].hit++; else p.queryMap[r.query].miss++;
     });
-    return Array.from(pts.values());
+
+    // Replace raw coords with centroid for city-grouped points
+    const result = Array.from(pts.values());
+    result.forEach(p => {
+        if(p._coordCount > 0){
+            p.lat = p._latSum / p._coordCount;
+            p.lon = p._lonSum / p._coordCount;
+        }
+        // Clean up accumulators
+        delete p._latSum; delete p._lonSum; delete p._coordCount;
+        // For city-grouped points, show city as display label if no named hospital
+        if(!p.hospital && p.city) p.hospital = p.city;
+    });
+
+    return result;
 }
 
 /* #4 selection persists + #6 clustering */
@@ -5311,7 +5366,16 @@ function geoV4RenderMarkers(){
         </svg>`;
         const icon=L.divIcon({className:'',html:svgHtml,iconSize:[sz,sz],iconAnchor:[cx,cx]});
         const marker=L.marker([p.lat,p.lon],{icon});
-        marker.bindTooltip(`<strong style="font-size:13px;">${escapeHTML(p.city||'Unknown')}</strong><br><span style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.5);">${escapeHTML(p.hospital||p.country||'')}</span><br><span style="font-family:var(--font-mono);font-size:10px;">${p.hits} hits \xB7 ${p.misses} misses \xB7 ${Math.round(hitRate*100)}%</span>`,{className:'geo-tooltip',sticky:true});
+        // Label: named hospital > city > country
+        const displayName = p.hospital || p.city || p.country || 'Unknown';
+        const subLabel    = p.hospital && p.city ? p.city + (p.country ? ', ' + p.country : '')
+                          : p.country || '';
+        marker.bindTooltip(
+            `<strong style="font-size:13px;">${escapeHTML(displayName)}</strong>` +
+            (subLabel ? `<br><span style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.5);">${escapeHTML(subLabel)}</span>` : '') +
+            `<br><span style="font-family:var(--font-mono);font-size:10px;">${p.hits} hits · ${p.misses} misses · ${Math.round(hitRate*100)}%</span>`,
+            {className:'geo-tooltip',sticky:true}
+        );
         marker.on('click',()=>{ st.selectedKey=p.key; geoV4RenderMarkers(); geoV4RenderDetail(p); });
         layer.addLayer(marker);
         window._helixMarkers.push(marker);
@@ -5465,7 +5529,7 @@ function geoV5PopulateCompareSelects(){
     ['geoCompareA','geoCompareB'].forEach(id=>{
         const el=document.getElementById(id); if(!el) return;
         const cur=el.value;
-        el.innerHTML='<option value="">Location…</option>'+pts.map(p=>`<option value="${escapeHTML(p.key)}">${escapeHTML(p.city||p.key)}${p.country?' ('+p.country+')':''}</option>`).join('');
+        el.innerHTML='<option value="">Location…</option>'+pts.map(p=>`<option value="${escapeHTML(p.key)}">${escapeHTML(p.hospital||p.city||p.key)}${p.country?' ('+p.country+')':''}</option>`).join('');
         el.value=cur;
     });
     geoV5RenderCompare();
@@ -5491,7 +5555,7 @@ function geoV5RenderCompare(){
         }).join('');
         const topQ=Object.entries(p.queryMap).sort((a,b)=>(b[1].hit+b[1].miss)-(a[1].hit+a[1].miss)).slice(0,5);
         return `<div style="display:flex;flex-direction:column;overflow:hidden;${side==='A'?'border-right:1px solid rgba(255,255,255,0.06);':''}">
-            <div class="geo-v5-compare-head"><div style="font-size:18px;font-weight:800;letter-spacing:-.03em;color:#fff;margin-bottom:2px;">${escapeHTML(p.city||'Unknown')}</div><div style="font-size:10px;color:rgba(255,255,255,0.3);font-family:var(--font-mono);">${escapeHTML([p.region,p.country].filter(Boolean).join(' \xB7 '))}</div></div>
+            <div class="geo-v5-compare-head"><div style="font-size:18px;font-weight:800;letter-spacing:-.03em;color:#fff;margin-bottom:2px;">${escapeHTML(p.hospital||p.city||'Unknown')}</div><div style="font-size:10px;color:rgba(255,255,255,0.3);font-family:var(--font-mono);">${escapeHTML([p.hospital?p.city:null,p.region,p.country].filter(Boolean).join(' · '))}</div></div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,0.06);">
                 <div style="padding:10px 6px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);"><div style="font-size:20px;font-weight:800;color:#34d399;">${p.hits}</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.25);">Hits</div></div>
                 <div style="padding:10px 6px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);"><div style="font-size:20px;font-weight:800;color:#fb7185;">${p.misses}</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.25);">Misses</div></div>
@@ -5558,9 +5622,9 @@ function geoV4RenderDetail(p){
     dc.innerHTML=`
         <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);flex-shrink:0;">
             <div style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:#60a5fa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;"><span style="width:5px;height:5px;border-radius:50%;background:#60a5fa;display:inline-block;animation:geoPulseDot 2s infinite;"></span>Selected location</div>
-            <div style="font-size:22px;font-weight:800;letter-spacing:-.03em;color:#fff;line-height:1;margin-bottom:4px;">${escapeHTML(p.city||'Unknown')}</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.32);font-family:var(--font-mono);margin-bottom:${p.hospitals.size?'10px':'0'};">${escapeHTML([p.region,p.country].filter(Boolean).join(' \xB7 '))}</div>
-            ${p.hospitals.size?`<div style="display:flex;flex-wrap:wrap;gap:4px;">${hospPills}</div>`:''}
+            <div style="font-size:22px;font-weight:800;letter-spacing:-.03em;color:#fff;line-height:1;margin-bottom:4px;">${escapeHTML(p.hospital||p.city||'Unknown')}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.32);font-family:var(--font-mono);margin-bottom:${p.hospitals.size?'10px':'0'};">${escapeHTML([p.hospital?p.city:null,p.region,p.country].filter(Boolean).join(' · '))}</div>
+            ${p.hospitals.size>1?`<div style="display:flex;flex-wrap:wrap;gap:4px;">${hospPills}</div>`:''}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
             <div style="padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);"><div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:#34d399;line-height:1;margin-bottom:4px;">${p.hits}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.28);font-family:var(--font-mono);">Hits</div></div>
