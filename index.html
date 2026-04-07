@@ -1459,7 +1459,7 @@
 
         /* ---- Hospital onboarding modal ---- */
         .hospital-modal-overlay {
-            position: fixed; inset: 0; z-index: 99998;
+            position: fixed; inset: 0; z-index: 99995;
             background: rgba(4,8,15,0.92);
             display: flex; align-items: center; justify-content: center;
             backdrop-filter: blur(8px);
@@ -9634,7 +9634,7 @@ Object.assign(window, {
 #heliosOverlay {
     position: fixed;
     inset: 0;
-    z-index: 99000;
+    z-index: 99990;
     background: var(--helios-bg);
     display: none;
     flex-direction: column;
@@ -10523,7 +10523,7 @@ Object.assign(window, {
 <!-- ================================================================
      HELIOS FULL-SCREEN OVERLAY
      ================================================================ -->
-<div id="heliosOverlay">
+<div id="heliosOverlay" style="display:none;">
 
     <!-- Header -->
     <div class="helios-header">
@@ -11113,13 +11113,15 @@ function hFetch(path, opts = {}) {
 // ---- Open / Close ----
 function openHelios() {
     const overlay = document.getElementById('heliosOverlay');
-    overlay.classList.add('open');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    // Small delay so display:flex is painted before animation starts
+    requestAnimationFrame(() => overlay.classList.add('open'));
     HELIOS.open = true;
     const list = document.getElementById('heliosInboxList');
     if (list) list.innerHTML = `<div class="helios-empty"><div class="helios-spinner" style="margin:0 auto 16px;"></div><p style="color:var(--helios-text2);font-size:13px;">Loading…</p></div>`;
     heliosUpdateGreeting();
     heliosTab('inbox');
-    // Load calibration + inbox in parallel — calibration needed before items render
     requestAnimationFrame(() => setTimeout(async () => {
         await heliosLoadCalibration();
         await heliosLoadInbox();
@@ -11128,11 +11130,14 @@ function openHelios() {
 
 function closeHelios() {
     const overlay = document.getElementById('heliosOverlay');
+    if (!overlay) return;
     overlay.classList.add('closing');
+    overlay.classList.remove('open');
     setTimeout(() => {
-        overlay.classList.remove('open', 'closing');
+        overlay.classList.remove('closing');
+        overlay.style.display = 'none';
         HELIOS.open = false;
-    }, 200);
+    }, 210);
 }
 
 // ---- Tab switching ----
