@@ -3891,79 +3891,94 @@
 
             <div id="siPanelGeo" class="si-panel" style="display:none;">
                 <div style="display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;">
-                    <!-- AGGREGATE BAR -->
-                    <div style="display:flex;align-items:center;gap:0;height:44px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;background:var(--surface);padding:0 16px;">
-                        <div style="display:flex;align-items:center;gap:6px;margin-right:auto;">
-                            <span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;animation:geoPulseDot 2.5s ease-in-out infinite;"></span>
-                            <span style="font-size:11px;color:rgba(255,255,255,0.4);font-family:var(--font-mono);letter-spacing:.04em;" id="geoNoteV4">Geographic search distribution</span>
-                            <span id="geoHealthBadge" style="display:none;margin-left:10px;font-family:var(--font-mono);font-size:9px;padding:2px 8px;border-radius:100px;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.35);" title="Percentage of search log rows that have geo coordinates"></span>
+                    <!-- GEO HEADER BAR -->
+                    <div style="display:flex;align-items:center;gap:0;height:46px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;background:#07090f;padding:0;">
+                        <div style="display:flex;align-items:center;gap:8px;padding:0 18px;border-right:1px solid rgba(255,255,255,0.05);">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;animation:geoPulseDot 2.5s ease-in-out infinite;flex-shrink:0;"></span>
+                            <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:.16em;color:rgba(255,255,255,0.3);text-transform:uppercase;" id="geoNoteV4">Geographic intelligence</span>
+                            <span id="geoHealthBadge" style="display:none;margin-left:6px;font-family:var(--font-mono);font-size:9px;padding:2px 8px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.28);" title="Geo coverage"></span>
                         </div>
-                        <div style="display:flex;align-items:center;gap:5px;margin-right:16px;">
+                        <!-- Period pills -->
+                        <div style="display:flex;align-items:center;gap:4px;padding:0 14px;border-right:1px solid rgba(255,255,255,0.05);">
+                            <button class="geo-v4-pill on-period" id="geoV4p7"   onclick="geoV4SetPeriod(7,this)">7d</button>
+                            <button class="geo-v4-pill"           id="geoV4p30"  onclick="geoV4SetPeriod(30,this)">30d</button>
+                            <button class="geo-v4-pill"           id="geoV4pAll" onclick="geoV4SetPeriod(0,this)">All</button>
+                        </div>
+                        <!-- Layer toggles -->
+                        <div style="display:flex;align-items:center;gap:4px;padding:0 14px;border-right:1px solid rgba(255,255,255,0.05);">
+                            <button class="geo-v4-pill on-class" id="geoV4lClass" onclick="geoV4ToggleLayer('class',this)">Class</button>
+                            <button class="geo-v4-pill"          id="geoV4lMiss"  onclick="geoV4ToggleLayer('miss',this)">Miss signal</button>
+                        </div>
+                        <!-- Timeline scrubber -->
+                        <div style="display:flex;align-items:center;gap:8px;padding:0 14px;border-right:1px solid rgba(255,255,255,0.05);">
+                            <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);letter-spacing:.08em;">Timeline</span>
+                            <input type="range" class="geo-v5-scrubber" id="geoTimeline" min="0" max="100" value="100" style="width:90px;" oninput="geoV5TimelineScrub(this.value)">
+                            <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.35);min-width:30px;" id="geoTimelineLabel">Live</span>
+                        </div>
+                        <!-- View switcher -->
+                        <div style="display:flex;align-items:center;gap:4px;padding:0 14px;border-right:1px solid rgba(255,255,255,0.05);">
                             <button class="geo-v5-view-btn active" id="geoViewMap"     onclick="geoV5SetView('map',this)">Map</button>
                             <button class="geo-v5-view-btn"        id="geoViewMiss"    onclick="geoV5SetView('miss',this)">Miss intel</button>
                             <button class="geo-v5-view-btn"        id="geoViewCompare" onclick="geoV5SetView('compare',this)">Compare</button>
                             <button class="geo-v5-view-btn"        id="geoViewExport"  onclick="geoV5Export()">Export ↓</button>
                         </div>
-                        <div style="display:flex;align-items:stretch;border-left:1px solid rgba(255,255,255,0.06);">
-                            <div style="display:flex;flex-direction:column;align-items:flex-end;padding:0 14px;border-right:1px solid rgba(255,255,255,0.06);">
-                                <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:#fff;line-height:1;" id="geoStripSearches">—</span>
-                                <span style="font-size:8px;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Searches</span>
+                        <!-- Stats strip -->
+                        <div style="display:flex;align-items:stretch;margin-left:auto;">
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding:0 14px;border-left:1px solid rgba(255,255,255,0.05);">
+                                <span style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:#e2e8f0;line-height:1;" id="geoStripSearches">—</span>
+                                <span style="font-size:8px;color:rgba(255,255,255,0.22);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;">searches</span>
                             </div>
-                            <div style="display:flex;flex-direction:column;align-items:flex-end;padding:0 14px;border-right:1px solid rgba(255,255,255,0.06);">
-                                <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:#fff;line-height:1;" id="geoStripLocs">—</span>
-                                <span style="font-size:8px;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Locations</span>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding:0 14px;border-left:1px solid rgba(255,255,255,0.05);">
+                                <span style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:#e2e8f0;line-height:1;" id="geoStripLocs">—</span>
+                                <span style="font-size:8px;color:rgba(255,255,255,0.22);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;">locations</span>
                             </div>
-                            <div style="display:flex;flex-direction:column;align-items:flex-end;padding:0 14px;border-right:1px solid rgba(255,255,255,0.06);">
-                                <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:#34d399;line-height:1;" id="geoStripRate">—</span>
-                                <span style="font-size:8px;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Hit rate</span>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding:0 14px;border-left:1px solid rgba(255,255,255,0.05);">
+                                <span style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:#34d399;line-height:1;" id="geoStripRate">—</span>
+                                <span style="font-size:8px;color:rgba(255,255,255,0.22);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;">hit rate</span>
                             </div>
-                            <div style="display:flex;flex-direction:column;align-items:flex-end;padding:0 0 0 14px;">
-                                <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:#fff;line-height:1;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="geoStripHosp">—</span>
-                                <span style="font-size:8px;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Institution</span>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding:0 16px;border-left:1px solid rgba(255,255,255,0.05);">
+                                <span style="font-family:var(--font-mono);font-size:11px;font-weight:500;color:#e2e8f0;line-height:1;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="geoStripHosp">—</span>
+                                <span style="font-size:8px;color:rgba(255,255,255,0.22);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;">institution</span>
                             </div>
                         </div>
                     </div>
-                    <!-- CONTROL BAR -->
-                    <div style="display:flex;align-items:center;gap:6px;height:38px;padding:0 14px;background:rgba(4,8,20,0.7);border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;">
-                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;margin-right:2px;">Period</span>
-                        <button class="geo-v4-pill on-period" id="geoV4p7"   onclick="geoV4SetPeriod(7,this)">7 days</button>
-                        <button class="geo-v4-pill"           id="geoV4p30"  onclick="geoV4SetPeriod(30,this)">30 days</button>
-                        <button class="geo-v4-pill"           id="geoV4pAll" onclick="geoV4SetPeriod(0,this)">All time</button>
-                        <div style="width:1px;height:16px;background:rgba(255,255,255,0.08);margin:0 8px;flex-shrink:0;"></div>
-                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;margin-right:2px;">Layer</span>
-                        <button class="geo-v4-pill on-class" id="geoV4lClass" onclick="geoV4ToggleLayer('class',this)">CFTR Class</button>
-                        <button class="geo-v4-pill"          id="geoV4lMiss"  onclick="geoV4ToggleLayer('miss',this)">Miss signal</button>
-                        <div style="width:1px;height:16px;background:rgba(255,255,255,0.08);margin:0 8px;flex-shrink:0;"></div>
-                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;margin-right:4px;">Timeline</span>
-                        <input type="range" class="geo-v5-scrubber" id="geoTimeline" min="0" max="100" value="100" style="width:110px;" oninput="geoV5TimelineScrub(this.value)" title="Scrub through time">
-                        <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.38);min-width:52px;" id="geoTimelineLabel">Live</span>
-                        <div style="margin-left:auto;display:flex;align-items:center;gap:10px;" id="geoV4Legend">
-                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;"></span>I</div>
-                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#f97316;display:inline-block;"></span>II</div>
-                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#34d399;display:inline-block;"></span>III</div>
-                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#a78bfa;display:inline-block;"></span>IV</div>
-                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#ec4899;display:inline-block;"></span>V</div>
-                            <div style="display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);"><span style="width:7px;height:7px;border-radius:50%;background:#4b5563;display:inline-block;"></span>&#8212;</div>
+                    <!-- CLASS LEGEND BAR -->
+                    <div style="display:flex;align-items:center;gap:12px;height:28px;padding:0 18px;background:rgba(0,0,0,0.25);border-bottom:1px solid rgba(255,255,255,0.04);flex-shrink:0;" id="geoV4Legend">
+                        <span style="font-family:var(--font-mono);font-size:8px;color:rgba(255,255,255,0.18);text-transform:uppercase;letter-spacing:.14em;margin-right:4px;">CFTR class</span>
+                        <div style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.3);"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block;"></span>I</div>
+                        <div style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.3);"><span style="width:6px;height:6px;border-radius:50%;background:#f97316;display:inline-block;"></span>II</div>
+                        <div style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.3);"><span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;"></span>III</div>
+                        <div style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.3);"><span style="width:6px;height:6px;border-radius:50%;background:#a78bfa;display:inline-block;"></span>IV</div>
+                        <div style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.3);"><span style="width:6px;height:6px;border-radius:50%;background:#ec4899;display:inline-block;"></span>V</div>
+                        <div style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.3);"><span style="width:6px;height:6px;border-radius:50%;background:#4b5563;display:inline-block;"></span>—</div>
+                        <div style="margin-left:auto;display:flex;align-items:center;gap:14px;">
+                            <div style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.22);"><span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;opacity:0.7;"></span>High hit rate</div>
+                            <div style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.22);"><span style="width:6px;height:6px;border-radius:50%;background:#fbbf24;display:inline-block;opacity:0.7;"></span>Mixed</div>
+                            <div style="display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.22);"><span style="width:6px;height:6px;border-radius:50%;background:#f87171;display:inline-block;opacity:0.7;"></span>High miss rate</div>
                         </div>
                     </div>
                     <!-- VIEW: MAP -->
                     <div id="geoViewMapPane" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
-                        <div style="display:grid;grid-template-columns:1fr 340px;flex:1;min-height:0;overflow:hidden;">
-                            <div style="display:flex;flex-direction:column;overflow:hidden;">
+                        <div style="display:grid;grid-template-columns:1fr 320px;flex:1;min-height:0;overflow:hidden;">
+                            <!-- MAP -->
+                            <div style="display:flex;flex-direction:column;overflow:hidden;position:relative;">
                                 <div id="siGeoMap" style="flex:1;min-height:300px;background:#060b14;"></div>
-                                <div style="flex-shrink:0;border-top:1px solid rgba(255,255,255,0.06);background:rgba(8,15,29,0.95);padding:10px 14px 12px;">
-                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Top variant by region</span>
-                                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);" id="geoRegionCount">—</span>
+                                <!-- region cards below map -->
+                                <div style="flex-shrink:0;border-top:1px solid rgba(255,255,255,0.05);background:rgba(4,6,14,0.95);padding:8px 14px 10px;">
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);text-transform:uppercase;letter-spacing:.12em;">Top variant by region</span>
+                                        <span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.18);" id="geoRegionCount">—</span>
                                     </div>
-                                    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;" id="geoRegionCards"></div>
+                                    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;" id="geoRegionCards"></div>
                                 </div>
                             </div>
-                            <div style="border-left:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;overflow:hidden;background:var(--surface);">
+                            <!-- RIGHT DETAIL PANEL -->
+                            <div style="border-left:1px solid rgba(255,255,255,0.05);display:flex;flex-direction:column;overflow:hidden;background:#07090f;">
+                                <!-- empty state -->
                                 <div id="geoDetailEmpty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px;text-align:center;">
-                                    <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;"><i class="fas fa-map-marker-alt" style="font-size:14px;color:rgba(255,255,255,0.18);"></i></div>
-                                    <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.45);">Select a location</div>
-                                    <div style="font-size:11px;color:rgba(255,255,255,0.22);line-height:1.7;">Click any marker on the map<br>to explore its search activity</div>
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="opacity:0.15;"><circle cx="16" cy="16" r="14" stroke="white" stroke-width="1.5"/><circle cx="16" cy="12" r="4" stroke="white" stroke-width="1.5"/><path d="M8 26c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                    <div style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.3);">Select a location</div>
+                                    <div style="font-size:10px;color:rgba(255,255,255,0.16);line-height:1.8;font-family:var(--font-mono);">Click any marker on the map<br>to explore its search activity</div>
                                 </div>
                                 <div id="geoDetailContent" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;"></div>
                             </div>
@@ -5206,8 +5221,10 @@ async function renderGeoTab() {
     }
 
     if(!window._helixMap){
-        window._helixMap=L.map('siGeoMap',{zoomControl:true,scrollWheelZoom:true,attributionControl:false});
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:14}).addTo(window._helixMap);
+        window._helixMap=L.map('siGeoMap',{zoomControl:false,scrollWheelZoom:true,attributionControl:false});
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',{maxZoom:14,opacity:0.55}).addTo(window._helixMap);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',{maxZoom:14,opacity:0.25}).addTo(window._helixMap);
+        L.control.zoom({position:'bottomright'}).addTo(window._helixMap);
         try {
             const geoRes=await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
             if(geoRes.ok){
@@ -5357,12 +5374,17 @@ function geoV4RenderMarkers(){
         const shouldPulse=st.layerMiss&&missRate>=.4;
         let color='#4b5563';
         if(st.layerClass){ const dom=Object.entries(p.classCounts).sort((a,b)=>b[1]-a[1])[0]?.[0]; color=getClassColor(dom); }
-        else { color=hitRate>=.7?'#34d399':hitRate>=.4?'#fbbf24':'#fb7185'; }
-        const sz=(radius+(shouldPulse?12:0)+(isSelected?8:0))*2; const cx=sz/2;
+        else { color=hitRate>=.7?'#34d399':hitRate>=.4?'#fbbf24':'#f87171'; }
+        const sz=(radius+(shouldPulse?14:0)+(isSelected?8:0))*2; const cx=sz/2;
         let extra='';
-        if(shouldPulse){ extra+=`<circle cx="${cx}" cy="${cx}" r="${radius+5}" fill="none" stroke="#fb7185" stroke-width="1.2" opacity=".5" style="animation:geoMissPulse 1.8s ease-out infinite"/>`; extra+=`<circle cx="${cx}" cy="${cx}" r="${radius+9}" fill="none" stroke="#fb7185" stroke-width=".6" opacity=".25" style="animation:geoMissPulse 1.8s ease-out infinite .5s"/>`; }
-        if(isSelected) extra+=`<circle cx="${cx}" cy="${cx}" r="${radius+4}" fill="none" stroke="white" stroke-width="1.5" opacity=".6" style="animation:geoSelPing 2s ease-out infinite"/>`;
-        const svgHtml=`<svg width="${sz}" height="${sz}" xmlns="http://www.w3.org/2000/svg"><style>@keyframes geoSelPing{0%{transform-box:fill-box;transform-origin:center;transform:scale(1);opacity:.6}100%{transform:scale(2.1);opacity:0}}@keyframes geoMissPulse{0%{opacity:.5}100%{opacity:0}}</style>${extra}<circle cx="${cx}" cy="${cx}" r="${radius}" fill="${color}" fill-opacity="${isSelected?'0.95':'0.80'}" stroke="rgba(255,255,255,${isSelected?'0.7':'0.4'})" stroke-width="${isSelected?'2':'1.5'}"/>${isSelected?`<circle cx="${cx}" cy="${cx}" r="${radius*.42}" fill="rgba(255,255,255,0.55)"/>`:''}
+        /* miss pulse — two concentric fading rings */
+        if(shouldPulse){
+            extra+=`<circle cx="${cx}" cy="${cx}" r="${radius+5}" fill="none" stroke="#f87171" stroke-width="1" opacity=".4" style="animation:geoMissPulse 2s ease-out infinite"/>`;
+            extra+=`<circle cx="${cx}" cy="${cx}" r="${radius+10}" fill="none" stroke="#f87171" stroke-width=".5" opacity=".18" style="animation:geoMissPulse 2s ease-out infinite .6s"/>`;
+        }
+        /* selected ring */
+        if(isSelected) extra+=`<circle cx="${cx}" cy="${cx}" r="${radius+4}" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" style="animation:geoSelPing 2.2s ease-out infinite"/>`;
+        const svgHtml=`<svg width="${sz}" height="${sz}" xmlns="http://www.w3.org/2000/svg"><style>@keyframes geoSelPing{0%{transform-box:fill-box;transform-origin:center;transform:scale(1);opacity:.5}100%{transform:scale(2);opacity:0}}@keyframes geoMissPulse{0%{opacity:.45}100%{opacity:0}}</style>${extra}<circle cx="${cx}" cy="${cx}" r="${radius}" fill="${color}" fill-opacity="${isSelected?'0.92':'0.72'}" stroke="rgba(255,255,255,${isSelected?'0.55':'0.28'})" stroke-width="${isSelected?'1.8':'1'}"/>${isSelected?`<circle cx="${cx}" cy="${cx}" r="${radius*.35}" fill="rgba(255,255,255,0.65)"/>`:''}
         </svg>`;
         const icon=L.divIcon({className:'',html:svgHtml,iconSize:[sz,sz],iconAnchor:[cx,cx]});
         const marker=L.marker([p.lat,p.lon],{icon});
@@ -5605,44 +5627,95 @@ function geoV5Export(){
 function geoV4RenderDetail(p){
     const total=p.hits+p.misses;
     const hitRate=total>0?Math.round(p.hits/total*100):0;
-    const hrColor=hitRate>=70?'#34d399':hitRate>=40?'#fbbf24':'#fb7185';
-    const hrLabel=hitRate>=70?'Strong':hitRate>=40?'Mixed':'Weak';
+    const missRate=100-hitRate;
+    const hrColor=hitRate>=70?'#34d399':hitRate>=40?'#fbbf24':'#f87171';
+    const hrLabel=hitRate>=70?'Strong match rate':hitRate>=40?'Mixed results':'High miss rate';
     const classOrder=['I','II','III','IV','V','VI'];
     const maxCls=Math.max(1,...Object.values(p.classCounts).concat([0]));
     const classBars=classOrder.filter(c=>p.classCounts[c]).map(c=>{
         const n=p.classCounts[c];
-        return `<div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.4);width:38px;flex-shrink:0;">Class ${c}</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;"><div style="height:100%;width:${Math.round(n/maxCls*100)}%;background:${getClassColor(c)};border-radius:100px;transition:width .5s cubic-bezier(.16,1,.3,1);"></div></div><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.28);width:18px;text-align:right;flex-shrink:0;">${n}</span></div>`;
+        return `<div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.32);width:36px;flex-shrink:0;">Class ${c}</span><div style="flex:1;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${Math.round(n/maxCls*100)}%;background:${getClassColor(c)};transition:width .5s cubic-bezier(.16,1,.3,1);"></div></div><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.25);width:16px;text-align:right;flex-shrink:0;">${n}</span></div>`;
     }).join('');
     const queryItems=Object.entries(p.queryMap).map(([q,v])=>({q,hits:v.hit,misses:v.miss,isHit:v.hit>0})).sort((a,b)=>b.hits-a.hits||b.misses-a.misses);
-    const hitQs=queryItems.filter(qi=>qi.isHit); const missQs=queryItems.filter(qi=>!qi.isHit);
-    const hospPills=[...p.hospitals].map(h=>`<div style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#60a5fa;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.18);border-radius:100px;padding:2px 9px;font-family:var(--font-mono);"><i class="fas fa-hospital" style="font-size:7px;"></i>${escapeHTML(h)}</div>`).join('');
+    const hitQs=queryItems.filter(qi=>qi.isHit);
+    const missQs=queryItems.filter(qi=>!qi.isHit);
+    const displayName=p.hospital||p.city||'Unknown';
+    const subLine=[p.hospital?p.city:null,p.region,p.country].filter(Boolean).join(' · ');
+    const hospList=[...p.hospitals];
+
     document.getElementById('geoDetailEmpty').style.display='none';
     const dc=document.getElementById('geoDetailContent');
     dc.style.display='flex'; dc.className='geo-v5-slide';
     dc.innerHTML=`
-        <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);flex-shrink:0;">
-            <div style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:9px;color:#60a5fa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;"><span style="width:5px;height:5px;border-radius:50%;background:#60a5fa;display:inline-block;animation:geoPulseDot 2s infinite;"></span>Selected location</div>
-            <div style="font-size:22px;font-weight:800;letter-spacing:-.03em;color:#fff;line-height:1;margin-bottom:4px;">${escapeHTML(p.hospital||p.city||'Unknown')}</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.32);font-family:var(--font-mono);margin-bottom:${p.hospitals.size?'10px':'0'};">${escapeHTML([p.hospital?p.city:null,p.region,p.country].filter(Boolean).join(' · '))}</div>
-            ${p.hospitals.size>1?`<div style="display:flex;flex-wrap:wrap;gap:4px;">${hospPills}</div>`:''}
+        <!-- Location header -->
+        <div style="padding:14px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;background:rgba(255,255,255,0.015);">
+            <div style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:.18em;color:rgba(96,165,250,0.55);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;border-radius:50%;background:#60a5fa;display:inline-block;animation:geoPulseDot 2s infinite;"></span>Selected location</div>
+            <div style="font-size:15px;font-weight:600;color:#e2e8f0;line-height:1.2;margin-bottom:3px;letter-spacing:-.01em;">${escapeHTML(displayName)}</div>
+            <div style="font-family:var(--font-mono);font-size:9.5px;color:rgba(255,255,255,0.28);">${escapeHTML(subLine)}</div>
+            ${hospList.length>1?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">${hospList.map(h=>`<span style="font-family:var(--font-mono);font-size:9px;color:rgba(96,165,250,0.75);background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.15);border-radius:3px;padding:2px 8px;">${escapeHTML(h)}</span>`).join('')}</div>`:''}
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
-            <div style="padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);"><div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:#34d399;line-height:1;margin-bottom:4px;">${p.hits}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.28);font-family:var(--font-mono);">Hits</div></div>
-            <div style="padding:14px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);"><div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:#fb7185;line-height:1;margin-bottom:4px;">${p.misses}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.28);font-family:var(--font-mono);">Misses</div></div>
-            <div style="padding:14px 10px;text-align:center;"><div style="font-size:26px;font-weight:800;letter-spacing:-.04em;color:${hrColor};line-height:1;margin-bottom:4px;">${hitRate}%</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:${hrColor};font-family:var(--font-mono);">${hrLabel}</div></div>
+        <!-- Stat row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;">
+            <div style="padding:12px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.05);">
+                <div style="font-family:var(--font-mono);font-size:22px;font-weight:500;color:#34d399;line-height:1;margin-bottom:3px;">${p.hits}</div>
+                <div style="font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.22);font-family:var(--font-mono);">Hits</div>
+            </div>
+            <div style="padding:12px 10px;text-align:center;border-right:1px solid rgba(255,255,255,0.05);">
+                <div style="font-family:var(--font-mono);font-size:22px;font-weight:500;color:#f87171;line-height:1;margin-bottom:3px;">${p.misses}</div>
+                <div style="font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.22);font-family:var(--font-mono);">Misses</div>
+            </div>
+            <div style="padding:12px 10px;text-align:center;">
+                <div style="font-family:var(--font-mono);font-size:22px;font-weight:500;color:${hrColor};line-height:1;margin-bottom:3px;">${hitRate}%</div>
+                <div style="font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.22);font-family:var(--font-mono);">Hit rate</div>
+            </div>
         </div>
-        <div style="padding:10px 18px 11px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
-            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.28);margin-bottom:6px;"><span>Hit rate</span><span style="color:${hrColor};font-weight:600;">${hitRate}%</span></div>
-            <div style="height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;"><div style="height:100%;width:${hitRate}%;background:${hrColor};border-radius:100px;transition:width .6s cubic-bezier(.16,1,.3,1);"></div></div>
+        <!-- Hit/miss bars -->
+        <div style="padding:10px 16px 11px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.25);width:32px;">Hits</span>
+                <div style="flex:1;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${hitRate}%;background:#34d399;transition:width .6s cubic-bezier(.16,1,.3,1);"></div></div>
+                <span style="font-family:var(--font-mono);font-size:9px;color:rgba(52,211,153,0.6);width:28px;text-align:right;">${hitRate}%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.25);width:32px;">Misses</span>
+                <div style="flex:1;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${missRate}%;background:#f87171;transition:width .6s cubic-bezier(.16,1,.3,1);"></div></div>
+                <span style="font-family:var(--font-mono);font-size:9px;color:rgba(248,113,113,0.6);width:28px;text-align:right;">${missRate}%</span>
+            </div>
+            <div style="margin-top:8px;font-family:var(--font-mono);font-size:9px;color:${hrColor};letter-spacing:.04em;">${hrLabel}</div>
         </div>
-        ${classBars?`<div style="padding:10px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;"><div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">CFTR class breakdown</div><div style="display:flex;flex-direction:column;gap:5px;">${classBars}</div></div>`:''}
+        <!-- CFTR class breakdown -->
+        ${classBars?`<div style="padding:10px 16px 11px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;">
+            <div style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:.16em;color:rgba(255,255,255,0.2);text-transform:uppercase;margin-bottom:8px;">CFTR class breakdown</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">${classBars}</div>
+        </div>`:''}
+        <!-- Query feed -->
         <div style="flex:1;overflow-y:auto;min-height:0;">
-            ${hitQs.length?`<div class="geo-v4-sticky-head"><span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Resolved</span><span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);">${hitQs.length}</span></div>${hitQs.slice(0,8).map(qi=>`<div class="geo-v4-query-row"><div style="width:5px;height:5px;border-radius:50%;background:#34d399;flex-shrink:0;"></div><span style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.85);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(qi.q)}</span><span style="font-size:8px;font-family:var(--font-mono);padding:2px 7px;border-radius:100px;background:rgba(52,211,153,0.1);color:#34d399;border:1px solid rgba(52,211,153,0.3);flex-shrink:0;">hit</span></div>`).join('')}${hitQs.length>8?`<div style="padding:6px 18px;font-size:10px;color:rgba(255,255,255,0.22);font-family:var(--font-mono);">+${hitQs.length-8} more</div>`:''}`:''}
-            ${missQs.length?`<div class="geo-v4-sticky-head"><span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:.1em;">Unresolved</span><span style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);">${missQs.length}</span></div>${missQs.slice(0,6).map(qi=>`<div class="geo-v4-query-row"><div style="width:5px;height:5px;border-radius:50%;background:#fb7185;flex-shrink:0;"></div><span style="font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.32);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(qi.q)}</span><span style="font-size:8px;font-family:var(--font-mono);padding:2px 7px;border-radius:100px;background:rgba(251,113,133,0.1);color:#fb7185;border:1px solid rgba(251,113,133,0.3);flex-shrink:0;">miss</span></div>`).join('')}`:''}
+            ${hitQs.length?`
+            <div class="geo-v4-sticky-head">
+                <span style="font-size:8.5px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);text-transform:uppercase;letter-spacing:.14em;">Resolved</span>
+                <span style="font-size:8.5px;font-family:var(--font-mono);color:rgba(52,211,153,0.4);">${hitQs.length}</span>
+            </div>
+            ${hitQs.slice(0,8).map(qi=>`<div class="geo-v4-query-row">
+                <div style="width:4px;height:4px;border-radius:50%;background:#34d399;flex-shrink:0;"></div>
+                <span style="font-family:var(--font-mono);font-size:10.5px;color:rgba(255,255,255,0.78);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(qi.q)}</span>
+                <span style="font-size:8px;font-family:var(--font-mono);padding:1px 6px;border-radius:3px;background:rgba(52,211,153,0.08);color:#34d399;border:1px solid rgba(52,211,153,0.2);flex-shrink:0;">hit</span>
+            </div>`).join('')}
+            ${hitQs.length>8?`<div style="padding:5px 18px;font-size:9px;color:rgba(255,255,255,0.2);font-family:var(--font-mono);">+${hitQs.length-8} more</div>`:''}`:''}
+            ${missQs.length?`
+            <div class="geo-v4-sticky-head">
+                <span style="font-size:8.5px;font-family:var(--font-mono);color:rgba(255,255,255,0.22);text-transform:uppercase;letter-spacing:.14em;">Unresolved</span>
+                <span style="font-size:8.5px;font-family:var(--font-mono);color:rgba(248,113,113,0.4);">${missQs.length}</span>
+            </div>
+            ${missQs.slice(0,6).map(qi=>`<div class="geo-v4-query-row">
+                <div style="width:4px;height:4px;border-radius:50%;background:#f87171;flex-shrink:0;"></div>
+                <span style="font-family:var(--font-mono);font-size:10.5px;color:rgba(255,255,255,0.4);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(qi.q)}</span>
+                <span style="font-size:8px;font-family:var(--font-mono);padding:1px 6px;border-radius:3px;background:rgba(248,113,113,0.08);color:#f87171;border:1px solid rgba(248,113,113,0.18);flex-shrink:0;">miss</span>
+            </div>`).join('')}`:''}
         </div>
-        <div style="flex-shrink:0;border-top:1px solid rgba(255,255,255,0.06);padding:10px 18px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:space-between;">
-            <span style="font-size:11px;color:rgba(255,255,255,0.28);"><span style="font-family:var(--font-mono);font-weight:600;color:rgba(255,255,255,0.52);">${total}</span> search events</span>
-            <span style="font-size:10px;font-family:var(--font-mono);color:#60a5fa;cursor:pointer;opacity:.8;" onclick="showNotification('Flagged for Helios review','info')">Flag for review \u2192</span>
+        <!-- Footer actions -->
+        <div style="flex-shrink:0;border-top:1px solid rgba(255,255,255,0.05);padding:9px 16px;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.22);"><span style="color:rgba(255,255,255,0.45);">${total}</span> search events</span>
+            <span style="font-family:var(--font-mono);font-size:9px;color:#60a5fa;cursor:pointer;letter-spacing:.02em;" onclick="showNotification('Flagged for Helios review','info')">Flag to Helios →</span>
         </div>`;
 }
 
