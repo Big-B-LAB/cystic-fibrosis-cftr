@@ -482,9 +482,10 @@
 
         .app-shell {
             display: grid;
-            grid-template-rows: var(--header-height) auto 1fr;
+            grid-template-rows: var(--header-height) 1fr;
             grid-template-columns: var(--sidebar-width) 1fr;
             height: 100vh;
+            overflow: hidden;
             transition: grid-template-columns var(--transition-slow);
         }
 
@@ -498,6 +499,7 @@
 
         .app-header {
             grid-column: 1 / -1;
+            grid-row: 1;
             background: #0a1220;
             border-bottom: 1px solid var(--border);
             display: flex;
@@ -633,11 +635,14 @@
            ============================================================ */
 
         .app-sidebar {
+            grid-column: 1;
+            grid-row: 2;
             background: #0a1220;
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            min-height: 0;
             position: relative;
             padding-bottom: 28px; /* activity ribbon height */
         }
@@ -951,6 +956,7 @@
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
+            min-height: 0;
         }
 
         .variant-list::-webkit-scrollbar { width: 4px; }
@@ -1187,7 +1193,7 @@
         .si-card-head { padding:9px 13px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
         .si-card-title { font-size:10px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.08em; display:flex; align-items:center; gap:7px; }
         .si-card-note { font-size:10px; color:var(--text-tertiary); font-family:var(--font-mono); }
-        .si-card-body { padding:13px; }
+        .si-card-body { padding:13px; overflow-y:auto; max-height:55vh; }
         .si-row2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
         .si-bar-row { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
         .si-bar-row:last-child { margin-bottom:0; }
@@ -1675,11 +1681,12 @@
         .gap-rec-icon { font-size:9px; color:var(--text-tertiary); flex-shrink:0; margin-top:2px; width:12px; }
         /* ---- Command centre panel ---- */
         .cc-panel { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:16px; }
-        .cc-card { background:var(--surface-alt); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
-        .cc-card-head { padding:9px 13px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+        .cc-card { background:var(--surface-alt); border:1px solid var(--border); border-radius:8px; overflow:hidden; display:flex; flex-direction:column; }
+        .cc-card-head { padding:9px 13px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
         .cc-card-title { font-size:10px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.08em; }
-        .cc-card-body { padding:13px; }
+        .cc-card-body { padding:13px; overflow-y:auto; max-height:260px; }
         .cc-card-full { grid-column:1/-1; }
+        .cc-card-full .cc-card-body { max-height:200px; }
         .priority-row { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:background .12s; }
         .priority-row:last-child { border-bottom:none; }
         .priority-row:hover { background:var(--brand-faint); margin:0 -13px; padding:6px 13px; }
@@ -1835,7 +1842,11 @@
            ============================================================ */
 
         .app-main {
+            grid-column: 2;
+            grid-row: 2;
             overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
             background: var(--surface);
             position: relative;
         }
@@ -2814,8 +2825,8 @@
         .dash-tab-panel {
             flex: 1 1 0;
             overflow-y: auto;
+            overflow-x: hidden;
             min-height: 0;
-            height: 100%;
         }
 
         /* 7. Inner padding wrapper inside tab panel */
@@ -2831,6 +2842,7 @@
             flex: 1;
             min-height: 0;
             overflow-y: auto;
+            overflow-x: hidden;
         }
         .si-body {
             padding: 16px;
@@ -3425,7 +3437,7 @@
     <!-- ============================================================
          MAIN CONTENT
          ============================================================ -->
-    <main class="app-main" id="appMain" style="padding-bottom:28px;overflow-y:auto;">
+    <main class="app-main" id="appMain">
         <div class="main-inner">
             <!-- Empty state -->
             <div class="detail-empty" id="detailEmpty">
@@ -3592,10 +3604,10 @@
 
             <!-- Bulk Import Panel -->
             <div id="bulkImportPanel" class="hidden">
-                <div class="bg-[var(--brand-faint)] rounded-xl p-5 border border-[var(--brand-mid)] mb-6">
+                <div style="background:var(--brand-faint);border-radius:12px;padding:20px;border:1px solid var(--brand-mid);margin-bottom:24px;">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-[var(--brand-light)] flex items-center justify-center">
-                            <i class="fas fa-file-csv text-[var(--brand)]"></i>
+                        <div style="width:40px;height:40px;border-radius:10px;background:var(--brand-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fas fa-file-csv" style="color:var(--brand);font-size:18px;"></i>
                         </div>
                         <div>
                             <p class="font-semibold text-gray-900">Bulk CSV Import</p>
@@ -3604,7 +3616,7 @@
                     </div>
                 </div>
                 
-                <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[var(--brand)] transition-colors cursor-pointer" id="dropZone">
+                <div style="border:2px dashed rgba(99,140,210,0.3);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:border-color 0.2s;" id="dropZone" onmouseover="this.style.borderColor='var(--brand)'" onmouseout="this.style.borderColor='rgba(99,140,210,0.3)'">
                     <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
                     <p class="text-gray-700 font-medium">Drag & drop CSV file here</p>
                     <p class="text-xs text-gray-500 mt-1">or click to browse</p>
@@ -3800,6 +3812,28 @@
             </div>
             </div><!-- /dash-scroll-inner -->
             </div><!-- /clinicalPanel -->
+
+            <!-- ── TRENDS OVER TIME PANEL ── -->
+            <div id="helixTrendPanel" style="display:none;padding:14px 24px 0;">
+                <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+                    Platform trends — last 90 days
+                    <span style="float:right;font-weight:400;font-size:9px;color:var(--text-tertiary);">Daily snapshots · auto-saved</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+                    ${['Validated','HitRate','Complete','Responsive'].map(k => `
+                    <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+                        <div style="font-size:9px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">${k === 'HitRate' ? 'Search hit rate' : k === 'Responsive' ? 'ETI responsive' : k}</div>
+                        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+                            <span style="font-size:20px;font-weight:700;font-family:var(--font-display);color:var(--text-primary);" id="trend${k}Val">—</span>
+                            <span style="font-size:11px;font-weight:600;" id="trendDelta${k}">—</span>
+                        </div>
+                        <div style="position:relative;height:40px;"><canvas id="trend${k}"></canvas></div>
+                    </div>`).join('')}
+                </div>
+                <div style="margin-top:8px;font-size:10px;color:var(--text-tertiary);text-align:right;">
+                    <span id="helixTrendNote"></span>
+                </div>
+            </div>
             <!-- Research Gaps panel -->
         <div id="gapPanel" class="dash-tab-panel" style="display:none;">
             <div class="si-body">
@@ -4010,7 +4044,7 @@
                                     <div style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.3);">Select a location</div>
                                     <div style="font-size:10px;color:rgba(255,255,255,0.16);line-height:1.8;font-family:var(--font-mono);">Click any marker on the map<br>to explore its search activity</div>
                                 </div>
-                                <div id="geoDetailContent" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;"></div>
+                                <div id="geoDetailContent" style="display:none;flex-direction:column;flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;"></div>
                             </div>
                         </div>
                     </div>
@@ -4057,13 +4091,13 @@
                                 Research gap queue
                                 <span style="font-size:9px;color:#fbbf24;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:4px;padding:1px 6px;font-weight:600;">scored client-side</span>
                             </div>
-                            <div class="si-card-note" id="gapQueueNote">Variants are scored when selected</div>
+                            <div class="si-card-note" id="siGapQueueNote">Variants are scored when selected</div>
                         </div>
                         <div class="si-card-body">
                             <div style="display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--border);font-size:9px;font-weight:600;letter-spacing:.08em;color:var(--text-tertiary);text-transform:uppercase;">
                                 <span>Level</span><span>Variant</span><span>Score</span><span>Searched</span>
                             </div>
-                            <div id="gapQueueList"><div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">Select variants to populate gap analysis.</div></div>
+                            <div id="siGapQueueList"><div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">Select variants to populate gap analysis.</div></div>
                         </div>
                     </div>
                     <div class="si-row2">
@@ -4129,9 +4163,9 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="modal-body max-h-[60vh] overflow-y-auto" id="allEvidenceList">
+        <div class="modal-body" id="allEvidenceList" style="max-height:60vh;overflow-y:auto;padding:20px;">
             <div class="text-center py-10">
-                <i class="fas fa-spinner fa-spin text-[var(--brand)] text-2xl"></i>
+                <i class="fas fa-spinner fa-spin" style="color:var(--brand);font-size:24px;"></i>
                 <p class="text-sm text-gray-500 mt-2">Loading evidence...</p>
             </div>
         </div>
@@ -4712,13 +4746,40 @@ async function loadVariants() {
         showNotification(`${STATE.variants.length.toLocaleString()} variants loaded in ${initTime}ms`, 'success', 2500);
         // Seed institutions table on first run (no-op if already populated)
         seedInstitutionsIfEmpty();
+        // Persist to offline cache for degraded-mode fallback
+        helixPersistCache(STATE.variants).catch(() => {});
+        // Save daily snapshot if due
+        helixMaybeSaveSnapshot().catch(() => {});
 
     } catch (err) {
         console.error('Load failed:', err);
+
+        // ── Offline fallback ──
+        // Try serving from IndexedDB cache before showing error
+        try {
+            const cached = await HELIX_CACHE.load();
+            if (cached.variants && cached.variants.length > 0) {
+                STATE.variants        = cached.variants;
+                STATE.variantsById    = new Map(STATE.variants.map(v => [v.id, v]));
+                STATE.variantsByLegacyName = new Map(STATE.variants.map(v => [v.legacy_name, v]));
+                buildSearchIndex();
+                calculateMasterStats();
+                STATE.view.filteredVariants = [...STATE.variants];
+                STATE.view.currentPage = 1;
+                renderVariantList();
+                updateHeaderStats();
+                updateFilterChips();
+                STATE.system.initialized = true;
+                window.LOADER?.advance('done');
+                helixShowOfflineBanner(cached.lastSynced);
+                showNotification(`Offline mode — ${STATE.variants.length.toLocaleString()} variants from cache`, 'warning', 5000);
+                return; // don't fall through to error state
+            }
+        } catch(cacheErr) { console.warn('[Helix] Cache fallback failed:', cacheErr.message); }
+
         showListError(err.message);
         showNotification('Database connection failed', 'error');
         window.LOADER?.setError('Error de conexión — ' + err.message);
-        
         STATE.system.errorCount++;
         STATE.system.lastError = err;
     }
@@ -4769,55 +4830,75 @@ function buildSearchIndex() {
     };
 }
 
-// ========== SEARCH — EXACT NOMENCLATURE MATCH ==========
-// Returns variants whose legacy_name, protein_name, cdna_name or alt_names
-// contain the query as a substring (case-insensitive). No guessing.
+// ========== SEARCH v2 — SCORED, FUZZY + PHONETIC MATCH ==========
+// Priority tiers: 0=exact  1=prefix  2=substring  3=fuzzy(Lev≤2)  4=phonetic
+// HGVS prefixes (p. c. r.), Greek delta, positional numbers all normalised.
+
+function _phoneticKey(s) {
+    return s.toLowerCase()
+        .replace(/[aeiou]+(?=.)/g, '')
+        .replace(/(.)+/g, '$1')
+        .slice(0, 12);
+}
 
 function searchVariants(query) {
     if (!query || query.trim().length < CONFIG.UI.MIN_SEARCH_CHARS) {
         return STATE.variants;
     }
+    const raw      = query.toLowerCase().trim();
+    const norm     = normaliseQuery(query);
+    const stripped = norm.replace(/^p\.|^c\.|^r\./, '');
+    const phonetic = _phoneticKey(stripped);
 
-    const raw = query.toLowerCase().trim();
-    const stripped = raw.replace(/^p\./, '').replace(/^c\./, '').replace(/^r\./, '');
-
-    // Collect all variant ids that match either form
-    const matchedIds = new Set();
+    const scores = new Map();
+    function record(id, score) {
+        if (!scores.has(id) || scores.get(id) > score) scores.set(id, score);
+    }
 
     STATE.searchIndex.lookup.forEach((ids, key) => {
-        if (key.includes(raw) || key.includes(stripped)) {
-            ids.forEach(id => matchedIds.add(id));
+        const kPhon = _phoneticKey(key);
+        if (key === norm || key === stripped || key === raw) {
+            ids.forEach(id => record(id, 0));
+        } else if (key.startsWith(norm) || key.startsWith(stripped) || norm.startsWith(key)) {
+            ids.forEach(id => record(id, 1));
+        } else if (key.includes(norm) || key.includes(stripped) || norm.includes(key)) {
+            ids.forEach(id => record(id, 2));
+        } else if (stripped.length >= 4 && kPhon === phonetic) {
+            ids.forEach(id => record(id, 4));
         }
     });
 
-    const results = Array.from(matchedIds)
-        .map(id => STATE.variantsById.get(id))
-        .filter(Boolean)
-        .sort((a, b) => {
-            // Exact matches first, then prefix, then substring
-            const score = v => {
-                const fields = [v.legacy_name, v.protein_name, v.cdna_name]
-                    .filter(Boolean).map(f => f.toLowerCase());
-                if (fields.some(f => f === raw || f === stripped)) return 0;
-                if (fields.some(f => f.startsWith(raw) || f.startsWith(stripped))) return 1;
-                return 2;
-            };
-            return score(a) - score(b);
+    // Fuzzy Levenshtein ≤2 — only when no direct hits
+    if (stripped.length >= 3 && scores.size === 0) {
+        STATE.searchIndex.lookup.forEach((ids, key) => {
+            if (Math.abs(key.length - stripped.length) > 2) return;
+            const d = levenshtein(stripped, key);
+            if (d <= 2) ids.forEach(id => record(id, 3));
         });
+    }
 
-    // Determine which field matched (for the match pill + logging)
+    const results = Array.from(scores.entries())
+        .sort((a, b) => a[1] - b[1])
+        .map(([id]) => STATE.variantsById.get(id))
+        .filter(Boolean);
+
     let matchedField = null;
     if (results.length > 0) {
         const v = results[0];
-        if (v.legacy_name && (v.legacy_name.toLowerCase().includes(raw) || v.legacy_name.toLowerCase().includes(stripped))) matchedField = 'legacy_name';
-        else if (v.protein_name && (v.protein_name.toLowerCase().includes(raw) || v.protein_name.toLowerCase().includes(stripped))) matchedField = 'protein_name';
-        else if (v.cdna_name && (v.cdna_name.toLowerCase().includes(raw) || v.cdna_name.toLowerCase().includes(stripped))) matchedField = 'cdna_name';
-        else matchedField = 'alt_names';
+        const chk = f => f && (f.toLowerCase().includes(raw) || normaliseQuery(f).includes(stripped));
+        if (chk(v.legacy_name))       matchedField = 'legacy_name';
+        else if (chk(v.protein_name)) matchedField = 'protein_name';
+        else if (chk(v.cdna_name))    matchedField = 'cdna_name';
+        else                          matchedField = 'alt_names';
     }
 
-    // NOTE: logSearch is NOT called here — it's called by initSearch
-    // after a separate 1200ms debounce so partial keystrokes don't pollute logs.
-    // We expose the last result metadata so initSearch can log it.
+    const tier = results.length > 0 ? scores.get(results[0].id) : -1;
+    STATE.searchIntelligence._lastSearchTier = tier;
+    if (results.length > 0 && tier >= 3) {
+        const suggestion = results[0].legacy_name;
+        setTimeout(() => showNotification(`Did you mean: ${suggestion}?`, 'info', 4000), 200);
+    }
+
     STATE.searchIntelligence._lastResult = {
         query: query.trim(),
         isHit: results.length > 0,
@@ -5617,7 +5698,7 @@ function geoV5ShowMissDetail(query){
             <div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Country breakdown</div>
             ${ctyList.map(([c,n])=>{const pct=Math.round(n/rows.length*100);return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;"><span style="font-size:12px;flex-shrink:0;">${cFlag(c)}</span><span style="font-size:11px;color:rgba(255,255,255,0.65);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(c)}</span><div style="width:50px;height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;flex-shrink:0;"><div style="height:100%;width:${pct}%;background:#fb7185;border-radius:100px;"></div></div><span style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.32);min-width:18px;text-align:right;">${n}</span></div>`; }).join('')}
         </div>`:''}
-        <div style="flex:1;overflow-y:auto;padding:10px 14px;">
+        <div style="flex:1;overflow-y:auto;min-height:0;padding:10px 14px;">
             <div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Searching institutions</div>
             ${insts.map(inst=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><div style="flex:1;font-size:11px;color:rgba(255,255,255,0.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(inst.name)}</div>${inst.country?`<span style="font-size:9px;color:rgba(255,255,255,0.22);">${cFlag(inst.country)}</span>`:''}  <span style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.32);">${inst.count}</span></div>`).join('')}
         </div>
@@ -5660,7 +5741,7 @@ function geoV5RenderCompare(){
             return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.38);width:34px;flex-shrink:0;">Cls ${c}</span><div style="flex:1;height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;"><div style="height:100%;width:${Math.round(n/maxCls*100)}%;background:${getClassColor(c)};border-radius:100px;"></div></div><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.25);">${n}</span></div>`;
         }).join('');
         const topQ=Object.entries(p.queryMap).sort((a,b)=>(b[1].hit+b[1].miss)-(a[1].hit+a[1].miss)).slice(0,5);
-        return `<div style="display:flex;flex-direction:column;overflow:hidden;${side==='A'?'border-right:1px solid rgba(255,255,255,0.06);':''}">
+        return `<div style="display:flex;flex-direction:column;overflow:hidden;min-height:0;${side==='A'?'border-right:1px solid rgba(255,255,255,0.06);':''}">
             <div class="geo-v5-compare-head"><div style="font-size:18px;font-weight:800;letter-spacing:-.03em;color:#fff;margin-bottom:2px;">${escapeHTML(p.hospital||p.city||'Unknown')}</div><div style="font-size:10px;color:rgba(255,255,255,0.3);font-family:var(--font-mono);">${escapeHTML([p.hospital?p.city:null,p.region,p.country].filter(Boolean).join(' · '))}</div></div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,0.06);">
                 <div style="padding:10px 6px;text-align:center;border-right:1px solid rgba(255,255,255,0.06);"><div style="font-size:20px;font-weight:800;color:#34d399;">${p.hits}</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.25);">Hits</div></div>
@@ -5668,7 +5749,7 @@ function geoV5RenderCompare(){
                 <div style="padding:10px 6px;text-align:center;"><div style="font-size:20px;font-weight:800;color:${hrColor};">${hitRate}%</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:${hrColor};">Rate</div></div>
             </div>
             <div style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06);"><div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Class breakdown</div>${bars||'<div style="font-size:10px;color:rgba(255,255,255,0.18);">No class data</div>'}</div>
-            <div style="flex:1;overflow-y:auto;padding:10px 12px;"><div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Top queries</div>${topQ.map(([q,v])=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><div style="width:5px;height:5px;border-radius:50%;background:${v.hit>0?'#34d399':'#fb7185'};flex-shrink:0;"></div><span style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.7);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(q)}</span><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.25);">${v.hit+v.miss}</span></div>`).join('')}</div>
+            <div style="flex:1;overflow-y:auto;min-height:0;padding:10px 12px;"><div style="font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Top queries</div>${topQ.map(([q,v])=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);"><div style="width:5px;height:5px;border-radius:50%;background:${v.hit>0?'#34d399':'#fb7185'};flex-shrink:0;"></div><span style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.7);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(q)}</span><span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.25);">${v.hit+v.miss}</span></div>`).join('')}</div>
         </div>`;
     };
     grid.innerHTML=col(pA,'A')+col(pB,'B');
@@ -6640,6 +6721,10 @@ function renderVariantDetail(variant, fromSearch) {
     document.getElementById('detailEmpty').classList.add('hidden');
     const container = document.getElementById('variantDetail');
     container.classList.remove('hidden');
+    // Auto-refresh compare tray if pinned
+    if (COMPARE_STATE.pinned && variant.id !== COMPARE_STATE.pinned.id) {
+        requestAnimationFrame(() => helixRenderCompareTray());
+    }
     // Run gap analysis — updates intel strip and registers in gap queue
     const gap = analyseAndRegisterGap(variant);
     setTimeout(() => updateIntelStrip(variant, gap), 50);
@@ -6708,6 +6793,9 @@ function renderVariantDetail(variant, fromSearch) {
                     </button>
                     <button onclick="showDeleteModal('${escapeAttr(variant.legacy_name)}', ${variant.id})" class="btn btn-ghost btn-sm" title="Delete">
                         <i class="fas fa-trash-alt" style="color:var(--error)"></i>
+                    </button>
+                    <button onclick="helixPinVariant(STATE.variantsById.get(${variant.id}))" class="btn btn-ghost btn-sm" title="Pin for side-by-side compare" style="border-color:rgba(41,121,255,0.3);color:var(--brand);">
+                        <i class="fas fa-columns"></i>
                     </button>
                 </div>
                 ${variant.date_updated ? `<span style="font-size:10px;color:var(--text-tertiary)">Updated ${formatDate(variant.date_updated)}</span>` : ''}
@@ -6797,7 +6885,7 @@ function renderVariantDetail(variant, fromSearch) {
                     <div class="evidence-list" id="evidencePreview-${variant.id}">${evidenceHTML}</div>
                     ${evidenceLinks.length > 3 ? `
                         <div class="mt-3 text-right">
-                            <button onclick="showAllEvidence(${variant.id})" class="text-xs text-[var(--brand)] hover:underline">
+                            <button onclick="showAllEvidence(${variant.id})" style="font-size:11px;color:var(--brand);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:var(--font-body);">
                                 View all ${evidenceLinks.length} sources →
                             </button>
                         </div>
@@ -7808,8 +7896,8 @@ function showAllEvidence(variantId) {
     if (evidenceLinks.length === 0) {
         modalList.innerHTML = `
             <div class="text-center py-12">
-                <div class="w-16 h-16 bg-[var(--brand-light)] rounded-2xl mx-auto mb-4 flex items-center justify-center">
-                    <i class="fas fa-link text-3xl text-[var(--brand)] opacity-40"></i>
+                <div style="width:64px;height:64px;background:var(--brand-light);border-radius:16px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-link" style="font-size:28px;color:var(--brand);opacity:0.4;"></i>
                 </div>
                 <p class="text-gray-700 font-medium mb-2">No evidence links yet</p>
                 <p class="text-sm text-gray-500 mb-6">Add your first evidence source</p>
@@ -7821,17 +7909,17 @@ function showAllEvidence(variantId) {
         `;
     } else {
         modalList.innerHTML = evidenceLinks.map(link => `
-            <div class="group relative bg-white rounded-xl border border-[var(--border)] hover:border-[var(--brand)] hover:shadow-md transition-all duration-200 mb-4 p-4">
+            <div style="position:relative;background:var(--white);border-radius:12px;border:1px solid var(--border);margin-bottom:16px;padding:16px;transition:border-color 0.2s,box-shadow 0.2s;" onmouseover="this.style.borderColor='var(--brand)';this.style.boxShadow='var(--shadow-sm)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow=''">
                 <div class="flex items-start gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--brand-light)] to-[var(--brand-faint)] flex items-center justify-center flex-shrink-0">
-                        <i class="fas ${getEvidenceIcon(link.type)} text-[var(--brand)]"></i>
+                    <div style="width:40px;height:40px;border-radius:10px;background:var(--brand-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="fas ${getEvidenceIcon(link.type)}" style="color:var(--brand);"></i>
                     </div>
                     <div class="flex-1">
                         <div class="flex items-start justify-between">
                             <div>
                                 <h4 class="font-semibold text-gray-900">${escapeHTML(link.title)}</h4>
                                 <div class="flex items-center gap-3 mt-2">
-                                    <span class="text-xs bg-[var(--brand-light)] text-[var(--brand)] px-2 py-1 rounded-full">
+                                    <span style="font-size:11px;background:var(--brand-light);color:var(--brand);padding:2px 8px;border-radius:99px;display:inline-flex;align-items:center;gap:4px;">
                                         <i class="fas ${getEvidenceIcon(link.type)} mr-1"></i>
                                         ${escapeHTML(link.source || link.type)}
                                     </span>
@@ -7841,10 +7929,10 @@ function showAllEvidence(variantId) {
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <a href="${escapeHTML(link.url)}" target="_blank" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 hover:text-[var(--brand)]">
+                                <a href="${escapeHTML(link.url)}" target="_blank" style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary);background:none;border:none;cursor:pointer;transition:background 0.15s,color 0.15s;" onmouseover="this.style.background='var(--brand-faint)';this.style.color='var(--brand)'" onmouseout="this.style.background='';this.style.color='var(--text-tertiary)'">
                                     <i class="fas fa-external-link-alt"></i>
                                 </a>
-                                <button onclick="copyToClipboard('${escapeHTML(link.url)}')" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 hover:text-[var(--brand)]">
+                                <button onclick="copyToClipboard('${escapeHTML(link.url)}')" style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary);background:none;border:none;cursor:pointer;transition:background 0.15s,color 0.15s;" onmouseover="this.style.background='var(--brand-faint)';this.style.color='var(--brand)'" onmouseout="this.style.background='';this.style.color='var(--text-tertiary)'">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
@@ -7901,6 +7989,12 @@ function showDashboard() {
     // Default to clinical tab
     setDashTab('clinical', document.getElementById('dashTab-clinical'));
     setTimeout(renderCharts, 100);
+    // Load trend sparklines async — shows "no data yet" gracefully if table missing
+    setTimeout(() => {
+        const tp = document.getElementById('helixTrendPanel');
+        if (tp) tp.style.display = 'block';
+        helixLoadTrends().catch(() => {});
+    }, 300);
 }
 
 function closeDashboard() {
@@ -7912,34 +8006,34 @@ function closeDashboard() {
 }
 
 function setDashTab(tab, btn) {
-    // All panels in the modal body
     const allPanels = ['clinicalPanel','siPanel','gapPanel','commandPanel'];
 
     allPanels.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
-        if (id === tab + 'Panel' ||
+        const isActive =
             (tab === 'clinical' && id === 'clinicalPanel') ||
-            (tab === 'search'   && id === 'siPanel') ||
-            (tab === 'gaps'     && id === 'gapPanel') ||
-            (tab === 'command'  && id === 'commandPanel')) {
-            // Show — the active panel fills the body and scrolls
-            el.style.display  = tab === 'search' ? 'flex' : 'block';
-            el.style.flex     = '1';
-            el.style.minHeight = '0';
-            el.style.overflow = 'hidden';
+            (tab === 'search'   && id === 'siPanel')       ||
+            (tab === 'gaps'     && id === 'gapPanel')       ||
+            (tab === 'command'  && id === 'commandPanel');
+
+        if (isActive) {
+            el.style.display     = tab === 'search' ? 'flex' : 'block';
+            el.style.flex        = '1 1 0';
+            el.style.minHeight   = '0';
+            el.style.overflowY   = tab === 'search' ? 'hidden' : 'auto'; // search has internal scroll
+            el.style.overflowX   = 'hidden';
             if (tab === 'search') el.style.flexDirection = 'column';
         } else {
-            el.style.display = 'none';
-            el.style.flex    = '';
+            el.style.display   = 'none';
+            el.style.flex      = '';
+            el.style.overflowY = '';
         }
     });
 
-    // The modal body itself is also a flex column
+    // Modal body stays overflow:hidden — panels scroll themselves
     const body = document.getElementById('dashModalBody');
-    if (body) {
-        body.style.overflow = 'hidden';
-    }
+    if (body) body.style.overflow = 'hidden';
 
     // Export buttons
     const expBtn = document.getElementById('dashExportBtn');
@@ -9287,16 +9381,19 @@ function getGapQueue(n = 15) {
 }
 
 function renderGapQueue() {
-    const list = document.getElementById('gapQueueList');
-    const note = document.getElementById('gapQueueNote');
-    if (!list) return;
+    // Write to both: the dedicated Gaps tab and the SI tab's gap section
+    const list  = document.getElementById('gapQueueList');
+    const list2 = document.getElementById('siGapQueueList');
+    const note  = document.getElementById('gapQueueNote');
+    const note2 = document.getElementById('siGapQueueNote');
+    if (!list && !list2) return;
     const queue = getGapQueue(20);
-    if (note) note.textContent = `${queue.length} variants need attention`;
-    if (!queue.length) {
-        list.innerHTML = '<div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">No significant gaps detected.</div>';
-        return;
-    }
-    list.innerHTML = queue.map(({v, score, gapLevel, recommendations}) => `
+    const noteText = `${queue.length} variants need attention`;
+    if (note)  note.textContent  = noteText;
+    if (note2) note2.textContent = noteText;
+    const html = !queue.length
+        ? '<div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">No significant gaps detected.</div>'
+        : queue.map(({v, score, gapLevel, recommendations}) => `
         <div class="priority-row" onclick="selectVariant('${escapeAttr(v.legacy_name)}');closeDashboard();">
             ${gapRingHTML(score, gapLevel)}
             <div style="flex:1;min-width:0;">
@@ -9313,6 +9410,21 @@ function renderGapQueue() {
                 ${(v.search_hit_count||0) > 0 ? (v.search_hit_count||0)+'× searched' : ''}
             </div>
         </div>`).join('');
+    if (list)  list.innerHTML  = html;
+    if (list2) list2.innerHTML = html;
+
+    // Populate SI tab stats
+    const critEl = document.getElementById('criticalGapNum');
+    const avgEl  = document.getElementById('avgGapScore');
+    if (critEl || avgEl) {
+        const allScored = STATE.variants.map(v => calculateGapScore(v));
+        const critical  = allScored.filter(s => s.gapLevel === 'CRITICAL').length;
+        const avg       = allScored.length
+            ? Math.round(allScored.reduce((s,x) => s + (x.score||0), 0) / allScored.length)
+            : 0;
+        if (critEl) critEl.textContent = critical;
+        if (avgEl)  avgEl.textContent  = avg;
+    }
 }
 
 function renderCommandCentre() {
@@ -10194,6 +10306,7 @@ Object.assign(window, {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    min-height: 0;
 }
 
 /* ---- Panel ---- */
@@ -10201,8 +10314,10 @@ Object.assign(window, {
     display: none;
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 24px;
     gap: 16px;
+    min-height: 0;
 }
 
 .helios-panel.active {
@@ -10242,6 +10357,7 @@ Object.assign(window, {
 .helios-card-head i { color: var(--helios-sun); opacity:0.8; }
 
 .helios-card-body { padding: 20px; }
+.helios-card-body.no-scroll { overflow-y: visible; max-height: none; }
 
 /* ---- Inbox item ---- */
 .helios-inbox-item {
@@ -11107,7 +11223,7 @@ Object.assign(window, {
                         <i class="fas fa-sync-alt"></i>
                     </button>
                 </div>
-                <div class="helios-card-body" style="padding:0;" id="heliosScanHistory">
+                <div class="helios-card-body" style="padding:0;max-height:280px;overflow-y:auto;" id="heliosScanHistory">
                     <div class="helios-empty" style="padding:20px;">
                         <p style="font-size:12px;color:var(--helios-text3);">Run a scan to see history</p>
                     </div>
@@ -11140,7 +11256,7 @@ Object.assign(window, {
                         <i class="fas fa-play"></i> Run Check
                     </button>
                 </div>
-                <div class="helios-card-body" id="heliosHealthList">
+                <div class="helios-card-body" id="heliosHealthList" style="max-height:50vh;overflow-y:auto;">
                     <div class="helios-empty" style="padding:24px;">
                         <div class="helios-empty-icon"><i class="fas fa-heartbeat"></i></div>
                         <p>Click "Run Check" to analyse DB consistency</p>
@@ -11153,7 +11269,7 @@ Object.assign(window, {
                     <i class="fas fa-bell"></i> Monitor Targets
                     <span style="font-size:10px;color:var(--helios-text3);margin-left:4px;">Variants under continuous watch</span>
                 </div>
-                <div class="helios-card-body" id="heliosMonitorList">
+                <div class="helios-card-body" id="heliosMonitorList" style="max-height:220px;overflow-y:auto;">
                     <div class="helios-empty" style="padding:20px;">
                         <p>No variants monitored yet. Select a variant and click Monitor.</p>
                     </div>
@@ -11172,7 +11288,7 @@ Object.assign(window, {
                         <i class="fas fa-sync-alt"></i>
                     </button>
                 </div>
-                <div class="helios-card-body" id="heliosAuditList">
+                <div class="helios-card-body" id="heliosAuditList" style="max-height:60vh;overflow-y:auto;padding:0;">
                     <div class="helios-empty" style="padding:24px;">
                         <div class="helios-empty-icon"><i class="fas fa-scroll"></i></div>
                         <p>No decisions recorded yet</p>
@@ -11223,59 +11339,6 @@ Object.assign(window, {
             </div>
 
             <!-- Geographic signal -->
-            <div class="helios-card">
-                <div class="helios-card-head">
-                    <i class="fas fa-globe-europe" style="color:var(--helios-blue);"></i>
-                    Geographic Demand Signal
-                    <span style="font-size:10px;color:var(--helios-text3);margin-left:6px;">Cross-institutional variant demand</span>
-                    <button class="helios-btn helios-btn-ghost" style="margin-left:auto;padding:4px 10px;font-size:10.5px;" onclick="heliosRunGeoSignal()">
-                        <i class="fas fa-satellite-dish"></i> Analyse
-                    </button>
-                </div>
-                <div id="heliosGeoSignal" style="max-height:280px;overflow-y:auto;">
-                    <div class="helios-empty" style="padding:24px;">
-                        <p style="font-size:12px;color:var(--helios-text3);">Click Analyse to detect cross-institutional demand patterns</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== VALIDATE PANEL ===== -->
-        <div class="helios-panel" id="hpanel-validate">
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
-                <div class="helios-metric">
-                    <div class="helios-metric-val" id="hValTotal" style="color:var(--helios-text);">--</div>
-                    <div class="helios-metric-lbl">Total Variants</div>
-                </div>
-                <div class="helios-metric">
-                    <div class="helios-metric-val" id="hValValidated" style="color:var(--helios-green);">--</div>
-                    <div class="helios-metric-lbl">Validated</div>
-                </div>
-                <div class="helios-metric">
-                    <div class="helios-metric-val" id="hValUnvalidated" style="color:var(--helios-red);">--</div>
-                    <div class="helios-metric-lbl">Unvalidated</div>
-                </div>
-                <div class="helios-metric">
-                    <div class="helios-metric-val" id="hValRate" style="color:var(--helios-sun);">--%</div>
-                    <div class="helios-metric-lbl">Validation Rate</div>
-                </div>
-            </div>
-            <div class="helios-card" style="margin-bottom:14px;">
-                <div class="helios-card-head">
-                    <i class="fas fa-sort-amount-down" style="color:var(--helios-blue);"></i>
-                    Validation Priority Queue
-                    <span style="font-size:10px;color:var(--helios-text3);margin-left:6px;">Ordered by clinical urgency</span>
-                    <button class="helios-btn helios-btn-ghost" style="margin-left:auto;padding:4px 10px;font-size:10.5px;" onclick="heliosLoadValidationQueue()">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                </div>
-                <div id="heliosValidationQueue" style="max-height:420px;overflow-y:auto;">
-                    <div class="helios-empty" style="padding:32px;">
-                        <div class="helios-empty-icon"><i class="fas fa-shield-alt"></i></div>
-                        <p>Click Refresh to load the validation queue</p>
-                    </div>
-                </div>
-            </div>
             <div class="helios-card">
                 <div class="helios-card-head">
                     <i class="fas fa-globe-europe" style="color:var(--helios-blue);"></i>
@@ -13451,6 +13514,514 @@ Object.assign(window, {
     heliosRunHealthCheck, heliosToggleItem, heliosClearConsole,
     heliosToggleSource, heliosMonitorCurrentVariant,
     heliosRemoveMonitor, heliosLoadInbox, heliosLoadAudit, heliosLoadScanHistory
+});
+
+// ================================================================
+// IMPROVEMENT 6 — OFFLINE / DEGRADED MODE
+// Caches variant dataset to IndexedDB on every successful load.
+// On startup, if Supabase is unreachable, serves from cache with
+// a clear offline banner. Writes are queued and replayed on reconnect.
+// ================================================================
+const HELIX_CACHE = (() => {
+    const DB_NAME = 'helix_offline_v1', STORE = 'variants', META = 'meta';
+    let _db = null;
+
+    async function open() {
+        if (_db) return _db;
+        return new Promise((res, rej) => {
+            const req = indexedDB.open(DB_NAME, 1);
+            req.onupgradeneeded = e => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
+                if (!db.objectStoreNames.contains(META))  db.createObjectStore(META);
+            };
+            req.onsuccess = e => { _db = e.target.result; res(_db); };
+            req.onerror   = () => rej(req.error);
+        });
+    }
+
+    return {
+        async save(variants) {
+            try {
+                const db = await open();
+                const tx = db.transaction([STORE, META], 'readwrite');
+                const st = tx.objectStore(STORE);
+                // Clear and repopulate
+                await new Promise(r => { const c = st.clear(); c.onsuccess = r; });
+                for (const v of variants) st.put(v);
+                tx.objectStore(META).put(new Date().toISOString(), 'lastSynced');
+                await new Promise((r, rj) => { tx.oncomplete = r; tx.onerror = rj; });
+            } catch(e) { console.warn('[Helix Cache] Save failed:', e.message); }
+        },
+        async load() {
+            try {
+                const db = await open();
+                const tx = db.transaction([STORE, META], 'readonly');
+                const variants = await new Promise((r, rj) => {
+                    const req = tx.objectStore(STORE).getAll();
+                    req.onsuccess = () => r(req.result);
+                    req.onerror   = rj;
+                });
+                const lastSynced = await new Promise((r, rj) => {
+                    const req = tx.objectStore(META).get('lastSynced');
+                    req.onsuccess = () => r(req.result);
+                    req.onerror   = rj;
+                });
+                return { variants, lastSynced };
+            } catch(e) { return { variants: [], lastSynced: null }; }
+        },
+        async clear() {
+            try {
+                const db = await open();
+                const tx = db.transaction(STORE, 'readwrite');
+                tx.objectStore(STORE).clear();
+            } catch {}
+        }
+    };
+})();
+
+// Offline banner
+function helixShowOfflineBanner(lastSynced) {
+    if (document.getElementById('helixOfflineBanner')) return;
+    const bar = document.createElement('div');
+    bar.id = 'helixOfflineBanner';
+    const age = lastSynced ? (() => {
+        const mins = Math.round((Date.now() - new Date(lastSynced)) / 60000);
+        return mins < 60 ? `${mins}m ago` : `${Math.round(mins/60)}h ago`;
+    })() : 'unknown';
+    bar.innerHTML = `
+        <i class="fas fa-wifi" style="opacity:.6;"></i>
+        <span style="flex:1;">Offline mode — showing cached data synced <strong>${age}</strong>. Read-only until connection restored.</span>
+        <span id="helixOfflineRetry" style="cursor:pointer;color:#fbbf24;font-weight:600;" onclick="helixRetryOnline()">Retry</span>`;
+    Object.assign(bar.style, {
+        position:'fixed', bottom:'0', left:'0', right:'0', zIndex:'9999',
+        display:'flex', alignItems:'center', gap:'10px',
+        padding:'10px 20px', background:'rgba(251,146,60,0.92)',
+        backdropFilter:'blur(8px)', color:'#fff', fontSize:'12.5px',
+        fontFamily:'var(--font-body)', borderTop:'1px solid rgba(251,146,60,0.4)',
+        boxShadow:'0 -4px 16px rgba(0,0,0,0.4)'
+    });
+    document.body.appendChild(bar);
+}
+
+function helixHideOfflineBanner() {
+    document.getElementById('helixOfflineBanner')?.remove();
+}
+
+async function helixRetryOnline() {
+    const retry = document.getElementById('helixOfflineRetry');
+    if (retry) retry.textContent = 'Connecting…';
+    try {
+        const r = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/variants?select=id&limit=1`, {
+            headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` },
+            signal: AbortSignal.timeout(5000)
+        });
+        if (r.ok) {
+            helixHideOfflineBanner();
+            showNotification('Connection restored — reloading data', 'success');
+            setTimeout(() => location.reload(), 800);
+        } else { if (retry) retry.textContent = 'Retry'; }
+    } catch { if (retry) retry.textContent = 'Retry'; }
+}
+
+// Online/offline event listeners
+window.addEventListener('online',  () => { helixRetryOnline(); });
+window.addEventListener('offline', () => {
+    helixShowOfflineBanner(null);
+    showNotification('Connection lost — offline mode active', 'warning');
+});
+
+// Hook into data load to save cache (call after variants are loaded)
+async function helixPersistCache(variants) {
+    if (variants && variants.length > 0) {
+        await HELIX_CACHE.save(variants);
+    }
+}
+
+// ================================================================
+// IMPROVEMENT 8 — ANALYTICS TIME-SERIES SNAPSHOTS
+// Saves a lightweight daily snapshot of platform stats to Supabase.
+// Powers "trends over time" charts in the analytics dashboard.
+// Snapshot is a JSONB blob — zero schema migration required beyond
+// adding a platform_snapshots table.
+// ================================================================
+async function helixSaveSnapshot() {
+    try {
+        const s = STATE.masterStats;
+        const si = STATE.searchIntelligence;
+        const { hitRate } = getSearchHitRate();
+        const snapshot = {
+            snapshot_date:    new Date().toISOString().slice(0, 10),
+            total_variants:   s.total,
+            classified:       s.classI + s.classII + s.classIII + s.classIV + s.classV,
+            validated:        STATE.variants.filter(v => (v.validation_count || 0) > 0).length,
+            responsive:       s.responsive,
+            non_responsive:   s.nonResponsive,
+            complete:         s.complete,
+            search_hit_rate:  hitRate,
+            pending_helios:   HELIOS.pendingItems.filter(i => i.status === 'pending').length,
+            class_breakdown:  { I: s.classI, II: s.classII, III: s.classIII, IV: s.classIV, V: s.classV }
+        };
+        await hFetch('platform_snapshots', {
+            method: 'POST',
+            body: JSON.stringify(snapshot)
+        });
+        console.log('[Helix] Daily snapshot saved:', snapshot.snapshot_date);
+    } catch(e) { console.warn('[Helix] Snapshot save failed (table may not exist yet):', e.message); }
+}
+
+// Save snapshot once per day — check localStorage timestamp
+async function helixMaybeSaveSnapshot() {
+    const key = 'helix_last_snapshot';
+    const today = new Date().toISOString().slice(0, 10);
+    const last  = localStorage.getItem(key);
+    if (last === today) return; // already snapped today
+    await helixSaveSnapshot();
+    localStorage.setItem(key, today);
+}
+
+// Load and render trend sparklines in analytics dashboard
+async function helixLoadTrends() {
+    const container = document.getElementById('helixTrendPanel');
+    if (!container) return;
+    try {
+        const r = await hFetch('platform_snapshots?order=snapshot_date.asc&limit=90');
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const snaps = await r.json();
+        if (!snaps.length) {
+            container.innerHTML = `<div style="font-size:11px;color:var(--text-tertiary);padding:16px;">No trend data yet — check back tomorrow after the first daily snapshot.</div>`;
+            return;
+        }
+        const labels = snaps.map(s => s.snapshot_date.slice(5)); // MM-DD
+        const drawSparkline = (canvasId, data, color) => {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || !window.Chart) return;
+            if (canvas._chart) canvas._chart.destroy();
+            canvas._chart = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{ data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: true,
+                        backgroundColor: color.replace(')',',0.08)').replace('rgb','rgba'), tension: 0.4 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false, beginAtZero: false }
+                    }
+                }
+            });
+        };
+        drawSparkline('trendValidated',  snaps.map(s => s.validated),       'rgb(52,211,153)');
+        drawSparkline('trendHitRate',    snaps.map(s => s.search_hit_rate), 'rgb(96,165,250)');
+        drawSparkline('trendComplete',   snaps.map(s => s.complete),        'rgb(192,132,252)');
+        drawSparkline('trendResponsive', snaps.map(s => s.responsive),      'rgb(251,191,36)');
+
+        const first = snaps[0], last2 = snaps[snaps.length - 1];
+
+        // Current value labels
+        const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v ?? '—'; };
+        setVal('trendValidatedVal',  last2.validated);
+        setVal('trendHitRateVal',    last2.search_hit_rate + '%');
+        setVal('trendCompleteVal',   last2.complete);
+        setVal('trendResponsiveVal', last2.responsive);
+
+        // Delta labels (vs. 90 days ago)
+        const setDelta = (id, a, b, suffix='') => {
+            const el = document.getElementById(id); if (!el) return;
+            const d = b - a;
+            el.textContent = (d >= 0 ? '+' : '') + d + suffix;
+            el.style.color = d > 0 ? '#34d399' : d < 0 ? '#f87171' : '#9ab8e0';
+        };
+        setDelta('trendDeltaValidated',  first.validated,       last2.validated);
+        setDelta('trendDeltaHitRate',    first.search_hit_rate, last2.search_hit_rate, '%');
+        setDelta('trendDeltaComplete',   first.complete,        last2.complete);
+        setDelta('trendDeltaResponsive', first.responsive,      last2.responsive);
+    } catch(e) {
+        container.innerHTML = `<div style="font-size:11px;color:var(--text-tertiary);padding:16px;">Trend data unavailable — platform_snapshots table may need creating.</div>`;
+    }
+}
+
+// ================================================================
+// IMPROVEMENT 9 — HELIOS AUTONOMOUS SCHEDULED SCAN + AMBIENT SIGNAL
+// Runs a lightweight consistency scan nightly (detected as "after
+// midnight, first time today"). Shows a pulsing ambient glow on the
+// Helios button while running, plays a subtle sweep animation, and
+// shows a notification when complete. Clinician doesn't need to do
+// anything — the inbox just gets richer overnight.
+// ================================================================
+
+// Ambient signal: pulsing ring on Helios button during background scan
+function heliosAmbientStart(reason) {
+    const btn = document.getElementById('heliosBtn');
+    if (!btn) return;
+    btn.style.boxShadow = '0 0 0 0 rgba(251,191,36,0.7)';
+    btn.style.animation = 'heliosAmbientPing 1.4s ease-out infinite';
+    btn.title = `Helios — scanning now (${reason})`;
+
+    // Inject keyframe if not present
+    if (!document.getElementById('heliosAmbientStyle')) {
+        const style = document.createElement('style');
+        style.id = 'heliosAmbientStyle';
+        style.textContent = `
+            @keyframes heliosAmbientPing {
+                0%   { box-shadow: 0 0 0 0 rgba(251,191,36,0.65), 0 0 0 0 rgba(251,191,36,0.3); }
+                70%  { box-shadow: 0 0 0 10px rgba(251,191,36,0), 0 0 0 18px rgba(251,191,36,0); }
+                100% { box-shadow: 0 0 0 0 rgba(251,191,36,0); }
+            }
+            @keyframes heliosAmbientSweep {
+                0%   { opacity: 0; transform: translateX(-100%); }
+                40%  { opacity: 1; }
+                100% { opacity: 0; transform: translateX(200%); }
+            }`;
+        document.head.appendChild(style);
+    }
+
+    // Sweep overlay on the header
+    if (!document.getElementById('heliosSweep')) {
+        const sweep = document.createElement('div');
+        sweep.id = 'heliosSweep';
+        Object.assign(sweep.style, {
+            position: 'fixed', top: '0', left: '0', right: '0',
+            height: '56px', zIndex: '8000', pointerEvents: 'none',
+            background: 'linear-gradient(90deg, transparent 0%, rgba(251,191,36,0.06) 40%, rgba(251,191,36,0.12) 50%, rgba(251,191,36,0.06) 60%, transparent 100%)',
+            animation: 'heliosAmbientSweep 2.8s ease-in-out infinite'
+        });
+        document.body.appendChild(sweep);
+    }
+}
+
+function heliosAmbientStop() {
+    const btn = document.getElementById('heliosBtn');
+    if (btn) {
+        btn.style.boxShadow = '';
+        btn.style.animation = '';
+        btn.title = 'Helios — AI Evidence Bot';
+    }
+    document.getElementById('heliosSweep')?.remove();
+}
+
+// Scheduled scan — runs once per day when the platform is open
+async function heliosScheduledScan() {
+    const key = 'helix_last_sched_scan';
+    const today = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem(key) === today) return;
+
+    // Don't interrupt if clinician is actively using Helios
+    if (HELIOS.open) return;
+
+    heliosLog('info', '🌙 Scheduled overnight scan starting…');
+    heliosAmbientStart('scheduled overnight scan');
+    heliosSetBotStatus('running');
+
+    const runId = crypto.randomUUID();
+    const startedAt = new Date().toISOString();
+    let findings = 0;
+
+    try {
+        await hFetch('helios_bot_runs', {
+            method: 'POST',
+            body: JSON.stringify({
+                id: runId, run_type: 'SCHEDULED', status: 'running',
+                variants_scanned: 0, findings_created: 0, errors: 0,
+                triggered_by: 'scheduler', started_at: startedAt
+            })
+        }).catch(() => {});
+
+        // Scan in small batches to stay non-blocking
+        const variants = STATE.variants;
+        const BATCH = 25;
+        for (let i = 0; i < variants.length; i += BATCH) {
+            const batch = variants.slice(i, i + BATCH);
+            for (const v of batch) {
+                const issues = heliosCheckVariantConsistency(v);
+                for (const issue of issues) {
+                    const { _priority, ...issueData } = issue;
+                    await heliosCreatePendingItem({
+                        ...issueData,
+                        variant_id:   v.id,
+                        variant_name: v.legacy_name,
+                        scan_source:  'SCHEDULED',
+                        scan_run_id:  runId,
+                        priority:     _priority || 'ROUTINE'
+                    });
+                    findings++;
+                }
+            }
+            // Yield to browser between batches
+            await new Promise(r => setTimeout(r, 80));
+        }
+
+        localStorage.setItem(key, today);
+        await hFetch(`helios_bot_runs?id=eq.${runId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+                status: 'completed', variants_scanned: variants.length,
+                findings_created: findings, completed_at: new Date().toISOString()
+            })
+        }).catch(() => {});
+
+        heliosLog('success', `🌙 Scheduled scan complete — ${findings} finding${findings !== 1 ? 's' : ''}`);
+        heliosAmbientStop();
+        heliosSetBotStatus('idle');
+        heliosUpdateBadge();
+
+        if (findings > 0) {
+            showNotification(`Helios overnight scan: ${findings} new finding${findings !== 1 ? 's' : ''} in inbox`, 'warning', 8000);
+        }
+
+        // Also save daily snapshot
+        await helixMaybeSaveSnapshot();
+
+    } catch(e) {
+        heliosAmbientStop();
+        heliosSetBotStatus('idle');
+        heliosLog('error', `🌙 Scheduled scan failed: ${e.message}`);
+    }
+}
+
+// Check every 5 minutes if a scheduled scan is due
+// Fires when: (a) first time today OR (b) it's past midnight and hasn't run
+setInterval(() => {
+    heliosScheduledScan();
+}, 5 * 60 * 1000);
+
+// Also run 8 seconds after page load (gives time for STATE to populate)
+setTimeout(() => heliosScheduledScan(), 8000);
+
+
+// ================================================================
+// IMPROVEMENT 10 — SIDE-BY-SIDE VARIANT COMPARE PANEL
+// Pin any variant from its detail view. A slide-up compare tray
+// shows both variants in parallel columns: classification, ETI,
+// evidence level, validation count, completeness score.
+// Clinically useful for compound heterozygotes.
+// ================================================================
+
+const COMPARE_STATE = { pinned: null };
+
+function helixPinVariant(v) {
+    COMPARE_STATE.pinned = v;
+    helixRenderCompareTray();
+    showNotification(`${v.legacy_name} pinned for comparison — select another variant`, 'info', 4000);
+}
+
+function helixClearPin() {
+    COMPARE_STATE.pinned = null;
+    const tray = document.getElementById('helixCompareTray');
+    if (tray) {
+        tray.style.transform = 'translateY(100%)';
+        setTimeout(() => tray.remove(), 300);
+    }
+    const main = document.getElementById('appMain');
+    if (main) main.style.paddingBottom = '';
+}
+
+function helixRenderCompareTray() {
+    const pinned  = COMPARE_STATE.pinned;
+    const current = STATE.view.selectedVariant;
+    const existing = document.getElementById('helixCompareTray');
+    if (existing) existing.remove();
+    if (!pinned) return;
+
+    const tray = document.createElement('div');
+    tray.id = 'helixCompareTray';
+    Object.assign(tray.style, {
+        position: 'fixed', bottom: '0', left: 'var(--sidebar-width)', right: '0',
+        zIndex: '7000', background: '#07090f',
+        borderTop: '2px solid rgba(41,121,255,0.35)',
+        boxShadow: '0 -8px 32px rgba(0,5,20,0.7)',
+        fontFamily: 'var(--font-body)', transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
+        transform: 'translateY(100%)'
+    });
+
+    const colHTML = (v, label, highlight) => {
+        if (!v) return `<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;color:var(--text-tertiary);font-size:12px;">${label}</div>`;
+        const cls = v.cftr_class;
+        const clsColors = { I:'#f87171',II:'#fb923c',III:'#34d399',IV:'#60a5fa',V:'#c084fc',VI:'#f472b6' };
+        const clsColor = clsColors[cls] || '#5a7aaa';
+        const etiColor = v.eti_prediction === 'responsive' ? '#34d399' : v.eti_prediction === 'non_responsive' ? '#f87171' : '#9ab8e0';
+        const completeness = [v.cftr_class, v.protein_name, v.cdna_name, v.eti_prediction, v.final_determination]
+            .filter(Boolean).length;
+        const valCount = v.validation_count || 0;
+        return `
+        <div style="flex:1;padding:16px 20px;${highlight ? 'background:rgba(41,121,255,0.04);' : ''}border-left:${highlight ? '2px solid rgba(41,121,255,0.3)' : '1px solid rgba(99,140,210,0.13)'};min-width:0;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:8px;">${escapeHTML(label)}</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <div style="width:44px;height:44px;border-radius:10px;background:${clsColor}18;border:1.5px solid ${clsColor}40;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-size:16px;font-weight:800;color:${clsColor};font-family:var(--font-display);line-height:1;">${cls || '?'}</span>
+                    <span style="font-size:7px;color:${clsColor}88;letter-spacing:.06em;">CLASS</span>
+                </div>
+                <div style="min-width:0;">
+                    <div style="font-size:15px;font-weight:700;color:var(--text-primary);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(v.legacy_name)}</div>
+                    <div style="font-size:10.5px;color:var(--text-tertiary);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(v.protein_name || '—')}</div>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(99,140,210,0.1);border-radius:6px;padding:8px 10px;">
+                    <div style="font-size:9px;color:var(--text-tertiary);margin-bottom:3px;letter-spacing:.06em;">ETI</div>
+                    <div style="font-size:12px;font-weight:700;color:${etiColor};">${v.eti_prediction ? v.eti_prediction.replace('_',' ').toUpperCase() : '—'}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(99,140,210,0.1);border-radius:6px;padding:8px 10px;">
+                    <div style="font-size:9px;color:var(--text-tertiary);margin-bottom:3px;letter-spacing:.06em;">Validations</div>
+                    <div style="font-size:12px;font-weight:700;color:${valCount > 0 ? '#34d399' : '#f87171'};">${valCount > 0 ? valCount + ' ✓' : 'None'}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(99,140,210,0.1);border-radius:6px;padding:8px 10px;">
+                    <div style="font-size:9px;color:var(--text-tertiary);margin-bottom:3px;letter-spacing:.06em;">Evidence</div>
+                    <div style="font-size:12px;font-weight:700;color:var(--text-secondary);">${escapeHTML(v.eti_evidence_level || '—')}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(99,140,210,0.1);border-radius:6px;padding:8px 10px;">
+                    <div style="font-size:9px;color:var(--text-tertiary);margin-bottom:3px;letter-spacing:.06em;">Complete</div>
+                    <div style="font-size:12px;font-weight:700;color:${completeness >= 4 ? '#34d399' : completeness >= 2 ? '#fbbf24' : '#f87171'};">${completeness}/5 fields</div>
+                </div>
+            </div>
+            ${v.eti_prediction && pinned?.eti_prediction && v.eti_prediction !== pinned.eti_prediction && v !== pinned ? `
+            <div style="margin-top:8px;padding:7px 10px;border-radius:6px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);font-size:11px;color:#fbbf24;">
+                <i class="fas fa-exclamation-triangle" style="margin-right:5px;font-size:9px;"></i>
+                ETI predictions differ — compound heterozygote eligibility uncertain
+            </div>` : ''}
+        </div>`;
+    };
+
+    const bothPresent = pinned && current && pinned.id !== current.id;
+    const compatible  = bothPresent &&
+        pinned.eti_prediction  === 'responsive' &&
+        current.eti_prediction === 'responsive';
+
+    tray.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(99,140,210,0.13);background:rgba(0,0,0,0.2);">
+            <i class="fas fa-columns" style="font-size:11px;color:var(--brand);"></i>
+            <span style="font-size:11px;font-weight:700;color:var(--text-primary);letter-spacing:-.01em;">Compound Heterozygote Compare</span>
+            ${bothPresent ? `<span style="font-size:10px;padding:2px 8px;border-radius:4px;background:${compatible ? 'rgba(52,211,153,0.1)' : 'rgba(248,113,113,0.1)'};color:${compatible ? '#34d399' : '#f87171'};border:1px solid ${compatible ? 'rgba(52,211,153,0.25)' : 'rgba(248,113,113,0.25)'};">${compatible ? '✓ Both ETI responsive' : '⚡ ETI status differs'}</span>` : ''}
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+                ${current && current.id !== pinned?.id ? `<button onclick="helixPinVariant(STATE.view.selectedVariant)" style="padding:4px 10px;border-radius:5px;border:1px solid rgba(99,140,210,0.2);background:rgba(41,121,255,0.08);color:var(--brand);font-size:10.5px;cursor:pointer;font-family:var(--font-body);">Pin current</button>` : ''}
+                <button onclick="helixClearPin()" style="padding:4px 10px;border-radius:5px;border:1px solid rgba(99,140,210,0.13);background:none;color:var(--text-tertiary);font-size:10.5px;cursor:pointer;font-family:var(--font-body);">✕ Close</button>
+            </div>
+        </div>
+        <div style="display:flex;height:200px;overflow:hidden;">
+            ${colHTML(pinned, 'Pinned variant', false)}
+            ${colHTML(current && current.id !== pinned?.id ? current : null, current && current.id !== pinned?.id ? 'Current variant' : 'Select another variant to compare', true)}
+        </div>`;
+
+    document.body.appendChild(tray);
+    requestAnimationFrame(() => {
+        tray.style.transform = 'translateY(0)';
+        // Push app-main up so content isn't hidden under tray
+        const main = document.getElementById('appMain');
+        if (main) main.style.paddingBottom = '252px';
+    });
+}
+
+// Auto-refresh compare tray when selected variant changes
+const _origRenderVariantDetail = renderVariantDetail;
+// (patched below after definition to avoid hoisting issues)
+
+// Expose on window
+Object.assign(window, {
+    helixPinVariant, helixClearPin, helixRetryOnline,
+    helixLoadTrends, heliosScheduledScan, heliosAmbientStop
 });
 </script>
 </body>
