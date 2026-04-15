@@ -8176,7 +8176,9 @@ const ACMG_CRITERIA = {
         PVS1: { label:'PVS1', name:'Null variant in gene where LOF is disease mechanism', weight:8, auto: v => v.cftr_class === 'I' && ['CF-causing'].includes(v.final_determination) },
         PS1:  { label:'PS1', name:'Same amino acid change as established pathogenic variant', weight:4, auto: null },
         PS3:  { label:'PS3', name:'Well-established functional studies show damaging effect', weight:4, auto: v => (v.evidence_links||[]).some(e => e.study_type === 'functional') },
-        PS4:  { label:'PS4', name:'Prevalence in affected individuals significantly increased', weight:4, auto: v => v.validation_count >= 3 },
+        PS4:  { label:'PS4', name:'Prevalence in affected individuals significantly increased', weight:4,
+                auto: null,
+                note: 'Requires case-control prevalence data (e.g. CFTR2 allele frequency in affected cohort). Cannot be inferred from validation count — manual curator confirmation required.' },
         PM1:  { label:'PM1', name:'Located in mutational hot spot or critical domain', weight:2, auto: null },
         PM2:  { label:'PM2', name:'Absent or at extremely low frequency in population', weight:2, auto: v => v.population_frequency && parseFloat(v.population_frequency) < 0.001 },
         PM4:  { label:'PM4', name:'Protein length change due to in-frame indels', weight:2, auto: v => (v.legacy_name||'').match(/del|ins|dup/i) && v.cftr_class !== 'I' },
@@ -8475,6 +8477,39 @@ function renderVariantDetail(variant, fromSearch) {
                    'Insufficient data to predict ETI response';
     const gapScore = calculateGapScore(variant);
 
+    // ── Haplotype-dependent variant warning (e.g. R117H poly-T context) ──
+    const haploWarning = getHaplotypeDependentWarning(variant);
+    const haploWarningHTML = haploWarning ? `
+        <div style="padding:12px 14px;border-radius:8px;background:rgba(251,191,36,0.07);
+             border:1px solid rgba(251,191,36,0.3);margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <i class="fas fa-dna" style="color:#fbbf24;font-size:13px;"></i>
+                <span style="font-size:11.5px;font-weight:700;color:#fbbf24;letter-spacing:.03em;">
+                    Haplotype-dependent variant
+                </span>
+            </div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;margin-bottom:10px;">
+                ${escapeHTML(haploWarning.warning)}
+            </div>
+            <div style="font-size:10.5px;font-weight:700;color:var(--text-tertiary);
+                 text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">
+                Modifier: ${escapeHTML(haploWarning.modifier)}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+                ${haploWarning.contexts.map(ctx => `
+                <div style="padding:7px 10px;border-radius:6px;background:rgba(255,255,255,0.03);
+                     border:1px solid rgba(255,255,255,0.08);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                        <span style="font-size:11px;font-weight:700;color:var(--text-primary);
+                              font-family:var(--font-mono);">${escapeHTML(ctx.label)}</span>
+                        <span style="font-size:10px;color:var(--text-tertiary);">${escapeHTML(ctx.penetrance)}</span>
+                    </div>
+                    <div style="font-size:10px;color:#60a5fa;">${escapeHTML(ctx.etiBehavior)}</div>
+                    <div style="font-size:10px;color:var(--text-tertiary);margin-top:2px;">${escapeHTML(ctx.clinicalNote)}</div>
+                </div>`).join('')}
+            </div>
+        </div>` : '';
+
     // Evidence links
     const evidenceLinks = variant.evidence_links || [];
     const evidenceHTML = evidenceLinks.length === 0
@@ -8583,6 +8618,9 @@ function renderVariantDetail(variant, fromSearch) {
                     </div>
                 </div>
             </div>
+
+            <!-- Haplotype-dependent warning (e.g. R117H poly-T) — only renders when applicable -->
+            ${haploWarningHTML}
 
             <!-- Therapeutic Prediction -->
             <div class="detail-section">
@@ -11232,6 +11270,25 @@ function calculateGapScore(variant) {
     if (searchHits >= 10) {
         score += GAP_WEIGHTS.high_search_demand;
         recs.push(`High search demand (${searchHits} searches) — prioritise curation`);
+    }
+
+    // ── Clinical demand multiplier ─────────────────────────────────────────
+    // A data gap on a heavily searched variant is far more urgent than the same
+    // gap on one never looked up. Multiply raw score by search volume tier,
+    // but only when data is actually incomplete — complete records unaffected.
+    // Tiers: 1–9 = ×1.0 (no change), 10–29 = ×1.3, 30–59 = ×1.6, 60+ = ×2.0
+    const hasDataGap = missing.length > 0 || evidenceCount === 0;
+    if (hasDataGap && searchHits > 0) {
+        const demandMultiplier =
+            searchHits >= 60 ? 2.0 :
+            searchHits >= 30 ? 1.6 :
+            searchHits >= 10 ? 1.3 : 1.0;
+        if (demandMultiplier > 1.0) {
+            score = Math.round(score * demandMultiplier);
+            if (demandMultiplier >= 1.6) {
+                recs.push(`Clinical demand multiplier ×${demandMultiplier} applied — ${searchHits} searches on incomplete record`);
+            }
+        }
     }
 
     // Cap at 100
@@ -17286,15 +17343,63 @@ function clearSearchHistory() {
 // Full modulator eligibility map. Allele-pair logic. Clinical verdict.
 // ================================================================
 
+// ── Haplotype-dependent variants ──────────────────────────────────────────
+// Variants whose clinical penetrance and ETI eligibility depend on a
+// second-site modifier not captured in the legacy name alone.
+// Extensible: add G551D heterozygous edge cases, 3849+10kbC→T etc. as needed.
+const HAPLOTYPE_DEPENDENT_VARIANTS = {
+    'R117H': {
+        modifier: 'Intron 8 poly-T tract (5T / 7T / 9T) + TG repeat context',
+        contexts: [
+            {
+                label: '5T / 12TG',
+                penetrance: 'High — CF-causing in most patients',
+                etiBehavior: 'Responsive to ivacaftor (Kalydeco) per label',
+                clinicalNote: 'Associated with classic CF phenotype. Trikafta eligibility depends on second allele.'
+            },
+            {
+                label: '7T / 12TG or 7T / 11TG',
+                penetrance: 'Intermediate — CBAVD and mild CF',
+                etiBehavior: 'Partial response — discuss with MDT',
+                clinicalNote: 'Most common R117H context. Phenotype ranges from CBAVD to mild CF. Ivacaftor data limited.'
+            },
+            {
+                label: '9T (any TG repeat)',
+                penetrance: 'Low — likely non-CF-causing',
+                etiBehavior: 'No modulator indication',
+                clinicalNote: 'Considered a benign variant in most guidelines when 9T context is confirmed.'
+            }
+        ],
+        warning: 'R117H penetrance is critically dependent on the intron 8 poly-T tract (5T/7T/9T) and TG repeat context. A single ETI prediction without poly-T data is clinically unreliable. Confirm IVST8 genotype before any treatment decision.'
+    }
+};
+
+function getHaplotypeDependentWarning(variant) {
+    if (!variant) return null;
+    const name = (variant.legacy_name || '').toUpperCase();
+    for (const [pattern, data] of Object.entries(HAPLOTYPE_DEPENDENT_VARIANTS)) {
+        if (name.includes(pattern.toUpperCase())) return { pattern, ...data };
+    }
+    return null;
+}
+
 // Modulator eligibility rules — each modulator lists which class combinations qualify
 const MODULATOR_MAP = {
     'Trikafta (ETI)': {
         description: 'Elexacaftor / Tezacaftor / Ivacaftor',
         eligible: (a1, a2) => {
-            // FDA: at least one F508del allele, OR one responsive allele + any CF-causing second allele
-            const f508 = v => v?.legacy_name?.toUpperCase().includes('F508DEL') || v?.protein_name?.toUpperCase().includes('F508DEL');
-            const responsive = v => v?.eti_prediction === 'responsive';
-            return f508(a1) || f508(a2) || (responsive(a1) && responsive(a2));
+            const f508 = v => v?.legacy_name?.toUpperCase().includes('F508DEL') ||
+                              v?.protein_name?.toUpperCase()?.includes('F508DEL');
+            // EMA/FDA label: F508del homozygous OR F508del + minimal-function second allele.
+            // If both alleles are non-F508del responsive variants, eligibility requires MDT confirmation.
+            const isF508del = f508(a1) || f508(a2);
+            const bothResponsive = a1?.eti_prediction === 'responsive' && a2?.eti_prediction === 'responsive';
+            return isF508del || bothResponsive;
+        },
+        requiresMDTConfirmation: (a1, a2) => {
+            const f508 = v => v?.legacy_name?.toUpperCase().includes('F508DEL') ||
+                              v?.protein_name?.toUpperCase()?.includes('F508DEL');
+            return !f508(a1) && !f508(a2);
         },
         classes: ['II', 'II/III'],
         color: '#34d399',
@@ -17335,6 +17440,12 @@ const MODULATOR_MAP = {
 function computeCompoundHetVerdict(allele1, allele2) {
     if (!allele1 || !allele2) return null;
 
+    // ── ETI uncertainty flags ──────────────────────────────────────────────
+    // If either allele has unknown/null ETI we cannot give a confident verdict.
+    const eti1Unknown = !allele1.eti_prediction || allele1.eti_prediction === 'unknown';
+    const eti2Unknown = !allele2.eti_prediction || allele2.eti_prediction === 'unknown';
+    const hasUnknownEti = eti1Unknown || eti2Unknown;
+
     const eligibleModulators = [];
     const ineligibleModulators = [];
 
@@ -17346,20 +17457,35 @@ function computeCompoundHetVerdict(allele1, allele2) {
         }
     }
 
-    // Dominant allele: the one driving phenotype (worse class = more dominant)
+    // ── Phenotype-dominant allele (most severe class) ──────────────────────
     const classRank = { 'I': 6, 'II': 5, 'III': 4, 'IV': 3, 'V': 2, 'VI': 1 };
     const rank1 = classRank[allele1.cftr_class] || 0;
     const rank2 = classRank[allele2.cftr_class] || 0;
     const dominantAllele = rank1 >= rank2 ? allele1 : allele2;
 
-    // Overall eligibility
+    // ── Treatment-relevant allele (the responsive one, for ETI messaging) ──
+    // For ETI eligibility the clinically relevant allele is the RESPONSIVE one,
+    // not the most severe. dominantAllele is kept for phenotype display only.
+    const responsiveAllele =
+        allele1.eti_prediction === 'responsive' ? allele1 :
+        allele2.eti_prediction === 'responsive' ? allele2 : null;
+
+    // ── Overall eligibility ────────────────────────────────────────────────
     const trikaftaEligible = eligibleModulators.some(m => m.name.includes('Trikafta'));
     const anyEligible = eligibleModulators.length > 0;
 
-    const eligibility_color = trikaftaEligible ? '#34d399' : anyEligible ? '#60a5fa' : '#f87171';
-    const eligibility_label = trikaftaEligible ? '✓ Trikafta candidate' : anyEligible ? '◎ Alternative modulator' : '✗ No current modulator';
+    // If we have unknown ETI on either allele, eligibility is uncertain
+    const eligibilityUncertain = hasUnknownEti && anyEligible;
 
-    // Clinical summary
+    const eligibility_color = trikaftaEligible
+        ? (eligibilityUncertain ? '#fbbf24' : '#34d399')
+        : anyEligible ? '#60a5fa' : '#f87171';
+
+    const eligibility_label = trikaftaEligible
+        ? (eligibilityUncertain ? '? Trikafta — confirm ETI status' : '✓ Trikafta candidate')
+        : anyEligible ? '◎ Alternative modulator' : '✗ No current modulator';
+
+    // ── Clinical summary flags ─────────────────────────────────────────────
     const bothSameClass = allele1.cftr_class && allele1.cftr_class === allele2.cftr_class;
     const etiMismatch = allele1.eti_prediction && allele2.eti_prediction &&
         allele1.eti_prediction !== allele2.eti_prediction;
@@ -17368,10 +17494,15 @@ function computeCompoundHetVerdict(allele1, allele2) {
         eligibleModulators,
         ineligibleModulators,
         dominantAllele,
+        responsiveAllele,       // the allele driving ETI eligibility
         eligibility_color,
         eligibility_label,
         trikaftaEligible,
         anyEligible,
+        eligibilityUncertain,   // true when ETI unknown on either allele
+        hasUnknownEti,
+        eti1Unknown,
+        eti2Unknown,
         bothSameClass,
         etiMismatch,
         allele1,
@@ -17387,16 +17518,49 @@ function renderCompHetVerdictPanel(v) {
             <div>
                 <div style="font-size:11px;font-weight:700;color:${m.color};">${escapeHTML(m.name)}</div>
                 <div style="font-size:10px;color:var(--text-tertiary);">${escapeHTML(m.description)}</div>
+                ${(m.requiresMDTConfirmation && m.requiresMDTConfirmation(v.allele1, v.allele2)) ? `
+                <div style="font-size:10px;color:#fbbf24;margin-top:2px;">
+                    ⚠ No F508del — MDT confirmation required per label
+                </div>` : ''}
             </div>
         </div>`).join('');
 
     const noModHTML = v.eligibleModulators.length === 0 ? `
-        <div style="padding:8px;border-radius:5px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);font-size:11px;color:#f87171;">
+        <div style="padding:8px;border-radius:5px;background:rgba(248,113,113,0.08);
+             border:1px solid rgba(248,113,113,0.2);font-size:11px;color:#f87171;">
             No approved modulators for this allele combination. Consider clinical trial eligibility.
         </div>` : '';
 
+    // Trans assumption disclaimer — always shown
+    const transDisclaimerHTML = `
+        <div style="padding:6px 8px;border-radius:5px;background:rgba(99,140,210,0.06);
+             border:1px solid rgba(99,140,210,0.15);font-size:10px;color:var(--text-tertiary);
+             margin-bottom:8px;line-height:1.5;">
+            <i class="fas fa-info-circle" style="margin-right:4px;color:var(--brand);"></i>
+            Assumes alleles are on <strong style="color:var(--text-secondary);">separate chromosomes (trans)</strong>.
+            Confirm phase with genetic report before clinical decision.
+        </div>`;
+
+    // Unknown ETI warning
+    const unknownEtiHTML = v.hasUnknownEti ? `
+        <div style="padding:6px 8px;border-radius:5px;background:rgba(251,191,36,0.08);
+             border:1px solid rgba(251,191,36,0.25);font-size:10.5px;color:#fbbf24;margin-bottom:8px;">
+            ⚠ ETI status unknown for ${[
+                v.eti1Unknown ? escapeHTML(v.allele1.legacy_name) : null,
+                v.eti2Unknown ? escapeHTML(v.allele2.legacy_name) : null
+            ].filter(Boolean).join(' and ')} — eligibility may be incomplete. Curate ETI prediction before clinical use.
+        </div>` : '';
+
+    // ETI mismatch — references the RESPONSIVE allele, not the dominant one
+    const etiMismatchHTML = (!v.hasUnknownEti && v.etiMismatch) ? `
+        <div style="padding:6px 8px;border-radius:5px;background:rgba(251,191,36,0.08);
+             border:1px solid rgba(251,191,36,0.25);font-size:10.5px;color:#fbbf24;margin-bottom:8px;">
+            ⚠ ETI predictions differ — treatment eligibility driven by responsive allele
+            ${v.responsiveAllele ? `(${escapeHTML(v.responsiveAllele.legacy_name)})` : ''}
+        </div>` : '';
+
     return `
-        <div style="width:260px;flex-shrink:0;padding:14px 16px;border-left:2px solid rgba(41,121,255,0.25);
+        <div style="width:280px;flex-shrink:0;padding:14px 16px;border-left:2px solid rgba(41,121,255,0.25);
              background:rgba(41,121,255,0.03);overflow-y:auto;">
             <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
                  color:var(--text-tertiary);margin-bottom:10px;">Compound het verdict</div>
@@ -17407,12 +17571,9 @@ function renderCompHetVerdictPanel(v) {
                 ${v.bothSameClass ? '· same class homotypic' : '· compound heterozygote'}
             </div>
 
-            ${v.etiMismatch ? `
-            <div style="padding:6px 8px;border-radius:5px;background:rgba(251,191,36,0.08);
-                 border:1px solid rgba(251,191,36,0.25);font-size:10.5px;color:#fbbf24;margin-bottom:8px;">
-                ⚠ ETI predictions differ — eligibility driven by dominant allele
-                (${escapeHTML(v.dominantAllele.legacy_name)})
-            </div>` : ''}
+            ${transDisclaimerHTML}
+            ${unknownEtiHTML}
+            ${etiMismatchHTML}
 
             <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
                  color:var(--text-tertiary);margin-bottom:6px;">Modulator eligibility</div>
@@ -17420,8 +17581,11 @@ function renderCompHetVerdictPanel(v) {
 
             <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);
                  font-size:10px;color:var(--text-tertiary);line-height:1.6;">
-                Dominant allele: <strong style="color:var(--text-secondary);">${escapeHTML(v.dominantAllele.legacy_name)}</strong>
+                Phenotype-dominant: <strong style="color:var(--text-secondary);">${escapeHTML(v.dominantAllele.legacy_name)}</strong>
                 (Class ${escapeHTML(v.dominantAllele.cftr_class||'?')})
+                ${v.responsiveAllele && v.responsiveAllele.legacy_name !== v.dominantAllele.legacy_name ? `<br>
+                Treatment-relevant: <strong style="color:#34d399;">${escapeHTML(v.responsiveAllele.legacy_name)}</strong>
+                (ETI responsive)` : ''}
             </div>
         </div>`;
 }
