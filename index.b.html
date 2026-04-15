@@ -3182,6 +3182,136 @@
         }
 
         /* ============================================================
+           EXTERNAL LOOKUP SYSTEM — COMPLETE STYLES
+           ============================================================ */
+
+        @keyframes neuSpin       { to { transform: rotate(360deg); } }
+        @keyframes neuPulse      { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+        @keyframes lookupTrayIn  { from{opacity:0;transform:translateY(14px) scale(0.97);} to{opacity:1;transform:none;} }
+        @keyframes lookupModalIn { from{opacity:0;transform:scale(0.95) translateY(16px);} to{opacity:1;transform:none;} }
+        @keyframes lookupBtnPop  { 0%{opacity:0;transform:translateY(6px);} 100%{opacity:1;transform:none;} }
+        @keyframes lookupSrcBlink{ 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+
+        /* Magic button in empty state */
+        .neu-lookup-btn {
+            display:flex; align-items:center; gap:9px;
+            padding:12px 18px;
+            background:linear-gradient(135deg,rgba(41,121,255,0.1),rgba(41,121,255,0.05));
+            border:1px solid rgba(41,121,255,0.3);
+            border-radius:9px;
+            color:#93c5fd;
+            font-size:13px;
+            font-family:var(--font-body);
+            cursor:pointer;
+            width:100%;
+            justify-content:center;
+            transition:all 0.2s;
+            animation: lookupBtnPop 0.3s cubic-bezier(0.34,1.5,0.64,1);
+        }
+        .neu-lookup-btn:hover {
+            background:linear-gradient(135deg,rgba(41,121,255,0.2),rgba(41,121,255,0.1));
+            border-color:rgba(41,121,255,0.55);
+            color:#c7deff;
+            transform:translateY(-1px);
+            box-shadow:0 4px 16px rgba(41,121,255,0.15);
+        }
+        .neu-lookup-running {
+            display:flex; align-items:center; gap:8px;
+            padding:10px 14px;
+            background:rgba(41,121,255,0.07);
+            border:1px solid rgba(41,121,255,0.2);
+            border-radius:8px;
+            font-size:12px; color:#60a5fa;
+            animation: lookupBtnPop 0.25s ease;
+        }
+
+        /* Job tray — floating bottom-right */
+        #lookupJobTray {
+            position:fixed; bottom:44px; right:20px;
+            z-index:2500;
+            min-width:280px; max-width:340px;
+            background:#0d1526;
+            border:1px solid rgba(41,121,255,0.28);
+            border-radius:11px;
+            box-shadow:0 8px 32px rgba(0,5,20,0.75), 0 0 0 1px rgba(41,121,255,0.08);
+            overflow:hidden;
+            display:none;
+        }
+        #lookupJobTray.visible {
+            display:block;
+            animation:lookupTrayIn 0.28s cubic-bezier(0.34,1.4,0.64,1);
+        }
+
+        /* Result overlay */
+        #lookupResultOverlay {
+            position:fixed; inset:0; z-index:3000;
+            background:rgba(4,8,15,0.82);
+            backdrop-filter:blur(6px);
+            align-items:center; justify-content:center;
+            padding:20px;
+            display:none;
+        }
+        #lookupResultOverlay.visible {
+            display:flex;
+        }
+        #lookupResultModal {
+            width:min(600px,96vw);
+            max-height:90vh;
+            background:#0d1526;
+            border:1px solid rgba(99,140,210,0.22);
+            border-radius:14px;
+            box-shadow:0 24px 64px rgba(0,5,20,0.9);
+            overflow:hidden;
+            display:flex; flex-direction:column;
+            animation:lookupModalIn 0.3s cubic-bezier(0.34,1.2,0.64,1);
+        }
+
+        /* Confidence badges */
+        .lk-badge { font-size:10px;padding:2px 7px;border-radius:999px;font-weight:600;white-space:nowrap;font-family:var(--font-mono); }
+        .lk-high  { background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.28);color:#6ee7b7; }
+        .lk-med   { background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.28);color:#fcd34d; }
+        .lk-low   { background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.28);color:#fca5a5; }
+        .lk-none  { background:rgba(99,140,210,0.07);border:1px solid rgba(99,140,210,0.18);color:#5a7aaa; }
+
+        /* Field rows */
+        .lk-row   { display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid rgba(99,140,210,0.08); }
+        .lk-row:last-child { border-bottom:none; }
+        .lk-label { font-size:10px;color:var(--text-tertiary);min-width:132px;padding-top:3px;flex-shrink:0;font-weight:600;text-transform:uppercase;letter-spacing:0.05em; }
+        .lk-val   { font-size:13px;color:var(--text-primary);flex:1;font-weight:500;line-height:1.4; }
+        .lk-val.lk-missing { color:var(--text-tertiary);font-weight:400;font-style:italic; }
+        .lk-sub   { font-size:11px;color:var(--text-tertiary);margin-top:2px;font-weight:400; }
+
+        /* Tabs */
+        .lk-tab { font-size:12px;padding:5px 13px;border-radius:999px;cursor:pointer;border:1px solid transparent;color:var(--text-tertiary);background:none;font-family:var(--font-body);transition:all 0.15s; }
+        .lk-tab.active { background:rgba(255,255,255,0.07);border-color:rgba(99,140,210,0.22);color:var(--text-primary);font-weight:600; }
+        .lk-tab:hover:not(.active) { color:var(--text-secondary); }
+
+        /* Source chips */
+        .lk-chip { display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:10px;border:1px solid rgba(99,140,210,0.18);color:var(--text-secondary);background:rgba(99,140,210,0.06);cursor:pointer;text-decoration:none;font-family:var(--font-mono);transition:all 0.15s; }
+        .lk-chip:hover { border-color:rgba(41,121,255,0.4);color:#93c5fd; }
+
+        /* Action buttons */
+        .lk-btn  { flex:1;padding:10px 0;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;font-family:var(--font-body);transition:all 0.15s; }
+        .lk-discard { background:none;border:1px solid rgba(248,113,113,0.2);color:#f87171; }
+        .lk-discard:hover { background:rgba(248,113,113,0.08); }
+        .lk-edit    { background:none;border:1px solid rgba(99,140,210,0.22);color:var(--text-secondary); }
+        .lk-edit:hover { background:rgba(99,140,210,0.08);color:var(--text-primary); }
+        .lk-save    { background:rgba(41,121,255,0.14);border:1px solid rgba(41,121,255,0.38);color:#93c5fd; }
+        .lk-save:hover { background:rgba(41,121,255,0.24); }
+        .lk-manual  { background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.28);color:#6ee7b7; }
+        .lk-manual:hover { background:rgba(52,211,153,0.18); }
+        .lk-retry   { background:none;border:1px solid rgba(251,191,36,0.25);color:#fbbf24; }
+        .lk-retry:hover { background:rgba(251,191,36,0.08); }
+
+        .lk-sec-title { font-size:10px;font-weight:700;color:var(--text-tertiary);letter-spacing:0.08em;text-transform:uppercase;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid rgba(99,140,210,0.1); }
+
+        /* Source ping dots in tray */
+        .lk-src-dot { width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:1px; }
+        .lk-src-dot.active { background:#2979ff;animation:neuPulse 1.2s ease-in-out infinite; }
+        .lk-src-dot.done   { background:#34d399; }
+        .lk-src-dot.wait   { background:rgba(99,140,210,0.3); }
+
+        /* ============================================================
            RESPONSIVE — TABLET & MOBILE
            ============================================================ */
 
@@ -7939,11 +8069,33 @@ function renderVariantList() {
     }
 
     if (page.length === 0) {
+        const escapedQ   = escapeHTML(q || '');
+        const isRunning  = LOOKUP_JOB_STATE.activeQuery === q && LOOKUP_JOB_STATE.status === 'running';
+        const isDone     = LOOKUP_JOB_STATE.activeQuery === q && (LOOKUP_JOB_STATE.status === 'done' || LOOKUP_JOB_STATE.status === 'notfound');
         container.innerHTML = `
-            <div class="list-empty">
+            <div class="list-empty" style="padding:22px 16px 18px;">
                 <div class="list-empty-icon"><i class="fas fa-search"></i></div>
-                <p style="font-family:var(--font-mono);font-size:13px;color:var(--text-secondary);">"${escapeHTML(q || '')}"</p>
-                <p style="margin-top:6px;font-size:11px;color:var(--text-tertiary);">not in NeumuacFQ — robotic search queued</p>
+                <p style="font-family:var(--font-mono);font-size:13px;color:var(--text-secondary);">"${escapedQ}"</p>
+                <p style="margin-top:4px;font-size:11px;color:var(--text-tertiary);">not in local database</p>
+                ${isRunning ? `
+                <div class="neu-lookup-running" style="margin-top:16px;">
+                    <div style="width:10px;height:10px;border:2px solid rgba(41,121,255,0.3);border-top-color:#2979ff;border-radius:50%;animation:neuSpin 0.8s linear infinite;flex-shrink:0;"></div>
+                    <span style="flex:1;">Searching ClinVar · CFTR2 · PubMed…</span>
+                    <span style="cursor:pointer;color:#60a5fa;font-size:11px;" onclick="lookupPushToBackground('${escapedQ}')">push to bg →</span>
+                </div>` : isDone ? `
+                <button onclick="lookupOpenModal()" class="neu-lookup-btn" style="margin-top:16px;background:linear-gradient(135deg,rgba(52,211,153,0.1),rgba(52,211,153,0.05));border-color:rgba(52,211,153,0.3);color:#6ee7b7;">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#34d399" stroke-width="1.3"/><path d="M5.5 8l2 2 3-3" stroke="#34d399" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span style="font-weight:500;">Result ready — click to review</span>
+                </button>` : `
+                <button onclick="triggerExternalLookup('${escapedQ}')" class="neu-lookup-btn" style="margin-top:16px;">
+                    <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
+                        <circle cx="10" cy="10" r="7.5" stroke="#2979ff" stroke-width="1.4"/>
+                        <path d="M10 6.5v3.5l2.5 2.5" stroke="#2979ff" stroke-width="1.4" stroke-linecap="round"/>
+                        <circle cx="16" cy="4" r="2.8" fill="#34d399"/>
+                    </svg>
+                    <span style="font-weight:500;">Look up <span style="font-family:var(--font-mono);color:#c7deff;">"${escapedQ}"</span> externally</span>
+                </button>
+                <p style="margin-top:7px;font-size:10px;color:var(--text-tertiary);text-align:center;letter-spacing:0.03em;">ClinVar · CFTR2 · PubMed · Runs in background</p>`}
             </div>`;
         return;
     }
@@ -8024,7 +8176,9 @@ const ACMG_CRITERIA = {
         PVS1: { label:'PVS1', name:'Null variant in gene where LOF is disease mechanism', weight:8, auto: v => v.cftr_class === 'I' && ['CF-causing'].includes(v.final_determination) },
         PS1:  { label:'PS1', name:'Same amino acid change as established pathogenic variant', weight:4, auto: null },
         PS3:  { label:'PS3', name:'Well-established functional studies show damaging effect', weight:4, auto: v => (v.evidence_links||[]).some(e => e.study_type === 'functional') },
-        PS4:  { label:'PS4', name:'Prevalence in affected individuals significantly increased', weight:4, auto: v => v.validation_count >= 3 },
+        PS4:  { label:'PS4', name:'Prevalence in affected individuals significantly increased', weight:4,
+                auto: null,
+                note: 'Requires case-control prevalence data (e.g. CFTR2 allele frequency in affected cohort). Cannot be inferred from validation count — manual curator confirmation required.' },
         PM1:  { label:'PM1', name:'Located in mutational hot spot or critical domain', weight:2, auto: null },
         PM2:  { label:'PM2', name:'Absent or at extremely low frequency in population', weight:2, auto: v => v.population_frequency && parseFloat(v.population_frequency) < 0.001 },
         PM4:  { label:'PM4', name:'Protein length change due to in-frame indels', weight:2, auto: v => (v.legacy_name||'').match(/del|ins|dup/i) && v.cftr_class !== 'I' },
@@ -8323,6 +8477,39 @@ function renderVariantDetail(variant, fromSearch) {
                    'Insufficient data to predict ETI response';
     const gapScore = calculateGapScore(variant);
 
+    // ── Haplotype-dependent variant warning (e.g. R117H poly-T context) ──
+    const haploWarning = getHaplotypeDependentWarning(variant);
+    const haploWarningHTML = haploWarning ? `
+        <div style="padding:12px 14px;border-radius:8px;background:rgba(251,191,36,0.07);
+             border:1px solid rgba(251,191,36,0.3);margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <i class="fas fa-dna" style="color:#fbbf24;font-size:13px;"></i>
+                <span style="font-size:11.5px;font-weight:700;color:#fbbf24;letter-spacing:.03em;">
+                    Haplotype-dependent variant
+                </span>
+            </div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;margin-bottom:10px;">
+                ${escapeHTML(haploWarning.warning)}
+            </div>
+            <div style="font-size:10.5px;font-weight:700;color:var(--text-tertiary);
+                 text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">
+                Modifier: ${escapeHTML(haploWarning.modifier)}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+                ${haploWarning.contexts.map(ctx => `
+                <div style="padding:7px 10px;border-radius:6px;background:rgba(255,255,255,0.03);
+                     border:1px solid rgba(255,255,255,0.08);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                        <span style="font-size:11px;font-weight:700;color:var(--text-primary);
+                              font-family:var(--font-mono);">${escapeHTML(ctx.label)}</span>
+                        <span style="font-size:10px;color:var(--text-tertiary);">${escapeHTML(ctx.penetrance)}</span>
+                    </div>
+                    <div style="font-size:10px;color:#60a5fa;">${escapeHTML(ctx.etiBehavior)}</div>
+                    <div style="font-size:10px;color:var(--text-tertiary);margin-top:2px;">${escapeHTML(ctx.clinicalNote)}</div>
+                </div>`).join('')}
+            </div>
+        </div>` : '';
+
     // Evidence links
     const evidenceLinks = variant.evidence_links || [];
     const evidenceHTML = evidenceLinks.length === 0
@@ -8431,6 +8618,9 @@ function renderVariantDetail(variant, fromSearch) {
                     </div>
                 </div>
             </div>
+
+            <!-- Haplotype-dependent warning (e.g. R117H poly-T) — only renders when applicable -->
+            ${haploWarningHTML}
 
             <!-- Therapeutic Prediction -->
             <div class="detail-section">
@@ -11080,6 +11270,25 @@ function calculateGapScore(variant) {
     if (searchHits >= 10) {
         score += GAP_WEIGHTS.high_search_demand;
         recs.push(`High search demand (${searchHits} searches) — prioritise curation`);
+    }
+
+    // ── Clinical demand multiplier ─────────────────────────────────────────
+    // A data gap on a heavily searched variant is far more urgent than the same
+    // gap on one never looked up. Multiply raw score by search volume tier,
+    // but only when data is actually incomplete — complete records unaffected.
+    // Tiers: 1–9 = ×1.0 (no change), 10–29 = ×1.3, 30–59 = ×1.6, 60+ = ×2.0
+    const hasDataGap = missing.length > 0 || evidenceCount === 0;
+    if (hasDataGap && searchHits > 0) {
+        const demandMultiplier =
+            searchHits >= 60 ? 2.0 :
+            searchHits >= 30 ? 1.6 :
+            searchHits >= 10 ? 1.3 : 1.0;
+        if (demandMultiplier > 1.0) {
+            score = Math.round(score * demandMultiplier);
+            if (demandMultiplier >= 1.6) {
+                recs.push(`Clinical demand multiplier ×${demandMultiplier} applied — ${searchHits} searches on incomplete record`);
+            }
+        }
     }
 
     // Cap at 100
@@ -17134,15 +17343,63 @@ function clearSearchHistory() {
 // Full modulator eligibility map. Allele-pair logic. Clinical verdict.
 // ================================================================
 
+// ── Haplotype-dependent variants ──────────────────────────────────────────
+// Variants whose clinical penetrance and ETI eligibility depend on a
+// second-site modifier not captured in the legacy name alone.
+// Extensible: add G551D heterozygous edge cases, 3849+10kbC→T etc. as needed.
+const HAPLOTYPE_DEPENDENT_VARIANTS = {
+    'R117H': {
+        modifier: 'Intron 8 poly-T tract (5T / 7T / 9T) + TG repeat context',
+        contexts: [
+            {
+                label: '5T / 12TG',
+                penetrance: 'High — CF-causing in most patients',
+                etiBehavior: 'Responsive to ivacaftor (Kalydeco) per label',
+                clinicalNote: 'Associated with classic CF phenotype. Trikafta eligibility depends on second allele.'
+            },
+            {
+                label: '7T / 12TG or 7T / 11TG',
+                penetrance: 'Intermediate — CBAVD and mild CF',
+                etiBehavior: 'Partial response — discuss with MDT',
+                clinicalNote: 'Most common R117H context. Phenotype ranges from CBAVD to mild CF. Ivacaftor data limited.'
+            },
+            {
+                label: '9T (any TG repeat)',
+                penetrance: 'Low — likely non-CF-causing',
+                etiBehavior: 'No modulator indication',
+                clinicalNote: 'Considered a benign variant in most guidelines when 9T context is confirmed.'
+            }
+        ],
+        warning: 'R117H penetrance is critically dependent on the intron 8 poly-T tract (5T/7T/9T) and TG repeat context. A single ETI prediction without poly-T data is clinically unreliable. Confirm IVST8 genotype before any treatment decision.'
+    }
+};
+
+function getHaplotypeDependentWarning(variant) {
+    if (!variant) return null;
+    const name = (variant.legacy_name || '').toUpperCase();
+    for (const [pattern, data] of Object.entries(HAPLOTYPE_DEPENDENT_VARIANTS)) {
+        if (name.includes(pattern.toUpperCase())) return { pattern, ...data };
+    }
+    return null;
+}
+
 // Modulator eligibility rules — each modulator lists which class combinations qualify
 const MODULATOR_MAP = {
     'Trikafta (ETI)': {
         description: 'Elexacaftor / Tezacaftor / Ivacaftor',
         eligible: (a1, a2) => {
-            // FDA: at least one F508del allele, OR one responsive allele + any CF-causing second allele
-            const f508 = v => v?.legacy_name?.toUpperCase().includes('F508DEL') || v?.protein_name?.toUpperCase().includes('F508DEL');
-            const responsive = v => v?.eti_prediction === 'responsive';
-            return f508(a1) || f508(a2) || (responsive(a1) && responsive(a2));
+            const f508 = v => v?.legacy_name?.toUpperCase().includes('F508DEL') ||
+                              v?.protein_name?.toUpperCase()?.includes('F508DEL');
+            // EMA/FDA label: F508del homozygous OR F508del + minimal-function second allele.
+            // If both alleles are non-F508del responsive variants, eligibility requires MDT confirmation.
+            const isF508del = f508(a1) || f508(a2);
+            const bothResponsive = a1?.eti_prediction === 'responsive' && a2?.eti_prediction === 'responsive';
+            return isF508del || bothResponsive;
+        },
+        requiresMDTConfirmation: (a1, a2) => {
+            const f508 = v => v?.legacy_name?.toUpperCase().includes('F508DEL') ||
+                              v?.protein_name?.toUpperCase()?.includes('F508DEL');
+            return !f508(a1) && !f508(a2);
         },
         classes: ['II', 'II/III'],
         color: '#34d399',
@@ -17183,6 +17440,12 @@ const MODULATOR_MAP = {
 function computeCompoundHetVerdict(allele1, allele2) {
     if (!allele1 || !allele2) return null;
 
+    // ── ETI uncertainty flags ──────────────────────────────────────────────
+    // If either allele has unknown/null ETI we cannot give a confident verdict.
+    const eti1Unknown = !allele1.eti_prediction || allele1.eti_prediction === 'unknown';
+    const eti2Unknown = !allele2.eti_prediction || allele2.eti_prediction === 'unknown';
+    const hasUnknownEti = eti1Unknown || eti2Unknown;
+
     const eligibleModulators = [];
     const ineligibleModulators = [];
 
@@ -17194,20 +17457,35 @@ function computeCompoundHetVerdict(allele1, allele2) {
         }
     }
 
-    // Dominant allele: the one driving phenotype (worse class = more dominant)
+    // ── Phenotype-dominant allele (most severe class) ──────────────────────
     const classRank = { 'I': 6, 'II': 5, 'III': 4, 'IV': 3, 'V': 2, 'VI': 1 };
     const rank1 = classRank[allele1.cftr_class] || 0;
     const rank2 = classRank[allele2.cftr_class] || 0;
     const dominantAllele = rank1 >= rank2 ? allele1 : allele2;
 
-    // Overall eligibility
+    // ── Treatment-relevant allele (the responsive one, for ETI messaging) ──
+    // For ETI eligibility the clinically relevant allele is the RESPONSIVE one,
+    // not the most severe. dominantAllele is kept for phenotype display only.
+    const responsiveAllele =
+        allele1.eti_prediction === 'responsive' ? allele1 :
+        allele2.eti_prediction === 'responsive' ? allele2 : null;
+
+    // ── Overall eligibility ────────────────────────────────────────────────
     const trikaftaEligible = eligibleModulators.some(m => m.name.includes('Trikafta'));
     const anyEligible = eligibleModulators.length > 0;
 
-    const eligibility_color = trikaftaEligible ? '#34d399' : anyEligible ? '#60a5fa' : '#f87171';
-    const eligibility_label = trikaftaEligible ? '✓ Trikafta candidate' : anyEligible ? '◎ Alternative modulator' : '✗ No current modulator';
+    // If we have unknown ETI on either allele, eligibility is uncertain
+    const eligibilityUncertain = hasUnknownEti && anyEligible;
 
-    // Clinical summary
+    const eligibility_color = trikaftaEligible
+        ? (eligibilityUncertain ? '#fbbf24' : '#34d399')
+        : anyEligible ? '#60a5fa' : '#f87171';
+
+    const eligibility_label = trikaftaEligible
+        ? (eligibilityUncertain ? '? Trikafta — confirm ETI status' : '✓ Trikafta candidate')
+        : anyEligible ? '◎ Alternative modulator' : '✗ No current modulator';
+
+    // ── Clinical summary flags ─────────────────────────────────────────────
     const bothSameClass = allele1.cftr_class && allele1.cftr_class === allele2.cftr_class;
     const etiMismatch = allele1.eti_prediction && allele2.eti_prediction &&
         allele1.eti_prediction !== allele2.eti_prediction;
@@ -17216,10 +17494,15 @@ function computeCompoundHetVerdict(allele1, allele2) {
         eligibleModulators,
         ineligibleModulators,
         dominantAllele,
+        responsiveAllele,       // the allele driving ETI eligibility
         eligibility_color,
         eligibility_label,
         trikaftaEligible,
         anyEligible,
+        eligibilityUncertain,   // true when ETI unknown on either allele
+        hasUnknownEti,
+        eti1Unknown,
+        eti2Unknown,
         bothSameClass,
         etiMismatch,
         allele1,
@@ -17235,16 +17518,49 @@ function renderCompHetVerdictPanel(v) {
             <div>
                 <div style="font-size:11px;font-weight:700;color:${m.color};">${escapeHTML(m.name)}</div>
                 <div style="font-size:10px;color:var(--text-tertiary);">${escapeHTML(m.description)}</div>
+                ${(m.requiresMDTConfirmation && m.requiresMDTConfirmation(v.allele1, v.allele2)) ? `
+                <div style="font-size:10px;color:#fbbf24;margin-top:2px;">
+                    ⚠ No F508del — MDT confirmation required per label
+                </div>` : ''}
             </div>
         </div>`).join('');
 
     const noModHTML = v.eligibleModulators.length === 0 ? `
-        <div style="padding:8px;border-radius:5px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);font-size:11px;color:#f87171;">
+        <div style="padding:8px;border-radius:5px;background:rgba(248,113,113,0.08);
+             border:1px solid rgba(248,113,113,0.2);font-size:11px;color:#f87171;">
             No approved modulators for this allele combination. Consider clinical trial eligibility.
         </div>` : '';
 
+    // Trans assumption disclaimer — always shown
+    const transDisclaimerHTML = `
+        <div style="padding:6px 8px;border-radius:5px;background:rgba(99,140,210,0.06);
+             border:1px solid rgba(99,140,210,0.15);font-size:10px;color:var(--text-tertiary);
+             margin-bottom:8px;line-height:1.5;">
+            <i class="fas fa-info-circle" style="margin-right:4px;color:var(--brand);"></i>
+            Assumes alleles are on <strong style="color:var(--text-secondary);">separate chromosomes (trans)</strong>.
+            Confirm phase with genetic report before clinical decision.
+        </div>`;
+
+    // Unknown ETI warning
+    const unknownEtiHTML = v.hasUnknownEti ? `
+        <div style="padding:6px 8px;border-radius:5px;background:rgba(251,191,36,0.08);
+             border:1px solid rgba(251,191,36,0.25);font-size:10.5px;color:#fbbf24;margin-bottom:8px;">
+            ⚠ ETI status unknown for ${[
+                v.eti1Unknown ? escapeHTML(v.allele1.legacy_name) : null,
+                v.eti2Unknown ? escapeHTML(v.allele2.legacy_name) : null
+            ].filter(Boolean).join(' and ')} — eligibility may be incomplete. Curate ETI prediction before clinical use.
+        </div>` : '';
+
+    // ETI mismatch — references the RESPONSIVE allele, not the dominant one
+    const etiMismatchHTML = (!v.hasUnknownEti && v.etiMismatch) ? `
+        <div style="padding:6px 8px;border-radius:5px;background:rgba(251,191,36,0.08);
+             border:1px solid rgba(251,191,36,0.25);font-size:10.5px;color:#fbbf24;margin-bottom:8px;">
+            ⚠ ETI predictions differ — treatment eligibility driven by responsive allele
+            ${v.responsiveAllele ? `(${escapeHTML(v.responsiveAllele.legacy_name)})` : ''}
+        </div>` : '';
+
     return `
-        <div style="width:260px;flex-shrink:0;padding:14px 16px;border-left:2px solid rgba(41,121,255,0.25);
+        <div style="width:280px;flex-shrink:0;padding:14px 16px;border-left:2px solid rgba(41,121,255,0.25);
              background:rgba(41,121,255,0.03);overflow-y:auto;">
             <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
                  color:var(--text-tertiary);margin-bottom:10px;">Compound het verdict</div>
@@ -17255,12 +17571,9 @@ function renderCompHetVerdictPanel(v) {
                 ${v.bothSameClass ? '· same class homotypic' : '· compound heterozygote'}
             </div>
 
-            ${v.etiMismatch ? `
-            <div style="padding:6px 8px;border-radius:5px;background:rgba(251,191,36,0.08);
-                 border:1px solid rgba(251,191,36,0.25);font-size:10.5px;color:#fbbf24;margin-bottom:8px;">
-                ⚠ ETI predictions differ — eligibility driven by dominant allele
-                (${escapeHTML(v.dominantAllele.legacy_name)})
-            </div>` : ''}
+            ${transDisclaimerHTML}
+            ${unknownEtiHTML}
+            ${etiMismatchHTML}
 
             <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
                  color:var(--text-tertiary);margin-bottom:6px;">Modulator eligibility</div>
@@ -17268,8 +17581,11 @@ function renderCompHetVerdictPanel(v) {
 
             <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);
                  font-size:10px;color:var(--text-tertiary);line-height:1.6;">
-                Dominant allele: <strong style="color:var(--text-secondary);">${escapeHTML(v.dominantAllele.legacy_name)}</strong>
+                Phenotype-dominant: <strong style="color:var(--text-secondary);">${escapeHTML(v.dominantAllele.legacy_name)}</strong>
                 (Class ${escapeHTML(v.dominantAllele.cftr_class||'?')})
+                ${v.responsiveAllele && v.responsiveAllele.legacy_name !== v.dominantAllele.legacy_name ? `<br>
+                Treatment-relevant: <strong style="color:#34d399;">${escapeHTML(v.responsiveAllele.legacy_name)}</strong>
+                (ETI responsive)` : ''}
             </div>
         </div>`;
 }
@@ -18720,7 +19036,696 @@ Object.assign(window, { renderCharts, helixChartDrillFilter });
 document.addEventListener('DOMContentLoaded', () => {
     helixRealtimeInjectIndicator();
     setTimeout(helixRealtimeConnect, 2500);
+    lookupInitTrayDOM();
+    lookupInitOverlayDOM();
 });
+
+// ================================================================
+//  EXTERNAL LOOKUP SYSTEM — Complete implementation
+//  Covers: trigger → background job → 4-state result popup → save
+// ================================================================
+
+const LOOKUP_JOB_STATE = {
+    activeQuery:  null,
+    status:       'idle',  // idle | running | done | notfound | error
+    result:       null,
+    trayVisible:  false,
+};
+
+// ── Source definitions ──────────────────────────────────────────
+const LOOKUP_SOURCES = [
+    { id: 'clinvar', label: 'ClinVar',  url: 'https://www.ncbi.nlm.nih.gov/clinvar' },
+    { id: 'cftr2',   label: 'CFTR2',    url: 'https://www.cftr2.org' },
+    { id: 'pubmed',  label: 'PubMed',   url: 'https://pubmed.ncbi.nlm.nih.gov' },
+];
+
+// ── DOM creation helpers ────────────────────────────────────────
+function lookupInitTrayDOM() {
+    if (document.getElementById('lookupJobTray')) return;
+    const tray = document.createElement('div');
+    tray.id = 'lookupJobTray';
+    tray.innerHTML = `
+        <div style="padding:11px 14px 10px;border-bottom:1px solid rgba(99,140,210,0.13);display:flex;align-items:center;gap:9px;">
+            <div id="lookupTrayDot" style="width:8px;height:8px;border-radius:50%;background:#2979ff;flex-shrink:0;animation:neuPulse 1.4s ease-in-out infinite;"></div>
+            <span id="lookupTrayTitle" style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text-primary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+            <button onclick="lookupCloseTray()" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:14px;line-height:1;padding:2px 4px;">✕</button>
+        </div>
+        <div id="lookupTrayBody" style="padding:12px 14px;font-size:12px;color:var(--text-secondary);"></div>`;
+    document.body.appendChild(tray);
+}
+
+function lookupInitOverlayDOM() {
+    if (document.getElementById('lookupResultOverlay')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'lookupResultOverlay';
+    overlay.addEventListener('click', e => { if (e.target === overlay) lookupCloseModal(); });
+    overlay.innerHTML = `
+        <div id="lookupResultModal">
+            <div id="lookupModalHeader" style="padding:16px 20px 14px;border-bottom:1px solid rgba(99,140,210,0.13);flex-shrink:0;"></div>
+            <div id="lookupModalBody" style="overflow-y:auto;flex:1;min-height:0;"></div>
+            <div id="lookupModalFooter" style="padding:12px 20px;border-top:1px solid rgba(99,140,210,0.1);flex-shrink:0;display:flex;gap:8px;background:#0a1220;"></div>
+        </div>`;
+    document.body.appendChild(overlay);
+}
+
+// ── Trigger entry point (called from empty-state button) ────────
+function triggerExternalLookup(query) {
+    if (!query || query.trim() === '') return;
+    query = query.trim();
+    if (LOOKUP_JOB_STATE.status === 'running' && LOOKUP_JOB_STATE.activeQuery === query) return;
+
+    LOOKUP_JOB_STATE.activeQuery  = query;
+    LOOKUP_JOB_STATE.status       = 'running';
+    LOOKUP_JOB_STATE.result       = null;
+
+    // Show tray immediately
+    lookupShowTray(query, 'running');
+    // Re-render the list empty state to show spinner
+    renderVariantList();
+
+    // Run the actual lookup (non-blocking, fire-and-forget)
+    _lookupExecute(query).then(result => {
+        LOOKUP_JOB_STATE.status = result.found ? 'done' : 'notfound';
+        LOOKUP_JOB_STATE.result = result;
+        lookupOnComplete(query, result);
+    }).catch(err => {
+        LOOKUP_JOB_STATE.status = 'error';
+        lookupOnError(query, err);
+    });
+}
+
+// ── Push to background ──────────────────────────────────────────
+function lookupPushToBackground(query) {
+    // Tray is already showing; just tell user they can navigate away
+    showNotification(`Lookup for "${query}" running in background — tray will pulse when ready`, 'info', 4000);
+    renderVariantList(); // removes running indicator from list; tray persists
+}
+
+// ── Core async lookup ───────────────────────────────────────────
+async function _lookupExecute(query) {
+    // Progress updates via tray
+    lookupUpdateTraySource('clinvar', 'active');
+
+    const [clinvarData, cftr2Data, pubmedData] = await Promise.allSettled([
+        _lookupClinVar(query),
+        _lookupCFTR2(query),
+        _lookupPubMed(query),
+    ]);
+
+    const clinvar = clinvarData.status === 'fulfilled' ? clinvarData.value : null;
+    const cftr2   = cftr2Data.status === 'fulfilled'   ? cftr2Data.value   : null;
+    const pubmed  = pubmedData.status === 'fulfilled'  ? pubmedData.value  : null;
+
+    lookupUpdateTraySource('clinvar', 'done');
+    lookupUpdateTraySource('cftr2',   cftr2  ? 'done' : 'wait');
+    lookupUpdateTraySource('pubmed',  pubmed ? 'done' : 'wait');
+
+    const found = !!(clinvar || cftr2 || pubmed?.length);
+
+    if (!found) {
+        return { found: false, query, sources: [] };
+    }
+
+    // Merge & score evidence
+    const result = _lookupBuildResult(query, clinvar, cftr2, pubmed || []);
+    return result;
+}
+
+// ── ClinVar fetch (real NCBI E-utilities, public API no key needed) ──
+async function _lookupClinVar(query) {
+    try {
+        const searchTerm = encodeURIComponent(query + '[variant name] OR ' + query + '[gene/phenotype]');
+        const searchUrl  = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=${searchTerm}&retmax=3&retmode=json`;
+        const res = await fetch(searchUrl);
+        const json = await res.json();
+        const ids = json?.esearchresult?.idlist || [];
+        if (!ids.length) return null;
+
+        const summaryUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=clinvar&id=${ids[0]}&retmode=json`;
+        const sumRes  = await fetch(summaryUrl);
+        const sumJson = await sumRes.json();
+        const doc = sumJson?.result?.[ids[0]];
+        if (!doc) return null;
+
+        return {
+            uid:           ids[0],
+            title:         doc.title || query,
+            clinicalSig:   doc.clinical_significance?.description || null,
+            reviewStatus:  doc.clinical_significance?.review_status || null,
+            geneSymbol:    doc.genes?.[0]?.symbol || 'CFTR',
+            accession:     doc.accession || null,
+            lastEvaluated: doc.clinical_significance?.last_evaluated || null,
+            url:           `https://www.ncbi.nlm.nih.gov/clinvar/variation/${ids[0]}/`,
+        };
+    } catch { return null; }
+}
+
+// ── CFTR2 lookup (via existing roboticCFTR2Search if available) ──
+async function _lookupCFTR2(query) {
+    try {
+        if (typeof roboticCFTR2Search === 'function') {
+            const hits = await roboticCFTR2Search(query);
+            return hits?.length ? hits[0] : null;
+        }
+        return null;
+    } catch { return null; }
+}
+
+// ── PubMed fetch ─────────────────────────────────────────────────
+async function _lookupPubMed(query) {
+    try {
+        const searchTerm = encodeURIComponent(`${query}[tiab] AND CFTR[tiab]`);
+        const res  = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${searchTerm}&retmax=5&retmode=json`);
+        const json = await res.json();
+        const ids  = json?.esearchresult?.idlist || [];
+        if (!ids.length) return [];
+
+        const sumRes  = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids.join(',')}&retmode=json`);
+        const sumJson = await sumRes.json();
+        return ids.map(id => {
+            const d = sumJson?.result?.[id];
+            return d ? {
+                pmid:    id,
+                title:   d.title || '',
+                journal: d.source || '',
+                year:    d.pubdate?.split(' ')[0] || '',
+                url:     `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
+                doi:     d.elocationid?.replace('doi: ','') || null,
+            } : null;
+        }).filter(Boolean);
+    } catch { return []; }
+}
+
+// ── Build structured result from raw data ────────────────────────
+function _lookupBuildResult(query, clinvar, cftr2, pubmed) {
+    const sources = [];
+    if (clinvar) sources.push({ id: 'clinvar', label: 'ClinVar', accession: clinvar.accession, url: clinvar.url });
+    if (cftr2)   sources.push({ id: 'cftr2',   label: 'CFTR2',   url: 'https://www.cftr2.org' });
+    if (pubmed?.length) sources.push({ id: 'pubmed', label: `PubMed (${pubmed.length} refs)`, url: pubmed[0]?.url });
+
+    // Infer CFTR class from ClinVar significance + known patterns
+    const sigText  = (clinvar?.clinicalSig || '').toLowerCase();
+    const isPatho  = sigText.includes('pathogenic');
+    const isVUS    = sigText.includes('uncertain');
+    const isBenign = sigText.includes('benign');
+
+    // Known gating variants → Class III
+    const gatingPattern = /g551d|g1349d|g1244e|s549n|s549r/i;
+    // Class II misfolding
+    const misfoldPattern = /f508del|f508|n1303k|i507del/i;
+    // Class I nonsense
+    const nonsensePattern = /g542x|w1282x|r553x|r1162x|621\+1/i;
+    // Class IV conductance
+    const conductPattern  = /r117h|r334w|r347p/i;
+
+    let inferredClass = null, etiPred = null, determination = null;
+    if      (gatingPattern.test(query))  { inferredClass = 'III'; etiPred = 'responsive';     }
+    else if (misfoldPattern.test(query)) { inferredClass = 'II';  etiPred = 'responsive';     }
+    else if (nonsensePattern.test(query)){ inferredClass = 'I';   etiPred = 'non_responsive'; }
+    else if (conductPattern.test(query)) { inferredClass = 'IV';  etiPred = 'responsive';     }
+
+    if (isPatho)  determination = 'CF-causing';
+    if (isVUS)    determination = 'Variant of Uncertain Significance';
+    if (isBenign) determination = 'Non-CF-causing';
+
+    // Confidence scoring
+    let confidence = 40;
+    if (clinvar)        confidence += 20;
+    if (clinvar?.reviewStatus?.includes('expert')) confidence += 15;
+    if (cftr2)          confidence += 15;
+    if (pubmed?.length) confidence += 10;
+    if (inferredClass)  confidence += 10;
+    confidence = Math.min(confidence, 95);
+
+    // Count missing critical fields
+    const fields = {
+        cftr_class:         inferredClass,
+        eti_prediction:     etiPred,
+        final_determination:determination,
+        protein_name:       cftr2?.protein_name || null,
+        cdna_name:          cftr2?.cdna_name    || null,
+        legacy_name:        cftr2?.legacy_name  || null,
+    };
+    const missingCount = Object.values(fields).filter(v => !v).length;
+    const completeness = missingCount === 0 ? 'full' : missingCount <= 2 ? 'partial' : 'minimal';
+
+    return {
+        found:         true,
+        query,
+        sources,
+        clinvar,
+        cftr2,
+        pubmed,
+        fields,
+        confidence,
+        missingCount,
+        completeness,   // 'full' | 'partial' | 'minimal'
+    };
+}
+
+// ── Job completion handler ───────────────────────────────────────
+function lookupOnComplete(query, result) {
+    // Update tray to done state
+    if (result.found) {
+        lookupShowTray(query, 'done', result);
+    } else {
+        lookupShowTray(query, 'notfound');
+    }
+    // Re-render the list (removes running spinner)
+    renderVariantList();
+    // Notification
+    if (result.found) {
+        const conf = result.confidence;
+        showNotification(
+            `External lookup complete for "${query}" — ${result.sources.length} source${result.sources.length!==1?'s':''} · ${conf}% confidence · Click tray to review`,
+            'success', 8000
+        );
+    } else {
+        showNotification(`No external data found for "${query}" — consider manual entry`, 'warning', 6000);
+    }
+}
+
+function lookupOnError(query, err) {
+    lookupShowTray(query, 'error');
+    renderVariantList();
+    showNotification(`Lookup failed for "${query}" — check connection`, 'error', 5000);
+    console.warn('[NeumuacFQ Lookup]', err);
+}
+
+// ── Tray render ──────────────────────────────────────────────────
+function lookupShowTray(query, status, result) {
+    lookupInitTrayDOM();
+    const tray  = document.getElementById('lookupJobTray');
+    const dot   = document.getElementById('lookupTrayDot');
+    const title = document.getElementById('lookupTrayTitle');
+    const body  = document.getElementById('lookupTrayBody');
+    if (!tray) return;
+
+    tray.classList.add('visible');
+    LOOKUP_JOB_STATE.trayVisible = true;
+
+    const dotColors = { running:'#2979ff', done:'#34d399', notfound:'#fbbf24', error:'#f87171' };
+    const dotAnims  = { running:'neuPulse 1.4s ease-in-out infinite', done:'none', notfound:'none', error:'none' };
+    if (dot) { dot.style.background = dotColors[status] || '#2979ff'; dot.style.animation = dotAnims[status] || 'none'; }
+    if (title) title.textContent = `"${query}"`;
+
+    if (status === 'running') {
+        body.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+                ${LOOKUP_SOURCES.map((s,i) => `
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="lk-src-dot ${i===0?'active':'wait'}"></div>
+                    <span style="font-size:12px;color:var(--text-secondary);">${s.label}</span>
+                    <span style="margin-left:auto;font-size:10px;color:var(--text-tertiary);">${i===0?'querying…':'waiting'}</span>
+                </div>`).join('')}
+            </div>
+            <div style="height:3px;background:rgba(99,140,210,0.1);border-radius:2px;overflow:hidden;">
+                <div id="lookupTrayProgress" style="width:15%;height:100%;background:#2979ff;border-radius:2px;transition:width 1.5s ease;"></div>
+            </div>
+            <p style="margin-top:10px;font-size:11px;color:var(--text-tertiary);">You can continue working — we'll notify you when done.</p>`;
+        // Animate progress bar
+        requestAnimationFrame(() => {
+            const bar = document.getElementById('lookupTrayProgress');
+            if (bar) setTimeout(() => { bar.style.width = '65%'; }, 100);
+        });
+
+    } else if (status === 'done' && result) {
+        const completenessLabel = { full: '✓ All fields retrieved', partial: '⚠ Partial — some fields missing', minimal: '⚠ Minimal data only' };
+        const completenessColor = { full: '#34d399', partial: '#fbbf24', minimal: '#fb923c' };
+        body.innerHTML = `
+            <div style="margin-bottom:10px;">
+                <div style="font-size:12px;font-weight:600;color:${completenessColor[result.completeness]};margin-bottom:4px;">${completenessLabel[result.completeness]}</div>
+                <div style="font-size:11px;color:var(--text-tertiary);">${result.sources.map(s=>s.label).join(' · ')} · ${result.confidence}% confidence</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+                <button onclick="lookupOpenModal()" class="lk-btn lk-edit" style="flex:1;padding:8px 0;font-size:12px;">Review result ↗</button>
+                <button onclick="lookupCloseTray()" class="lk-btn lk-discard" style="flex:0.4;padding:8px 0;font-size:12px;">Dismiss</button>
+            </div>`;
+
+    } else if (status === 'notfound') {
+        body.innerHTML = `
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">Not found in ClinVar, CFTR2 or PubMed. This may be a novel or rare variant.</div>
+            <div style="display:flex;gap:6px;">
+                <button onclick="lookupOpenModal()" class="lk-btn lk-retry" style="flex:1;padding:8px 0;font-size:12px;">See options ↗</button>
+                <button onclick="lookupCloseTray()" class="lk-btn lk-discard" style="flex:0.4;padding:8px 0;font-size:12px;">Dismiss</button>
+            </div>`;
+
+    } else if (status === 'error') {
+        body.innerHTML = `
+            <div style="font-size:12px;color:#fca5a5;margin-bottom:10px;">Lookup failed. Check your connection.</div>
+            <button onclick="triggerExternalLookup(LOOKUP_JOB_STATE.activeQuery)" class="lk-btn lk-retry" style="width:100%;padding:8px 0;font-size:12px;">Retry ↺</button>`;
+    }
+}
+
+function lookupUpdateTraySource(sourceId, state) {
+    // No-op if tray isn't visible (background mode)
+    const srcIdx = LOOKUP_SOURCES.findIndex(s => s.id === sourceId);
+    if (srcIdx === -1) return;
+    const dots = document.querySelectorAll('#lookupJobTray .lk-src-dot');
+    if (dots[srcIdx]) {
+        dots[srcIdx].classList.remove('active','done','wait');
+        dots[srcIdx].classList.add(state);
+    }
+    const bar = document.getElementById('lookupTrayProgress');
+    const pct = { clinvar: 40, cftr2: 70, pubmed: 90 };
+    if (bar && pct[sourceId]) bar.style.width = pct[sourceId] + '%';
+}
+
+function lookupCloseTray() {
+    const tray = document.getElementById('lookupJobTray');
+    if (tray) {
+        tray.style.animation = 'lookupTrayIn 0.2s cubic-bezier(0.4,0,1,1) reverse';
+        setTimeout(() => { tray.classList.remove('visible'); }, 180);
+    }
+    LOOKUP_JOB_STATE.trayVisible = false;
+}
+
+// ── Modal open ───────────────────────────────────────────────────
+function lookupOpenModal() {
+    lookupInitOverlayDOM();
+    const overlay = document.getElementById('lookupResultOverlay');
+    const result  = LOOKUP_JOB_STATE.result;
+    const query   = LOOKUP_JOB_STATE.activeQuery || '';
+    const status  = LOOKUP_JOB_STATE.status;
+
+    if (status === 'running') { lookupRenderModalSearching(query); }
+    else if (status === 'done' && result?.found) { lookupRenderModalResult(result, 'clinical'); }
+    else { lookupRenderModalNotFound(query); }
+
+    overlay.classList.add('visible');
+    document.addEventListener('keydown', _lookupEscHandler);
+}
+
+function lookupCloseModal() {
+    const overlay = document.getElementById('lookupResultOverlay');
+    if (overlay) overlay.classList.remove('visible');
+    document.removeEventListener('keydown', _lookupEscHandler);
+}
+
+function _lookupEscHandler(e) { if (e.key === 'Escape') lookupCloseModal(); }
+
+// ── STATE 1: Searching modal ─────────────────────────────────────
+function lookupRenderModalSearching(query) {
+    const header = document.getElementById('lookupModalHeader');
+    const body   = document.getElementById('lookupModalBody');
+    const footer = document.getElementById('lookupModalFooter');
+
+    header.innerHTML = `
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px;">
+            <div style="width:10px;height:10px;border:2px solid rgba(41,121,255,0.3);border-top-color:#2979ff;border-radius:50%;animation:neuSpin 0.8s linear infinite;flex-shrink:0;"></div>
+            <span style="font-size:13px;font-weight:600;color:var(--text-primary);">Searching external databases…</span>
+            <span style="margin-left:auto;font-size:11px;color:var(--text-tertiary);">live</span>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--text-primary);">${escapeHTML(query)}</div>`;
+
+    body.innerHTML = `
+        <div style="padding:24px 20px;">
+            <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+                ${LOOKUP_SOURCES.map((s,i) => `
+                <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(99,140,210,0.04);border:1px solid rgba(99,140,210,0.1);border-radius:8px;">
+                    <div class="lk-src-dot ${i===0?'active':'wait'}" style="width:9px;height:9px;"></div>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:var(--text-primary);">${s.label}</div>
+                        <div style="font-size:11px;color:var(--text-tertiary);">${s.url}</div>
+                    </div>
+                    <span style="margin-left:auto;font-size:11px;color:var(--text-tertiary);">${i===0?'querying…':'waiting'}</span>
+                </div>`).join('')}
+            </div>
+            <div style="padding:14px;background:rgba(41,121,255,0.05);border:1px solid rgba(41,121,255,0.15);border-radius:8px;font-size:12px;color:#60a5fa;">
+                <strong style="display:block;margin-bottom:4px;">Running in background</strong>
+                You can close this window and continue working. The job tray (bottom-right) will pulse when results are ready.
+            </div>
+        </div>`;
+
+    footer.innerHTML = `
+        <button onclick="lookupPushToBackground('${escapeHTML(query)}');lookupCloseModal();" class="lk-btn lk-edit" style="flex:1;">Continue working — notify me when done</button>
+        <button onclick="lookupCloseModal()" class="lk-btn lk-discard" style="flex:0.5;">Close</button>`;
+}
+
+// ── STATE 2 & 3: Result modal ────────────────────────────────────
+function lookupRenderModalResult(result, activeTab) {
+    const header = document.getElementById('lookupModalHeader');
+    const body   = document.getElementById('lookupModalBody');
+    const footer = document.getElementById('lookupModalFooter');
+    const q      = result.query;
+
+    const completenessColor = { full:'#34d399', partial:'#fbbf24', minimal:'#fb923c' };
+    const completenessLabel = { full:'All fields retrieved', partial:`${result.missingCount} field${result.missingCount!==1?'s':''} missing`, minimal:`${result.missingCount} fields missing` };
+    const statusColor = { full:'#34d399', partial:'#fbbf24', minimal:'#fb923c' }[result.completeness];
+
+    header.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:${statusColor};flex-shrink:0;"></div>
+                <span style="font-size:13px;font-weight:600;color:var(--text-primary);">External lookup complete</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:11px;color:var(--text-tertiary);">${result.sources.length} source${result.sources.length!==1?'s':''}</span>
+                <span style="font-size:10px;padding:2px 7px;border-radius:999px;font-family:var(--font-mono);background:rgba(99,140,210,0.08);border:1px solid rgba(99,140,210,0.18);color:var(--text-secondary);">${result.confidence}% confidence</span>
+                <button onclick="lookupCloseModal()" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:16px;padding:2px 4px;">✕</button>
+            </div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:10px;">
+            <span style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--text-primary);">${escapeHTML(q)}</span>
+            ${result.clinvar?.title ? `<span style="font-size:12px;color:var(--text-secondary);">${escapeHTML(result.clinvar.title)}</span>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+            ${result.sources.map(s => `<a href="${s.url}" target="_blank" class="lk-chip">↗ ${s.label}${s.accession?' · '+s.accession:''}</a>`).join('')}
+            ${result.pubmed?.length ? result.pubmed.filter(p=>p.doi).slice(0,2).map(p=>`<a href="https://doi.org/${p.doi}" target="_blank" class="lk-chip">DOI ${p.doi}</a>`).join('') : ''}
+        </div>
+        ${result.completeness !== 'full' ? `
+        <div style="padding:9px 13px;border-radius:7px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);font-size:12px;color:#fcd34d;display:flex;align-items:center;gap:8px;">
+            <span>⚠</span>
+            <span>${completenessLabel[result.completeness]} — review carefully before saving to the database</span>
+        </div>` : ''}
+        <div style="display:flex;gap:4px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(99,140,210,0.1);">
+            <button class="lk-tab ${activeTab==='clinical'?'active':''}" onclick="lookupRenderModalResult(LOOKUP_JOB_STATE.result,'clinical')">Clinical</button>
+            <button class="lk-tab ${activeTab==='molecular'?'active':''}" onclick="lookupRenderModalResult(LOOKUP_JOB_STATE.result,'molecular')">Molecular</button>
+            <button class="lk-tab ${activeTab==='evidence'?'active':''}" onclick="lookupRenderModalResult(LOOKUP_JOB_STATE.result,'evidence')">Evidence & Sources</button>
+        </div>`;
+
+    // Tab bodies
+    const F = result.fields;
+    if (activeTab === 'clinical') {
+        body.innerHTML = `
+            <div style="padding:16px 20px;">
+                <div class="lk-sec-title">Classification</div>
+                ${_lkRow('CFTR Class',          F.cftr_class,          F.cftr_class ? (F.cftr_class==='I'?'Nonsense / No protein produced':F.cftr_class==='II'?'Protein misfolding / trafficking defect':F.cftr_class==='III'?'Gating defect':F.cftr_class==='IV'?'Reduced conductance':F.cftr_class==='V'?'Reduced synthesis':F.cftr_class==='VI'?'Reduced stability':'') : null,   F.cftr_class?'high':'none')}
+                ${_lkRow('ETI Prediction',      F.eti_prediction ? (F.eti_prediction==='responsive'?'Responsive':'Non-responsive') : null, null,          F.eti_prediction?'high':'none', F.eti_prediction==='responsive'?'#34d399':null)}
+                ${_lkRow('Final Determination', F.final_determination, result.clinvar?.clinicalSig || null, F.final_determination?'med':'none')}
+                <div class="lk-sec-title">ClinVar</div>
+                ${_lkRow('Significance',  result.clinvar?.clinicalSig  || null, null, result.clinvar?'high':'none')}
+                ${_lkRow('Review status', result.clinvar?.reviewStatus || null, null, result.clinvar?'med':'none')}
+                ${_lkRow('Last evaluated',result.clinvar?.lastEvaluated|| null, null, result.clinvar?'med':'none')}
+                <div class="lk-sec-title">Clinician note</div>
+                <textarea id="lookupClinNote" placeholder="Add a note before saving (optional — recorded in audit trail)…" style="width:100%;box-sizing:border-box;height:60px;resize:none;padding:9px 12px;border-radius:7px;border:1px solid rgba(99,140,210,0.2);background:rgba(99,140,210,0.04);color:var(--text-primary);font-size:12px;font-family:var(--font-body);margin-top:2px;"></textarea>
+            </div>`;
+    } else if (activeTab === 'molecular') {
+        body.innerHTML = `
+            <div style="padding:16px 20px;">
+                <div class="lk-sec-title">Nomenclature</div>
+                ${_lkRow('Legacy name',   F.legacy_name  || null, null, F.legacy_name?'high':'none',  null, true)}
+                ${_lkRow('Protein name',  F.protein_name || null, null, F.protein_name?'high':'none', null, true)}
+                ${_lkRow('cDNA name',     F.cdna_name    || null, null, F.cdna_name?'high':'none',    null, true)}
+                <div class="lk-sec-title">From ClinVar record</div>
+                ${_lkRow('Gene',          result.clinvar?.geneSymbol || 'CFTR', null, 'high')}
+                ${_lkRow('Accession',     result.clinvar?.accession  || null,   null, result.clinvar?'med':'none', null, true)}
+            </div>`;
+    } else if (activeTab === 'evidence') {
+        const papers = result.pubmed || [];
+        body.innerHTML = `
+            <div style="padding:16px 20px;">
+                <div class="lk-sec-title">Sources used</div>
+                ${result.sources.map(s=>`
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(99,140,210,0.08);">
+                    <div style="width:7px;height:7px;border-radius:50%;background:#34d399;flex-shrink:0;"></div>
+                    <div style="flex:1;">
+                        <div style="font-size:13px;font-weight:600;color:var(--text-primary);">${s.label}</div>
+                        <a href="${s.url}" target="_blank" style="font-size:11px;color:#60a5fa;text-decoration:none;font-family:var(--font-mono);">${s.url}</a>
+                    </div>
+                </div>`).join('')}
+                ${papers.length ? `
+                <div class="lk-sec-title" style="margin-top:16px;">PubMed publications (${papers.length})</div>
+                ${papers.map(p=>`
+                <div style="padding:10px 0;border-bottom:1px solid rgba(99,140,210,0.08);">
+                    <div style="font-size:12px;font-weight:500;color:var(--text-primary);line-height:1.5;margin-bottom:4px;">${escapeHTML(p.title)}</div>
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <span style="font-size:11px;color:var(--text-tertiary);">${escapeHTML(p.journal)} · ${p.year}</span>
+                        ${p.doi ? `<a href="https://doi.org/${p.doi}" target="_blank" class="lk-chip">DOI ${p.doi}</a>` : ''}
+                        <a href="${p.url}" target="_blank" class="lk-chip">PMID ${p.pmid}</a>
+                    </div>
+                </div>`).join('')}` : '<div style="font-size:12px;color:var(--text-tertiary);padding:12px 0;">No PubMed articles retrieved.</div>'}
+            </div>`;
+    }
+
+    // Footer actions
+    const isPrimary = result.completeness === 'full';
+    footer.innerHTML = `
+        <button onclick="lookupCloseModal()" class="lk-btn lk-discard" style="flex:0.5;">Discard</button>
+        <button onclick="lookupOpenManualEdit()" class="lk-btn lk-edit" style="flex:1;">Edit before saving ↗</button>
+        <button onclick="lookupSaveToDatabase()" class="lk-btn lk-save" style="flex:${isPrimary?1.3:1};">${isPrimary?'Accept & save to database':'Save partial record'}</button>`;
+}
+
+// ── STATE 4: Not found modal ─────────────────────────────────────
+function lookupRenderModalNotFound(query) {
+    const header = document.getElementById('lookupModalHeader');
+    const body   = document.getElementById('lookupModalBody');
+    const footer = document.getElementById('lookupModalFooter');
+
+    header.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#fbbf24;flex-shrink:0;"></div>
+                <span style="font-size:13px;font-weight:600;color:var(--text-primary);">No external data found</span>
+            </div>
+            <button onclick="lookupCloseModal()" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:16px;padding:2px 4px;">✕</button>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--text-primary);margin-top:8px;">${escapeHTML(query)}</div>`;
+
+    body.innerHTML = `
+        <div style="padding:24px 20px;text-align:center;">
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="#fbbf24" stroke-width="1.3"/><path d="M10 6.5v4M10 13h.01" stroke="#fbbf24" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </div>
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:6px;">Variant not found in any external source</div>
+            <div style="font-size:12px;color:var(--text-secondary);line-height:1.7;max-width:380px;margin:0 auto;">
+                ClinVar, CFTR2, and PubMed returned no results for <span style="font-family:var(--font-mono);color:var(--text-primary);">${escapeHTML(query)}</span>. 
+                This may be a novel variant, a rare mutation, or it may be catalogued under a different name.
+            </div>
+            <div style="margin-top:20px;padding:14px 16px;background:rgba(99,140,210,0.05);border:1px solid rgba(99,140,210,0.12);border-radius:9px;text-align:left;">
+                <div style="font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">What you can do</div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <div style="display:flex;align-items:flex-start;gap:10px;">
+                        <span style="font-size:12px;color:#2979ff;flex-shrink:0;margin-top:1px;">→</span>
+                        <span style="font-size:12px;color:var(--text-secondary);">Try alternate nomenclature — e.g. protein name <span style="font-family:var(--font-mono);">p.Xxx</span> or legacy name</span>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:10px;">
+                        <span style="font-size:12px;color:#2979ff;flex-shrink:0;margin-top:1px;">→</span>
+                        <span style="font-size:12px;color:var(--text-secondary);">Search <a href="https://www.lovd.nl/CFTR" target="_blank" style="color:#60a5fa;">LOVD</a> or <a href="https://gnomad.broadinstitute.org" target="_blank" style="color:#60a5fa;">gnomAD</a> manually for rare variants</span>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:10px;">
+                        <span style="font-size:12px;color:#34d399;flex-shrink:0;margin-top:1px;">→</span>
+                        <span style="font-size:12px;color:var(--text-secondary);">Add as a <strong style="color:var(--text-primary);">novel variant</strong> with manual classification — the form will be pre-filled with your search term</span>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+    footer.innerHTML = `
+        <button onclick="lookupCloseModal()" class="lk-btn lk-discard" style="flex:0.5;">Dismiss</button>
+        <button onclick="lookupRetryAlternate('${escapeHTML(query)}')" class="lk-btn lk-retry" style="flex:1;">Try alternate name ↺</button>
+        <button onclick="lookupOpenManualEdit()" class="lk-btn lk-manual" style="flex:1.2;">Add as novel variant ↗</button>`;
+}
+
+// ── Field row builder ────────────────────────────────────────────
+function _lkRow(label, value, sub, confidence, color, mono) {
+    const missing  = !value;
+    const confMap  = { high:'lk-high', med:'lk-med', low:'lk-low', none:'lk-none' };
+    const confText = { high:'High confidence', med:'Estimated', low:'Low confidence', none:'Not found' };
+    const badgeCls = confMap[confidence] || 'lk-none';
+    const badgeTxt = confText[confidence] || 'Not found';
+    return `
+        <div class="lk-row">
+            <span class="lk-label">${label}</span>
+            <div style="flex:1;">
+                <span class="lk-val${missing?' lk-missing':''}" style="${color?'color:'+color+';':''};${mono?'font-family:var(--font-mono);font-size:12px;':''}">${missing ? 'Not found in sources' : escapeHTML(String(value))}</span>
+                ${sub && !missing ? `<div class="lk-sub">${escapeHTML(sub)}</div>` : ''}
+            </div>
+            <span class="lk-badge ${badgeCls}">${badgeTxt}</span>
+        </div>`;
+}
+
+// ── Save to database ─────────────────────────────────────────────
+function lookupSaveToDatabase() {
+    const result = LOOKUP_JOB_STATE.result;
+    if (!result?.found) return;
+    const F      = result.fields;
+    const note   = document.getElementById('lookupClinNote')?.value || '';
+
+    // Build a variant object compatible with NeumuacFQ schema
+    const newVariant = {
+        id:                  crypto.randomUUID(),
+        legacy_name:         F.legacy_name  || result.query,
+        protein_name:        F.protein_name || null,
+        cdna_name:           F.cdna_name    || null,
+        cftr_class:          F.cftr_class   || null,
+        eti_prediction:      F.eti_prediction || null,
+        final_determination: F.final_determination || null,
+        validation_count:    0,
+        source:              'external_lookup',
+        source_urls:         result.sources.map(s=>s.url),
+        evidence_doi:        result.pubmed?.filter(p=>p.doi).map(p=>p.doi) || [],
+        clinician_note:      note || null,
+        lookup_confidence:   result.confidence,
+        created_at:          new Date().toISOString(),
+    };
+
+    // Use existing addVariant / importVariants machinery if available
+    if (typeof STATE !== 'undefined' && STATE.variants) {
+        STATE.variants.push(newVariant);
+        if (STATE.variantsById) STATE.variantsById.set(newVariant.id, newVariant);
+        renderVariantList();
+        // Try to persist via existing Supabase logic
+        if (typeof supabaseInsertVariant === 'function') {
+            supabaseInsertVariant(newVariant).catch(e => console.warn('[Lookup save]', e));
+        }
+        showNotification(`"${newVariant.legacy_name}" saved to NeumuacFQ from external lookup · ${result.confidence}% confidence`, 'success', 5000);
+        LOOKUP_JOB_STATE.status = 'idle';
+        LOOKUP_JOB_STATE.result = null;
+        lookupCloseModal();
+        lookupCloseTray();
+        // Auto-select the new variant
+        setTimeout(() => selectVariant(newVariant.legacy_name), 200);
+    } else {
+        showNotification('Could not save — database not ready', 'error', 4000);
+    }
+}
+
+// ── Open manual entry pre-filled ─────────────────────────────────
+function lookupOpenManualEdit() {
+    lookupCloseModal();
+    const q = LOOKUP_JOB_STATE.activeQuery || '';
+    // Open the existing import modal and pre-fill the form tab
+    if (typeof showImportModal === 'function') {
+        showImportModal();
+        // Switch to form tab if available
+        setTimeout(() => {
+            if (typeof switchImportTab === 'function') switchImportTab('form');
+            // Pre-fill legacy_name field
+            const legacyField = document.getElementById('fieldLegacyName') || document.querySelector('[name="legacy_name"]') || document.querySelector('#importForm input');
+            if (legacyField) { legacyField.value = q; legacyField.dispatchEvent(new Event('input')); }
+            // Pre-fill other fields from result if available
+            const R = LOOKUP_JOB_STATE.result?.fields;
+            if (R) {
+                const map = { cftr_class: R.cftr_class, eti_prediction: R.eti_prediction };
+                Object.entries(map).forEach(([key, val]) => {
+                    const el = document.getElementById('field_'+key) || document.querySelector(`[name="${key}"]`);
+                    if (el && val) { el.value = val; el.dispatchEvent(new Event('change')); }
+                });
+            }
+        }, 300);
+    }
+}
+
+// ── Retry with alternate name ────────────────────────────────────
+function lookupRetryAlternate(query) {
+    // Prompt user for alternate nomenclature
+    const alt = window.prompt(`Enter alternate name to search (e.g. protein name, legacy name):`, query);
+    if (alt && alt.trim()) {
+        lookupCloseModal();
+        LOOKUP_JOB_STATE.activeQuery  = alt.trim();
+        LOOKUP_JOB_STATE.status       = 'running';
+        LOOKUP_JOB_STATE.result       = null;
+        lookupShowTray(alt.trim(), 'running');
+        _lookupExecute(alt.trim()).then(result => {
+            LOOKUP_JOB_STATE.status = result.found ? 'done' : 'notfound';
+            LOOKUP_JOB_STATE.result = result;
+            lookupOnComplete(alt.trim(), result);
+        }).catch(err => lookupOnError(alt.trim(), err));
+        // Open the searching modal immediately
+        setTimeout(lookupOpenModal, 100);
+    }
+}
 </script>
 </body>
 </html>
