@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>NeumuacFQ | CFTR Precision Medicine Platform</title>   
+    <title>NeumuacFQ | CFTR Precision Medicine Platform</title>
 
     <!-- Fonts & Icons -->   
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -4808,6 +4808,7 @@
                 <button class="si-tab" id="siTab-gaps" onclick="setSITab('gaps',this)"><i class="fas fa-exclamation-triangle" style="font-size: 11px;margin-right:4px;color:#fbbf24;"></i>Gap queue</button>
                 <button class="si-tab" id="siTab-heatmap" onclick="setSITab('heatmap',this)"><i class="fas fa-th" style="font-size:11px;margin-right:4px;"></i>Velocity</button>
                 <button class="si-tab" id="siTab-cosearch" onclick="setSITab('cosearch',this)"><i class="fas fa-project-diagram" style="font-size:11px;margin-right:4px;"></i>Co-search</button>
+                <button class="si-tab" id="siTab-priority" onclick="setSITab('priority',this)" style="border-color:rgba(251,191,36,0.3);color:#fbbf24;"><i class="fas fa-star" style="font-size:11px;margin-right:4px;color:#fbbf24;"></i>Priority</button>
             </div>
 
             <div id="siPanelOverview" class="si-panel active">
@@ -5062,6 +5063,21 @@
                     <div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">Co-search clusters</div>
                     <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:12px;">Variants searched together in the same session — potential compound het pairs</div>
                     <div id="coSearchContainer"></div>
+                </div>
+            </div>
+            <!-- CURATION PRIORITY QUEUE -->
+            <div id="siPanelPriority" class="si-panel" style="display:none;">
+                <div style="padding:12px 20px 6px;border-bottom:1px solid var(--border);">
+                    <div style="font-size:12px;font-weight:700;color:#fbbf24;margin-bottom:2px;">
+                        <i class="fas fa-star" style="margin-right:5px;"></i>Curation priority queue
+                    </div>
+                    <div style="font-size:11px;color:var(--text-tertiary);">
+                        Ranked by gap score x clinical demand x pending Helios items.
+                        Click any row to open the variant.
+                    </div>
+                </div>
+                <div id="priorityQueueList" style="padding:8px 12px;overflow-y:auto;flex:1;">
+                    <div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">Loading priority queue…</div>
                 </div>
             </div>
             <div id="siPanelRecent" class="si-panel" style="display:none;">
@@ -8684,27 +8700,52 @@ function renderVariantList() {
 
 const ACMG_CRITERIA = {
     pathogenic: {
-        PVS1: { label:'PVS1', name:'Null variant in gene where LOF is disease mechanism', weight:8, auto: v => v.cftr_class === 'I' && ['CF-causing'].includes(v.final_determination) },
+        PVS1: { label:'PVS1', name:'Null variant in gene where LOF is disease mechanism', weight:8,
+                auto: v => v.cftr_class === 'I' && v.final_determination === 'CF-causing' },
         PS1:  { label:'PS1', name:'Same amino acid change as established pathogenic variant', weight:4, auto: null },
-        PS3:  { label:'PS3', name:'Well-established functional studies show damaging effect', weight:4, auto: v => (v.evidence_links||[]).some(e => e.study_type === 'functional') },
+        PS3:  { label:'PS3', name:'Well-established functional studies show damaging effect', weight:4,
+                // Reads structured functional assay data stored in evidence_links
+                auto: v => (v.evidence_links||[]).some(e => e.func_interpretation === 'damaging'),
+                note: 'Auto-triggered when an evidence link has functional interpretation: damaging. Add via Add Evidence > Functional study type.' },
         PS4:  { label:'PS4', name:'Prevalence in affected individuals significantly increased', weight:4,
                 auto: null,
-                note: 'Requires case-control prevalence data (e.g. CFTR2 allele frequency in affected cohort). Cannot be inferred from validation count — manual curator confirmation required.' },
+                note: 'Requires case-control prevalence data (CFTR2 cohort frequency). Cannot be auto-computed — manual curator confirmation required.' },
         PM1:  { label:'PM1', name:'Located in mutational hot spot or critical domain', weight:2, auto: null },
-        PM2:  { label:'PM2', name:'Absent or at extremely low frequency in population', weight:2, auto: v => v.population_frequency && parseFloat(v.population_frequency) < 0.001 },
-        PM4:  { label:'PM4', name:'Protein length change due to in-frame indels', weight:2, auto: v => (v.legacy_name||'').match(/del|ins|dup/i) && v.cftr_class !== 'I' },
+        PM2:  { label:'PM2', name:'Absent or at extremely low frequency in population', weight:2,
+                auto: v => { const af = parseFloat(v.population_frequency); return !isNaN(af) && af < 0.001 && af >= 0; },
+                note: 'Auto-triggered from gnomAD population frequency. Click Fetch gnomAD AF on the variant to populate.' },
+        PM4:  { label:'PM4', name:'Protein length change due to in-frame indels', weight:2,
+                auto: v => !!(v.legacy_name||'').match(/del|ins|dup/i) && v.cftr_class !== 'I' },
         PM5:  { label:'PM5', name:'Novel missense change at pathogenic amino acid position', weight:2, auto: null },
         PP1:  { label:'PP1', name:'Co-segregation with disease in multiple family members', weight:1, auto: null },
-        PP3:  { label:'PP3', name:'Multiple lines of computational evidence support damaging effect', weight:1, auto: v => v.cftr_class && ['I','II','III'].includes(v.cftr_class) },
-        PP5:  { label:'PP5', name:'Reputable source recently reported as pathogenic', weight:1, auto: v => v.source_summary && v.source_summary.includes('CFTR2') },
+        PP3:  { label:'PP3', name:'Multiple lines of computational evidence support damaging effect', weight:1,
+                // Evidence-based: fires when 2+ high-quality sources OR both CFTR2 and ClinVar present
+                // Removed class proxy — CFTR class alone is not computational evidence
+                auto: v => {
+                    const links = v.evidence_links || [];
+                    const highQ   = links.filter(e => (e.quality_score||0) >= 7).length;
+                    const hasCF2  = links.some(e => /cftr2/i.test(e.source||e.type||''));
+                    const hasCLV  = links.some(e => /clinvar/i.test(e.source||e.type||''));
+                    return highQ >= 2 || (hasCF2 && hasCLV);
+                },
+                note: 'Auto-triggered when 2+ high-quality evidence links (score ≥7) exist, or both CFTR2 and ClinVar sources are present.' },
+        PP5:  { label:'PP5', name:'Reputable source recently reported as pathogenic', weight:1,
+                auto: v => !!(v.source_summary && v.source_summary.includes('CFTR2')) },
     },
     benign: {
-        BA1:  { label:'BA1', name:'Allele frequency >5% in population databases', weight:-8, auto: v => v.population_frequency && parseFloat(v.population_frequency) > 0.05 },
-        BS1:  { label:'BS1', name:'Allele frequency greater than expected for disorder', weight:-4, auto: v => v.population_frequency && parseFloat(v.population_frequency) > 0.01 },
+        BA1:  { label:'BA1', name:'Allele frequency >5% in population databases', weight:-8,
+                auto: v => { const af = parseFloat(v.population_frequency); return !isNaN(af) && af > 0.05; },
+                note: 'Auto-triggered from gnomAD population frequency (AF > 5%).' },
+        BS1:  { label:'BS1', name:'Allele frequency greater than expected for disorder', weight:-4,
+                auto: v => { const af = parseFloat(v.population_frequency); return !isNaN(af) && af > 0.01; },
+                note: 'Auto-triggered from gnomAD population frequency (AF > 1%).' },
         BS2:  { label:'BS2', name:'Observed in healthy adult', weight:-4, auto: null },
-        BS3:  { label:'BS3', name:'Well-established functional studies show no damaging effect', weight:-4, auto: null },
+        BS3:  { label:'BS3', name:'Well-established functional studies show no damaging effect', weight:-4,
+                auto: v => (v.evidence_links||[]).some(e => e.func_interpretation === 'benign'),
+                note: 'Auto-triggered when an evidence link has functional interpretation: benign.' },
         BP1:  { label:'BP1', name:'Missense in gene where only LOF causes disease', weight:-1, auto: null },
-        BP4:  { label:'BP4', name:'Multiple lines of computational evidence suggest no impact', weight:-1, auto: v => v.eti_prediction === 'non_responsive' && !v.cftr_class },
+        BP4:  { label:'BP4', name:'Multiple lines of computational evidence suggest no impact', weight:-1,
+                auto: v => v.eti_prediction === 'non_responsive' && !v.cftr_class },
         BP7:  { label:'BP7', name:'Synonymous variant with no predicted splice impact', weight:-1, auto: null },
     }
 };
@@ -8897,7 +8938,13 @@ function renderACMGPanel(variant) {
 const NBS_PANELS = {
     'UK CLAPA': ['F508del','G542X','G551D','R117H','N1303K','W1282X','R553X','621+1G>T','1717-1G>A','R1162X','G85E','R347P','A455E','3849+10kbC>T','1078delT','2789+5G>A','R560T','Y1092X','711+1G>T','1898+1G>A','2183AA>G','2184delA','3659delC','3905insT','S4X','Q493X','I507del'],
     'ACMG 23+4': ['F508del','G542X','G551D','R117H','N1303K','W1282X','R553X','621+1G>T','1717-1G>A','R1162X','G85E','R347P','A455E','3849+10kbC>T','1078delT','2789+5G>A','R560T','Y1092X','711+1G>T','1898+1G>A','2183AA>G','2184delA','3659delC'],
-    'EU Consensus': ['F508del','G542X','G551D','R117H','N1303K','W1282X','R553X','621+1G>T','1717-1G>A','R1162X','G85E','R347P','3849+10kbC>T','2789+5G>A','711+1G>T','1898+1G>A','2183AA>G']
+    'EU Consensus': ['F508del','G542X','G551D','R117H','N1303K','W1282X','R553X','621+1G>T','1717-1G>A','R1162X','G85E','R347P','3849+10kbC>T','2789+5G>A','711+1G>T','1898+1G>A','2183AA>G'],
+    // Spain national programme (Programa de Cribado Neonatal, SEQC/AECOC consensus)
+    // Ref: Guinea JM et al. An Pediatr (Barc) 2009; Spanish NBS Working Group 2020
+    'Espana (Nacional)': ['F508del','G542X','G551D','R117H','N1303K','W1282X','R553X','1717-1G>A','R1162X','G85E','R347P','A455E','3849+10kbC>T','2789+5G>A','711+1G>T','1898+1G>A','2183AA>G','2184delA','3659delC','1078delT','R560T','Y1092X','621+1G>T'],
+    // Galicia regional programme (SERGAS / Xunta de Galicia expanded 36-variant panel)
+    // Ref: Programa Galego de Deteccion Precoz de Enfermidades Endocrinometabolicas 2018
+    'Galicia (SERGAS)': ['F508del','G542X','G551D','R117H','N1303K','W1282X','R553X','1717-1G>A','R1162X','G85E','R347P','A455E','3849+10kbC>T','2789+5G>A','711+1G>T','1898+1G>A','2183AA>G','2184delA','3659delC','1078delT','R560T','Y1092X','621+1G>T','E60X','R1066C','L206W','D1152H','S4X','Q493X','I507del','R347H','3905insT','2143delT']
 };
 
 // Class-specific clinical reference data
@@ -10546,7 +10593,7 @@ function setDashTab(tab, btn) {
 }
 
 function setSITab(name, btn) {
-    ['overview','misses','recent','geo','gaps','heatmap','cosearch'].forEach(t => {
+    ['overview','misses','recent','geo','gaps','heatmap','cosearch','priority'].forEach(t => {
         const panel = 'siPanel' + t.charAt(0).toUpperCase() + t.slice(1);
         const el = document.getElementById(panel);
         if (!el) return;
@@ -10569,6 +10616,7 @@ function setSITab(name, btn) {
     else if (name === 'gaps')    renderGapQueue();
     else if (name === 'heatmap') renderVelocityHeatmap();
     else if (name === 'cosearch')renderCoSearchClusters();
+    else if (name === 'priority')renderPriorityQueue();
     else populateSITab(name);
 }
 
@@ -12091,6 +12139,95 @@ function getGapQueue(n = 15) {
         .filter(x => x.score >= 15)
         .sort((a,b) => b.score - a.score)
         .slice(0, n);
+}
+
+// ================================================================
+// CURATION PRIORITY QUEUE
+// Answers the question: "What should I work on today?"
+// Composite score = gap_score x demand_multiplier x helios_boost
+// Surfaces the most clinically urgent curation work in one ranked list.
+// ================================================================
+function renderPriorityQueue() {
+    const container = document.getElementById('priorityQueueList');
+    if (!container) return;
+
+    // Score each variant by composite priority
+    const scored = STATE.variants
+        .filter(v => v.legacy_name)
+        .map(v => {
+            const gap         = calculateGapScore(v);
+            const gapScore    = gap.score || 0;
+            const searchHits  = v.search_hit_count || 0;
+            const validated   = v.validation_count || 0;
+            const lastSearch  = v.last_searched_at ? (Date.now() - new Date(v.last_searched_at)) / 86400000 : 999;
+
+            // Demand weight: recent + frequent searches amplify urgency
+            const demandW = searchHits >= 30 ? 2.0
+                          : searchHits >= 10 ? 1.5
+                          : searchHits >= 3  ? 1.2 : 1.0;
+            const recencyW = lastSearch <= 7  ? 1.4
+                           : lastSearch <= 30 ? 1.2
+                           : lastSearch <= 90 ? 1.1 : 1.0;
+
+            // Helios boost: pending items on this variant raise urgency
+            const heliosItems = (HELIOS.pendingItems || []).filter(i => i.variant_id === v.id).length;
+            const heliosBoost = heliosItems >= 3 ? 1.4 : heliosItems >= 1 ? 1.2 : 1.0;
+
+            // Validation deficit: unvalidated + searched = urgent
+            const valDeficit = (validated === 0 && searchHits >= 3) ? 15 : 0;
+
+            const composite = Math.min(100, Math.round(
+                (gapScore * demandW * recencyW * heliosBoost) + valDeficit
+            ));
+
+            return { v, gapScore, composite, searchHits, validated, heliosItems, gap, lastSearch };
+        })
+        .filter(x => x.composite >= 10)   // only show variants needing attention
+        .sort((a, b) => b.composite - a.composite)
+        .slice(0, 40);
+
+    if (!scored.length) {
+        container.innerHTML = '<div style="font-size:12px;color:var(--text-tertiary);padding:20px 0;text-align:center;">'
+            + '<i class="fas fa-check-circle" style="font-size:20px;color:#34d399;display:block;margin-bottom:8px;"></i>'
+            + 'No urgent curation items right now. Database is in good shape.</div>';
+        return;
+    }
+
+    const gapColors = { CRITICAL:'#f87171', SEVERE:'#fb923c', MODERATE:'#fbbf24', MINOR:'#60a5fa', ADEQUATE:'#34d399' };
+
+    container.innerHTML = scored.map(function(x, idx) {
+        const v      = x.v;
+        const col    = gapColors[x.gap.gapLevel] || '#94a3b8';
+        const badge  = x.heliosItems > 0
+            ? '<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(251,191,36,0.15);color:#fbbf24;margin-left:4px;">'
+              + x.heliosItems + ' Helios</span>' : '';
+        const miss   = x.gap.missing.slice(0,2).map(function(m) {
+            return '<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(248,113,113,0.1);color:#f87171;">'
+                + m.replace(/_/g,' ') + '</span>';
+        }).join(' ');
+        const recency = x.lastSearch < 999
+            ? (x.lastSearch <= 1 ? 'today' : x.lastSearch <= 7 ? Math.round(x.lastSearch) + 'd ago' : '')
+            : '';
+
+        return '<div onclick="selectVariant(\'' + escapeAttr(v.legacy_name) + '\', false);setSITab(\'overview\', document.getElementById(\'siTab-overview\'));"'
+             + ' style="display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:4px;transition:background .1s;"'
+             + ' onmouseover="this.style.background=\'rgba(255,255,255,0.04)\'" onmouseout="this.style.background=\'\'">'
+             + '<div style="width:20px;text-align:right;font-size:10px;color:var(--text-tertiary);flex-shrink:0;">' + (idx+1) + '</div>'
+             + '<div style="width:28px;height:28px;border-radius:6px;background:' + col + '18;border:1px solid ' + col + '40;'
+             + 'display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+             + '<span style="font-size:10px;font-weight:800;color:' + col + ';">' + x.composite + '</span>'
+             + '</div>'
+             + '<div style="flex:1;min-width:0;">'
+             + '<div style="font-size:12px;font-weight:700;color:var(--text-primary);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
+             + escapeHTML(v.legacy_name) + badge + '</div>'
+             + '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;">' + miss + '</div>'
+             + '</div>'
+             + '<div style="text-align:right;flex-shrink:0;">'
+             + (x.searchHits > 0 ? '<div style="font-size:10px;color:var(--text-tertiary);">' + x.searchHits + ' searches</div>' : '')
+             + (recency ? '<div style="font-size:9px;color:#60a5fa;">' + recency + '</div>' : '')
+             + '</div>'
+             + '</div>';
+    }).join('');
 }
 
 function renderGapQueue() {
@@ -17235,6 +17372,7 @@ Object.assign(window, {
     heliosRemoveMonitor, heliosLoadInbox, heliosLoadAudit, heliosLoadScanHistory,
     // Compound genotype calculator + MDT
     openCompoundGenotypeCalculator, runCompoundGenotypeCalculation, generateMDTReport,
+    cgcSaveCase, cgcDeleteCase, cgcLoadCase, cgcRenderSavedCases,
     // ACMG
     computeACMGScore, renderACMGPanel,
     // Clinical reference
@@ -17660,6 +17798,82 @@ setTimeout(() => {
 // FEV1 trajectory estimate, pancreatic status, NBS detection, CFTR-RD risk
 // ================================================================
 
+// ================================================================
+// COMPOUND HET CASE HISTORY — de-identified local storage
+// No patient data stored — only allele pair + case code + timestamp
+// ================================================================
+const CGC_HISTORY_KEY = 'neumuacfq_cgc_cases_v1';
+const CGC_MAX_CASES   = 30;
+
+function cgcGetCases() {
+    try { return JSON.parse(localStorage.getItem(CGC_HISTORY_KEY) || '[]'); } catch { return []; }
+}
+
+function cgcSaveCase(allele1, allele2) {
+    const caseCode = (document.getElementById('cgcCaseCode')?.value || '').trim();
+    const cases    = cgcGetCases();
+    const entry    = {
+        allele1, allele2,
+        caseCode: caseCode || null,
+        ts: Date.now(),
+        id: Math.random().toString(36).slice(2, 8)
+    };
+    // Dedupe by allele pair + caseCode
+    const deduped = cases.filter(c =>
+        !(c.allele1 === allele1 && c.allele2 === allele2 && c.caseCode === entry.caseCode)
+    );
+    deduped.unshift(entry);
+    if (deduped.length > CGC_MAX_CASES) deduped.length = CGC_MAX_CASES;
+    try { localStorage.setItem(CGC_HISTORY_KEY, JSON.stringify(deduped)); } catch {}
+    showNotification('Case saved' + (caseCode ? ' as ' + caseCode : ''), 'success', 2000);
+    cgcRenderSavedCases();
+}
+
+function cgcDeleteCase(id) {
+    const cases = cgcGetCases().filter(c => c.id !== id);
+    try { localStorage.setItem(CGC_HISTORY_KEY, JSON.stringify(cases)); } catch {}
+    cgcRenderSavedCases();
+}
+
+function cgcLoadCase(allele1, allele2) {
+    const a1 = document.getElementById('cgcAllele1');
+    const a2 = document.getElementById('cgcAllele2');
+    if (a1) a1.value = allele1;
+    if (a2) a2.value = allele2;
+    runCompoundGenotypeCalculation();
+}
+
+function cgcRenderSavedCases() {
+    const container = document.getElementById('cgcSavedCases');
+    if (!container) return;
+    const cases = cgcGetCases();
+    if (!cases.length) { container.innerHTML = ''; return; }
+
+    container.innerHTML = '<div style="margin-bottom:8px;">'
+        + '<div style="font-size:10px;color:#5a7aaa;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;">'
+        + '<i class="fas fa-history" style="margin-right:4px;"></i>Saved cases</div>'
+        + cases.slice(0, 8).map(function(c) {
+            const date = new Date(c.ts).toLocaleDateString('en-GB', {day:'2-digit', month:'short'});
+            return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;'
+                 + 'background:rgba(41,121,255,0.05);border:1px solid rgba(41,121,255,0.12);margin-bottom:3px;cursor:pointer;"'
+                 + ' onclick="cgcLoadCase(\'' + escapeAttr(c.allele1) + '\',\'' + escapeAttr(c.allele2) + '\')">'
+                 + '<div style="flex:1;">'
+                 + '<span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:#93c5fd;">'
+                 + escapeHTML(c.allele1) + '</span>'
+                 + '<span style="font-size:10px;color:#5a7aaa;margin:0 4px;">+</span>'
+                 + '<span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:#93c5fd;">'
+                 + escapeHTML(c.allele2) + '</span>'
+                 + (c.caseCode ? '<span style="font-size:10px;color:#fbbf24;margin-left:6px;">' + escapeHTML(c.caseCode) + '</span>' : '')
+                 + '</div>'
+                 + '<span style="font-size:9px;color:#5a7aaa;">' + date + '</span>'
+                 + '<button onclick="event.stopPropagation();cgcDeleteCase(\'' + c.id + '\')"'
+                 + ' style="background:none;border:none;color:#5a7aaa;cursor:pointer;font-size:10px;padding:0 2px;">'
+                 + '<i class="fas fa-times"></i></button>'
+                 + '</div>';
+        }).join('')
+        + '</div>';
+}
+
 function openCompoundGenotypeCalculator() {
     const existing = document.getElementById('compGenoCalc');
     if (existing) { existing.remove(); return; }
@@ -17687,6 +17901,24 @@ function openCompoundGenotypeCalculator() {
             </div>
             <button onclick="document.getElementById('compGenoCalc').remove()"
                     style="margin-left:auto;background:none;border:none;color:#5a7aaa;cursor:pointer;font-size:16px;">✕</button>
+        </div>
+
+        <!-- Saved case history -->
+        <div id="cgcSavedCases" style="margin-bottom:12px;"></div>
+
+        <!-- Case code (de-identified) -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 10px;
+             background:rgba(41,121,255,0.04);border:1px solid rgba(41,121,255,0.15);border-radius:8px;">
+            <i class="fas fa-tag" style="font-size:10px;color:#60a5fa;flex-shrink:0;"></i>
+            <div style="flex:1;">
+                <label style="font-size:10px;color:#5a7aaa;display:block;margin-bottom:2px;">
+                    Case code <span style="color:var(--text-tertiary);">(optional, de-identified — no patient data)</span>
+                </label>
+                <input id="cgcCaseCode" placeholder="e.g. MDT-2024-047 or leave blank"
+                       style="width:100%;height:30px;background:transparent;border:none;color:#f0f6ff;
+                              font-family:var(--font-mono);font-size:12px;outline:none;padding:0;"
+                       autocomplete="off">
+            </div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
@@ -17720,6 +17952,8 @@ function openCompoundGenotypeCalculator() {
     </div>`;
     document.body.appendChild(overlay);
     setTimeout(() => document.getElementById('cgcAllele1')?.focus(), 50);
+    // Render saved case history
+    setTimeout(() => cgcRenderSavedCases(), 30);
 }
 
 function runCompoundGenotypeCalculation() {
@@ -17851,6 +18085,11 @@ function runCompoundGenotypeCalculation() {
 
         <div style="font-size:10px;color:var(--text-tertiary);line-height:1.6;border-top:1px solid var(--border);padding-top:8px;">
             NeumuacFQ compound genotype prediction · For MDT discussion only · Not a substitute for clinical genetics assessment.
+            <button onclick="cgcSaveCase('${escapeAttr(v1.legacy_name)}','${escapeAttr(v2.legacy_name)}')"
+                    style="margin-left:10px;font-size:11px;padding:3px 10px;border-radius:5px;border:1px solid rgba(52,211,153,0.3);
+                    background:rgba(52,211,153,0.08);color:#34d399;cursor:pointer;font-family:var(--font-body);">
+                <i class="fas fa-bookmark" style="font-size:10px;margin-right:4px;"></i>Save case
+            </button>
             <button onclick="generateMDTReport('${escapeAttr(v1.legacy_name)}','${escapeAttr(v2.legacy_name)}')"
                     style="margin-left:10px;font-size:11px;padding:3px 10px;border-radius:5px;border:1px solid rgba(41,121,255,0.3);
                     background:rgba(41,121,255,0.08);color:#60a5fa;cursor:pointer;font-family:var(--font-body);">
@@ -18932,20 +19171,36 @@ function exportFilteredCohort(format = 'csv') {
         'Legacy Name','Protein','cDNA','Determination','CFTR Class','Class Subtype',
         'ETI Prediction','ETI Evidence Level','Clinical Alert','Validation Count',
         'Last Validator','Search Hit Count','Evidence Links','Gap Score','Gap Level',
+        'Population Frequency (gnomAD)',
+        'Functional Assays (n)','Functional Assay Types','Functional Interpretations',
+        'ACMG PS3 (damaging)','ACMG BS3 (benign)',
+        'NBS: Espana Nacional','NBS: Galicia SERGAS',
         'Source','Last Updated'
     ];
 
     const rows = variants.map(v => {
-        const gap = calculateGapScore(v);
+        const gap        = calculateGapScore(v);
+        const funcLinks  = (v.evidence_links||[]).filter(e => e.func_assay_type || e.func_interpretation);
+        const assayTypes = [...new Set(funcLinks.map(e => e.func_assay_type).filter(Boolean))].join('; ');
+        const interps    = [...new Set(funcLinks.map(e => e.func_interpretation).filter(Boolean))].join('; ');
+        const hasPS3     = funcLinks.some(e => e.func_interpretation === 'damaging') ? 'YES' : '';
+        const hasBS3     = funcLinks.some(e => e.func_interpretation === 'benign')   ? 'YES' : '';
+        const vname      = (v.legacy_name||'').toUpperCase();
+        const inES       = (NBS_PANELS['Espana (Nacional)']||[]).some(n => n.toUpperCase() === vname) ? 'YES' : '';
+        const inGA       = (NBS_PANELS['Galicia (SERGAS)']||[]).some(n => n.toUpperCase() === vname) ? 'YES' : '';
         return [
             v.legacy_name, v.protein_name||'', v.cdna_name||'',
             v.final_determination||'', v.cftr_class||'', v.class_subtype||'',
             v.eti_prediction||'', v.eti_evidence_level||'',
-            (v.clinical_alert||'').replace(/[⚠️🚫❓]/g,'').trim(),
+            (v.clinical_alert||'').replace(/[^\x20-\x7E]/g,'').trim(),
             v.validation_count||0, v.last_validator_name||'',
             v.search_hit_count||0,
             (v.evidence_links||[]).length,
             gap.score, gap.gapLevel,
+            v.population_frequency||'',
+            funcLinks.length, assayTypes, interps,
+            hasPS3, hasBS3,
+            inES, inGA,
             v.source_summary||'', v.updated_at||''
         ];
     });
@@ -19006,11 +19261,25 @@ function exportIRBPackage() {
                     last_validated_at:   v.last_validated_at
                 },
                 evidence: {
-                    evidence_link_count: (v.evidence_links||[]).length,
-                    pubmed_ids:          v.pubmed_ids,
+                    evidence_link_count:  (v.evidence_links||[]).length,
+                    pubmed_ids:           v.pubmed_ids,
                     population_frequency: v.population_frequency,
-                    source_summary:      v.source_summary,
-                    last_evidence_update: v.last_evidence_update
+                    source_summary:       v.source_summary,
+                    last_evidence_update: v.last_evidence_update,
+                    functional_assays: (v.evidence_links||[])
+                        .filter(e => e.func_assay_type || e.func_interpretation)
+                        .map(e => ({
+                            assay_type:     e.func_assay_type    || null,
+                            result_value:   e.func_result_value  != null ? e.func_result_value : null,
+                            result_unit:    e.func_result_unit   || null,
+                            interpretation: e.func_interpretation || null,
+                            cell_model:     e.func_cell_model    || null,
+                            acmg_criterion: e.func_interpretation === 'damaging' ? 'PS3'
+                                          : e.func_interpretation === 'benign'   ? 'BS3'
+                                          : e.func_interpretation === 'rescue'   ? 'ETI_response' : null,
+                            source_title: e.title || null,
+                            source_url:   e.url   || null
+                        }))
                 },
                 research_gap: {
                     gap_score:       gap.score,
