@@ -244,6 +244,100 @@
             --t-4xl:  28px;
         }
 
+        /* ════════════════════════════════════════════════════════════════
+           LIGHT THEME OVERRIDES — applied via html[data-theme="light"]
+           Only redefines surface/text/border tokens.
+           Semantic class colors (I–VI) are opacity-based → self-adapt.
+           Chart.js charts are re-rendered on toggle via themeChanged event.
+           ════════════════════════════════════════════════════════════════ */
+        html[data-theme="light"] {
+            --white:           #ffffff;
+            --surface:         #f4f5f7;
+            --surface-alt:     #ebedf0;
+            --surface-0:       #ebedf0;
+            --surface-1:       #f4f5f7;
+            --surface-2:       #f8f9fb;
+            --surface-3:       #ffffff;
+            --surface-4:       #ffffff;
+            --surface-5:       #ffffff;
+            --bg-elevated:     #ffffff;
+            --border:          rgba(60,80,120,0.13);
+            --border-strong:   rgba(60,80,120,0.25);
+            --text-primary:    #111827;
+            --text-secondary:  #374151;
+            --text-tertiary:   #6b7280;
+            --text-inverse:    #f0f6ff;
+            --text-quaternary: rgba(60,80,120,0.45);
+            --surface-subtle:  rgba(0,0,0,0.04);
+            --surface-hover:   rgba(41,121,255,0.07);
+            --surface-active:  rgba(41,121,255,0.13);
+            --shadow-xs: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.1), 0 0 0 1px rgba(60,80,120,0.07);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.12), 0 0 0 1px rgba(60,80,120,0.08);
+            --shadow-lg: 0 12px 32px rgba(0,0,0,0.15), 0 0 0 1px rgba(60,80,120,0.08);
+            --shadow-xl: 0 24px 48px rgba(0,0,0,0.18), 0 0 0 1px rgba(60,80,120,0.1);
+            --glow-brand: 0 0 20px rgba(41,121,255,0.15), 0 0 0 1px rgba(41,121,255,0.2);
+        }
+        /* Light-mode surface adaptations for common inline-styled dark backgrounds */
+        html[data-theme="light"] .app-header {
+            background: #ffffff !important;
+            border-bottom: 1px solid rgba(60,80,120,0.13) !important;
+        }
+        html[data-theme="light"] .app-sidebar {
+            background: #f4f5f7 !important;
+            border-right: 1px solid rgba(60,80,120,0.13) !important;
+        }
+        html[data-theme="light"] .search-card {
+            background: rgba(255,255,255,0.8) !important;
+            border-color: rgba(60,80,120,0.15) !important;
+        }
+        html[data-theme="light"] .search-input {
+            color: #111827 !important;
+        }
+        html[data-theme="light"] #variantDetail,
+        html[data-theme="light"] .detail-empty,
+        html[data-theme="light"] .app-main {
+            background: #f4f5f7 !important;
+        }
+        html[data-theme="light"] .variant-item {
+            background: #ffffff !important;
+        }
+        html[data-theme="light"] .variant-item:hover {
+            background: rgba(41,121,255,0.05) !important;
+        }
+        /* Theme transition — smooth */
+        html {
+            transition: background-color 200ms ease, color 200ms ease;
+        }
+        *, *::before, *::after {
+            transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+        }
+        /* Override transition suppression for search input so it stays snappy */
+        .search-input { transition: none !important; }
+
+        /* ── Theme toggle button ── */
+        #themeToggleBtn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            height: 36px;
+            padding: 0 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(99,140,210,0.18);
+            border-radius: 8px;
+            color: var(--text-tertiary);
+            font-size: 12px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            transition: background 150ms, border-color 150ms, color 150ms;
+        }
+        #themeToggleBtn:hover {
+            background: rgba(41,121,255,0.08);
+            border-color: rgba(41,121,255,0.3);
+            color: var(--text-primary);
+        }
+        #themeToggleBtn .theme-icon { font-size: 12px; }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
@@ -859,119 +953,151 @@
             transform: rotate(180deg);
         }
 
-        /* Search zone */
+        /* ── Search zone — unified card ── */
         .sidebar-search {
-            padding: 14px 12px 12px;
-            border-bottom: 1px solid var(--border);
+            padding: 10px 10px 0;
             flex-shrink: 0;
         }
 
+        /* The card that wraps input + divider + filters + divider + class dots */
+        .search-card {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(99,140,210,0.14);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            transition: border-color 200ms;
+            margin-bottom: 8px;
+        }
+        .search-card:focus-within {
+            border-color: rgba(41,121,255,0.35);
+            box-shadow: 0 0 0 2px rgba(41,121,255,0.07);
+        }
+
+        /* Input row */
         .search-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 10px;
+            height: 42px;
             position: relative;
         }
 
+        .search-icon {
+            flex-shrink: 0;
+            color: rgba(41,121,255,0.55);
+            font-size: 12px;
+            pointer-events: none;
+            transition: color 200ms;
+        }
+        .search-card:focus-within .search-icon {
+            color: rgba(41,121,255,0.9);
+        }
+
         .search-input {
-            width: 100%;
-            height: 48px;
-            padding: 0 40px 0 46px;
+            flex: 1;
+            height: 100%;
+            padding: 0;
             font-family: var(--font-body);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
-            border: 1.5px solid rgba(251,191,36,0.25);
-            border-radius: 10px;
-            background: rgba(4,8,15,0.7);
+            border: none;
+            background: transparent;
             color: var(--text-primary);
-            transition: all 240ms cubic-bezier(0.4,0,0.2,1);
             outline: none;
             letter-spacing: 0.01em;
-        }
-
-        .search-input:hover {
-            border-color: rgba(251,191,36,0.45);
-            background: rgba(4,8,15,0.85);
-        }
-
-        .search-input:focus {
-            border-color: rgba(251,191,36,0.8);
-            background: rgba(4,8,15,0.95);
-            box-shadow:
-                0 0 0 3px rgba(251,191,36,0.1),
-                0 0 18px rgba(251,191,36,0.1),
-                inset 0 1px 0 rgba(251,191,36,0.06);
+            min-width: 0;
         }
 
         .search-input::placeholder { color: var(--text-tertiary); font-weight: 400; }
-
-        .search-icon {
-            position: absolute;
-            left: 13px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(251,191,36,0.5);
-            font-size: 13px;
-            pointer-events: none;
-            transition: color 240ms;
-        }
-
-        .search-field:focus-within .search-icon {
-            color: rgba(251,191,36,0.95);
-        }
+        .search-input:hover::placeholder { color: var(--text-secondary); }
 
         .search-clear {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
+            flex-shrink: 0;
             background: none;
             border: none;
             color: var(--text-tertiary);
             cursor: pointer;
-            padding: 4px;
+            padding: 3px 5px;
             border-radius: 4px;
             display: flex;
             align-items: center;
-            font-size: 11px;
-            transition: color 200ms;
+            font-size: 10px;
+            transition: color 150ms;
         }
+        .search-clear:hover { color: var(--text-primary); }
 
-        .search-clear:hover { color: #fbbf24; }
-
+        /* Keyboard hint — sits right of input, hidden when search active */
         .search-hint {
+            flex-shrink: 0;
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 5px 2px 2px;
+            gap: 4px;
             font-size: 9.5px;
             color: var(--text-tertiary);
             font-family: var(--font-mono);
+            transition: opacity 150ms;
         }
-
         .search-hint kbd {
             display: inline-flex;
             align-items: center;
             padding: 1px 5px;
-            background: rgba(251,191,36,0.07);
-            border: 1px solid rgba(251,191,36,0.2);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(99,140,210,0.18);
             border-radius: 3px;
-            font-size: 11px;
-            color: rgba(251,191,36,0.55);
+            font-size: 10px;
+            color: var(--text-tertiary);
             font-family: var(--font-mono);
+        }
+
+        /* Dividers inside the card */
+        .search-divider {
+            height: 1px;
+            background: rgba(99,140,210,0.1);
+        }
+
+        /* Filter chips row — lives inside the card now */
+        .search-filters-row {
+            display: flex;
+            gap: 4px;
+            padding: 7px 8px;
+            flex-wrap: wrap;
+        }
+        .search-filters-row .filter-chip {
+            font-size: 11px !important;
+            padding: 3px 8px !important;
+            border-radius: 5px !important;
+        }
+
+        /* Class dots row — inside the card */
+        .search-class-row {
+            display: flex;
+            gap: 3px;
+            padding: 0 8px 8px;
+        }
+        .search-class-row .class-dot {
+            flex: 1;
+            min-width: 0;
+            height: 22px;
+            font-size: 10px !important;
+            border-radius: 5px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Bottom border of the card acts as the old sidebar border */
+        .search-card-bottom-border {
+            height: 1px;
+            background: var(--border);
+            margin: 0 0 0 0;
         }
 
 
         /* Search mode — sidebar adapts when query is active */
-        .app-shell.search-active .sidebar-filters {
-            opacity: 0.35;
-            pointer-events: none;
-            transition: opacity 200ms;
-        }
-        .app-shell.search-active .class-filter-bar {
-            opacity: 0.35;
-            pointer-events: none;
-            transition: opacity 200ms;
-        }
         .app-shell.search-active .search-hint {
-            display: none;
+            opacity: 0;
+            pointer-events: none;
         }
         /* Search result count — shown prominently in search mode */
         .search-result-bar {
@@ -988,7 +1114,7 @@
         }
         .search-result-count {
             font-weight: 700;
-            color: #fbbf24;
+            color: var(--brand);
         }
         .search-result-clear {
             margin-left: auto;
@@ -3806,12 +3932,7 @@
         }
 
         /* ── Search area: polish ── */
-        .search-area,
-        #searchArea {
-            border-bottom: 1px solid var(--border) !important;
-        }
         #searchInput {
-            font-size: 14px !important;
             caret-color: var(--brand) !important;
         }
         #searchInput::placeholder {
@@ -4150,6 +4271,11 @@
             </div>
 
             <div class="header-actions">
+                <!-- Theme toggle -->
+                <button id="themeToggleBtn" onclick="toggleTheme()" title="Toggle light / dark theme">
+                    <i class="fas fa-moon theme-icon" id="themeIcon"></i>
+                    <span id="themeLabel">Light</span>
+                </button>
                 <!-- Connection status indicator -->
                 <div style="display:flex;align-items:center;gap:5px;padding:0 8px;" title="Database connection status">
                     <div id="connStatusDot" style="width:7px;height:7px;border-radius:50%;background:#34d399;transition:background .3s;flex-shrink:0;"></div>
@@ -4254,77 +4380,85 @@
 
         <!-- Search -->
         <div class="sidebar-search">
-            <div class="search-field">
-                <i class="fas fa-search search-icon"></i>
-                <input
-                    type="text"
-                    id="searchInput"
-                    class="search-input"
-                    placeholder="Variant, cDNA, protein… or class:III eti:responsive missing:class" aria-label="Search variant, cDNA, protein or use filters like class:III eti:responsive"
-                    autocomplete="off"
-                >
-                <button class="search-clear hidden" id="searchClear" onclick="clearSearch()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="search-hint" id="searchHint">
-                <kbd>/</kbd><span>quick search</span>
-            </div>
-            <div class="search-result-bar" id="searchResultBar">
-                <span id="searchResultCount" class="search-result-count"></span>
-                <span id="searchResultLabel" style="color:var(--text-tertiary);font-size:10px;"></span>
-                <button class="search-result-clear" onclick="clearSearch()">
-                    <i class="fas fa-times" style="font-size:9px;margin-right:3px;"></i>clear
-                </button>
+            <div class="search-card" id="searchCard">
+                <!-- Input row -->
+                <div class="search-field">
+                    <i class="fas fa-search search-icon"></i>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        class="search-input"
+                        placeholder="Search variants…"
+                        aria-label="Search variant, cDNA, protein or use filters like class:III eti:responsive"
+                        autocomplete="off"
+                        title="Supports: variant name, cDNA, protein, or class:III eti:responsive missing:class"
+                    >
+                    <div class="search-hint" id="searchHint">
+                        <kbd>/</kbd>
+                    </div>
+                    <button class="search-clear hidden" id="searchClear" onclick="clearSearch()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <!-- Result bar (shown when search active) -->
+                <div class="search-result-bar" id="searchResultBar" style="padding:0 10px 6px;">
+                    <span id="searchResultCount" class="search-result-count"></span>
+                    <span id="searchResultLabel" style="color:var(--text-tertiary);font-size:10px;"></span>
+                    <button class="search-result-clear" onclick="clearSearch()">
+                        <i class="fas fa-times" style="font-size:9px;margin-right:3px;"></i>clear
+                    </button>
+                </div>
+                <!-- Divider -->
+                <div class="search-divider"></div>
+                <!-- Filter chips row (moved inside card) -->
+                <div class="search-filters-row" id="sidebarFiltersInner">
+                    <button class="filter-chip active" id="chip-all" onclick="setDataView('all')">
+                        All <span class="chip-divider"></span><span class="chip-count" id="chipAll">—</span>
+                    </button>
+                    <button class="filter-chip" id="chip-responsive" onclick="setDataView('responsive')">
+                        <i class="fas fa-check" style="font-size: 10px"></i> ETI
+                        <span class="chip-divider"></span><span class="chip-count" id="chipResponsive">—</span>
+                    </button>
+                    <button class="filter-chip" id="chip-exceptional" onclick="setDataView('exceptional')">
+                        <i class="fas fa-bolt" style="font-size: 10px"></i> Excep.
+                        <span class="chip-divider"></span><span class="chip-count" id="chipExceptional">—</span>
+                    </button>
+                    <button class="filter-chip" id="chip-missing" onclick="filterVariants('missing')">
+                        Missing
+                        <span class="chip-divider"></span><span class="chip-count" id="chipMissing">—</span>
+                    </button>
+                    <button class="filter-chip" id="chip-missqueue" onclick="showMissQueuePanel()" title="Searches with no result — research gaps" style="display:none;">
+                        <i class="fas fa-exclamation" style="font-size: 10px;color:#f87171;"></i>
+                        <span style="color:#f87171;">Miss</span>
+                        <span class="chip-divider"></span><span class="chip-count" id="chipMissQueue" style="color:#f87171;">—</span>
+                    </button>
+                    <button class="filter-chip" id="chip-gaps" onclick="showGapQueuePanel()" title="Research gap queue" style="display:none;">
+                        <i class="fas fa-triangle-exclamation" style="font-size: 10px;color:#fbbf24;"></i>
+                        <span style="color:#fbbf24;">Gaps</span>
+                        <span class="chip-divider"></span><span class="chip-count" id="chipGaps" style="color:#fbbf24;">—</span>
+                    </button>
+                    <button class="filter-chip" id="chip-complete" onclick="setDataView('complete')">
+                        Done
+                        <span class="chip-divider"></span><span class="chip-count" id="chipComplete">—</span>
+                    </button>
+                </div>
+                <!-- Divider -->
+                <div class="search-divider"></div>
+                <!-- Class filter dots row (moved inside card) -->
+                <div class="search-class-row" id="classFilterBar">
+                    <button class="class-dot call active" id="cdot-all" onclick="setClassFilter('all')">All</button>
+                    <button class="class-dot ci"   id="cdot-I"   onclick="setClassFilter('I')" style="color:var(--class-i);">I</button>
+                    <button class="class-dot cii"  id="cdot-II"  onclick="setClassFilter('II')" style="color:var(--class-ii);">II</button>
+                    <button class="class-dot ciii" id="cdot-III" onclick="setClassFilter('III')" style="color:var(--class-iii);">III</button>
+                    <button class="class-dot civ"  id="cdot-IV"  onclick="setClassFilter('IV')" style="color:var(--class-iv);">IV</button>
+                    <button class="class-dot cv"   id="cdot-V"   onclick="setClassFilter('V')" style="color:var(--class-v);">V</button>
+                    <button class="class-dot cvi"  id="cdot-VI"  onclick="setClassFilter('VI')" style="color:var(--class-vi);">VI</button>
+                </div>
             </div>
             <!-- Intelligent search dropdown -->
             <div class="search-dropdown hidden" id="searchDropdown"></div>
             <!-- Miss quick-add pill -->
             <div id="missActionContainer"></div>
-        </div>
-
-        <!-- View filters -->
-        <div class="sidebar-filters">
-            <button class="filter-chip active" id="chip-all" onclick="setDataView('all')">
-                All <span class="chip-divider"></span><span class="chip-count" id="chipAll">—</span>
-            </button>
-            <button class="filter-chip" id="chip-responsive" onclick="setDataView('responsive')">
-                <i class="fas fa-check" style="font-size: 11px"></i> ETI
-                <span class="chip-divider"></span><span class="chip-count" id="chipResponsive">—</span>
-            </button>
-            <button class="filter-chip" id="chip-exceptional" onclick="setDataView('exceptional')">
-                <i class="fas fa-bolt" style="font-size: 11px"></i> Exceptional
-                <span class="chip-divider"></span><span class="chip-count" id="chipExceptional">—</span>
-            </button>
-            <button class="filter-chip" id="chip-missing" onclick="filterVariants('missing')">
-                Missing
-                <span class="chip-divider"></span><span class="chip-count" id="chipMissing">—</span>
-            </button>
-            <button class="filter-chip" id="chip-missqueue" onclick="showMissQueuePanel()" title="Searches with no result — research gaps" style="display:none;">
-                <i class="fas fa-exclamation" style="font-size: 11px;color:#f87171;"></i>
-                <span style="color:#f87171;">Miss</span>
-                <span class="chip-divider"></span><span class="chip-count" id="chipMissQueue" style="color:#f87171;">—</span>
-            </button>
-            <button class="filter-chip" id="chip-gaps" onclick="showGapQueuePanel()" title="Research gap queue" style="display:none;">
-                <i class="fas fa-triangle-exclamation" style="font-size: 11px;color:#fbbf24;"></i>
-                <span style="color:#fbbf24;">Gaps</span>
-                <span class="chip-divider"></span><span class="chip-count" id="chipGaps" style="color:#fbbf24;">—</span>
-            </button>
-            <button class="filter-chip" id="chip-complete" onclick="setDataView('complete')">
-                Complete
-                <span class="chip-divider"></span><span class="chip-count" id="chipComplete">—</span>
-            </button>
-        </div>
-
-        <!-- Class filter -->
-        <div class="class-filter-bar" id="classFilterBar">
-            <button class="class-dot call active" id="cdot-all" onclick="setClassFilter('all')">All</button>
-            <button class="class-dot ci"   id="cdot-I"   onclick="setClassFilter('I')">I</button>
-            <button class="class-dot cii"  id="cdot-II"  onclick="setClassFilter('II')">II</button>
-            <button class="class-dot ciii" id="cdot-III" onclick="setClassFilter('III')">III</button>
-            <button class="class-dot civ"  id="cdot-IV"  onclick="setClassFilter('IV')">IV</button>
-            <button class="class-dot cv"   id="cdot-V"   onclick="setClassFilter('V')">V</button>
-            <button class="class-dot cvi"  id="cdot-VI"  onclick="setClassFilter('VI')">VI</button>
         </div>
 
         <!-- List meta -->
@@ -4364,26 +4498,42 @@
         <div class="main-inner">
             <!-- Empty state -->
             <div class="detail-empty" id="detailEmpty">
-                <div class="empty-graphic">
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <text x="20" y="27" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="26" font-weight="700" fill="var(--border-strong)">Δ</text>
-                        <path d="M8 32 Q11.5 28.5 15 32 Q18.5 35.5 22 32 Q25.5 28.5 29 32 Q32.5 35.5 32 32" stroke="var(--border-strong)" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.6"/>
-                    </svg>
+                <div id="detailEmptyMissPanel" style="display:none;max-width:380px;margin:0 auto 24px;"></div>
+                <div id="detailEmptyTitle"     style="display:none"></div>
+                <div id="detailEmptySub"       style="display:none"></div>
+                <div id="detailEmptyQuickLinks"style="display:none"></div>
+
+                <div id="homeDashboard" style="width:100%;max-width:860px;padding:0 8px;text-align:left;">
+
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;" id="homeKpiStrip"></div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+                            <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface-alt);">
+                                <i class="fas fa-star" style="font-size:12px;color:var(--brand);"></i>
+                                <span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-secondary);">Curation priority</span>
+                                <span style="margin-left:auto;font-size:10px;color:var(--text-tertiary);">click to open</span>
+                            </div>
+                            <div id="homePriorityList" style="padding:4px 0;"></div>
+                        </div>
+                        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+                            <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface-alt);">
+                                <i class="fas fa-sun" style="font-size:12px;color:#f59e0b;"></i>
+                                <span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-secondary);">Helios inbox</span>
+                                <span id="homeHeliosBadge" style="margin-left:auto;font-size:10px;color:#f59e0b;font-family:var(--font-mono);font-weight:700;"></span>
+                            </div>
+                            <div id="homeHeliosList" style="padding:4px 0;"></div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+                        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface-alt);">
+                            <i class="fas fa-history" style="font-size:12px;color:var(--text-tertiary);"></i>
+                            <span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-secondary);">Your recent</span>
+                        </div>
+                        <div id="homeRecentList" style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;min-height:44px;"></div>
+                    </div>
                 </div>
-                <h2 class="empty-title" id="detailEmptyTitle">Select a variant</h2>
-                <p class="empty-sub" id="detailEmptySub">
-                    Choose a CFTR variant from the explorer to view comprehensive clinical data,
-                    therapeutic predictions, and evidence chain.
-                </p>
-                <div class="quick-links" id="detailEmptyQuickLinks">
-                    <button class="quick-link" onclick="quickSearch('G542X')">G542X</button>
-                    <button class="quick-link" onclick="quickSearch('F508del')">F508del</button>
-                    <button class="quick-link" onclick="quickSearch('W1282X')">W1282X</button>
-                    <button class="quick-link" onclick="quickSearch('G551D')">G551D</button>
-                    <button class="quick-link" onclick="quickSearch('N1303K')">N1303K</button>
-                </div>
-                <!-- Not-found external DB panel (shown when search has no results) -->
-                <div id="detailEmptyMissPanel" style="display:none;max-width:380px;margin:0 auto;"></div>
             </div>
 
             <!-- Variant detail (populated by JS) -->
@@ -6269,6 +6419,9 @@ async function loadVariants() {
 
         // Load cross-session search history from Supabase — non-blocking
         setTimeout(() => loadCrossSessionHistory().catch(() => {}), 2000);
+
+        // Render live home dashboard in the empty state panel
+        setTimeout(() => renderHomeDashboard(), 350);
 
         STATE.system.initialized = true;
         STATE.system.initEndTime = new Date();
@@ -8512,6 +8665,120 @@ function toggleSidebar() {
 
 // ========== RENDER — VARIANT LIST ==========
 
+// ================================================================
+// HOME DASHBOARD — replaces the empty state
+// KPI cards + priority queue + Helios inbox + recent searches
+// Called on init and whenever the empty state becomes visible
+// ================================================================
+function renderHomeDashboard() {
+    var kpiEl = document.getElementById('homeKpiStrip');
+    if (kpiEl) {
+        var critCount    = STATE.variants.filter(function(v){ return calculateGapScore(v).gapLevel === 'CRITICAL'; }).length;
+        var etiCount     = STATE.variants.filter(function(v){ return v.eti_prediction === 'responsive'; }).length;
+        var missingCount = STATE.variants.filter(hasMissingData).length;
+        var completeCount= STATE.variants.filter(function(v){ return !hasMissingData(v) && v.cftr_class && v.eti_prediction && v.eti_prediction !== 'unknown'; }).length;
+        var kpis = [
+            { val: critCount,     lbl: 'Critical gaps',  col: 'var(--error)'     },
+            { val: etiCount,      lbl: 'ETI responsive', col: 'var(--class-iii)' },
+            { val: missingCount,  lbl: 'Missing data',   col: '#f59e0b'          },
+            { val: completeCount, lbl: 'Complete',        col: 'var(--brand)'    },
+        ];
+        kpiEl.innerHTML = kpis.map(function(k) {
+            return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:default;">'
+                 + '<div style="font-size:24px;font-weight:800;font-family:var(--font-mono);color:' + k.col + ';line-height:1;margin-bottom:5px;">' + k.val.toLocaleString() + '</div>'
+                 + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-tertiary);">' + k.lbl + '</div>'
+                 + '</div>';
+        }).join('');
+    }
+
+    var pqEl = document.getElementById('homePriorityList');
+    if (pqEl) {
+        var scored = STATE.variants.filter(function(v){ return !!v.legacy_name; }).map(function(v) {
+            var gap      = calculateGapScore(v);
+            var hits     = v.search_hit_count || 0;
+            var lastDays = v.last_searched_at ? (Date.now() - new Date(v.last_searched_at)) / 86400000 : 999;
+            var demandW  = hits >= 30 ? 2.0 : hits >= 10 ? 1.5 : hits >= 3 ? 1.2 : 1.0;
+            var recencyW = lastDays <= 7 ? 1.4 : lastDays <= 30 ? 1.2 : 1.0;
+            var heliosB  = (HELIOS.pendingItems||[]).some(function(i){ return i.variant_id === v.id; }) ? 1.2 : 1.0;
+            var valPen   = (!(v.validation_count||0) && hits >= 3) ? 15 : 0;
+            var composite = Math.min(100, Math.round(gap.score * demandW * recencyW * heliosB + valPen));
+            return { v: v, composite: composite, gap: gap, hits: hits, lastDays: lastDays };
+        }).filter(function(x){ return x.composite >= 15; })
+          .sort(function(a,b){ return b.composite - a.composite; })
+          .slice(0, 6);
+
+        if (!scored.length) {
+            pqEl.innerHTML = '<div style="padding:16px 14px;font-size:12px;color:var(--text-tertiary);text-align:center;"><i class="fas fa-check-circle" style="color:var(--class-iii);margin-right:6px;"></i>All variants in good shape</div>';
+        } else {
+            pqEl.innerHTML = scored.map(function(x) {
+                var col  = x.gap.score >= 75 ? 'var(--error)' : x.gap.score >= 55 ? '#f59e0b' : x.gap.score >= 35 ? '#fbbf24' : 'var(--brand)';
+                var miss = x.gap.missing.slice(0,2).map(function(m){
+                    return '<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(248,113,113,0.1);color:var(--error);font-family:var(--font-mono);margin-right:3px;">' + m.replace(/_/g,' ') + '</span>';
+                }).join('');
+                var rec = x.lastDays <= 1 ? 'today' : x.lastDays <= 7 ? Math.round(x.lastDays) + 'd ago' : '';
+                return '<div onclick="selectVariant(\'' + escapeAttr(x.v.legacy_name) + '\',false)"'
+                     + ' style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;"'
+                     + ' onmouseover="this.style.background=\'var(--surface-alt)\'" onmouseout="this.style.background=\'\'">'
+                     + '<div style="width:30px;height:30px;border-radius:7px;background:' + col + '18;border:1px solid ' + col + '40;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+                     + '<span style="font-size:11px;font-weight:800;font-family:var(--font-mono);color:' + col + ';">' + x.composite + '</span></div>'
+                     + '<div style="flex:1;min-width:0;">'
+                     + '<div style="font-size:12px;font-weight:700;font-family:var(--font-mono);color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHTML(x.v.legacy_name) + '</div>'
+                     + '<div style="margin-top:2px;">' + miss + '</div></div>'
+                     + (x.hits > 0 ? '<div style="text-align:right;font-size:10px;color:var(--text-tertiary);flex-shrink:0;white-space:nowrap;">' + x.hits + ' searches'
+                        + (rec ? '<br><span style="color:var(--brand);font-size:9px;">' + rec + '</span>' : '') + '</div>' : '')
+                     + '</div>';
+            }).join('');
+        }
+    }
+
+    var helEl    = document.getElementById('homeHeliosList');
+    var helBadge = document.getElementById('homeHeliosBadge');
+    if (helEl) {
+        var pending = (HELIOS.pendingItems || []).filter(function(i){ return i.status === 'pending'; }).slice(0, 5);
+        if (helBadge) helBadge.textContent = pending.length ? pending.length + ' pending' : '';
+        if (!pending.length) {
+            helEl.innerHTML = '<div style="padding:16px 14px;font-size:12px;color:var(--text-tertiary);text-align:center;"><i class="fas fa-inbox" style="margin-right:6px;"></i>Helios inbox is clear</div>';
+        } else {
+            helEl.innerHTML = pending.map(function(item) {
+                var conf = item.bot_confidence || 0;
+                var cCol = conf >= 80 ? 'var(--class-iii)' : conf >= 60 ? '#f59e0b' : 'var(--text-tertiary)';
+                return '<div style="padding:8px 14px;border-bottom:1px solid var(--border);">'
+                     + '<div style="font-size:11px;font-weight:600;color:var(--text-primary);margin-bottom:4px;line-height:1.4;">' + escapeHTML((item.bot_summary||'').slice(0,90)) + '</div>'
+                     + '<div style="display:flex;align-items:center;gap:6px;">'
+                     + '<div style="flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden;"><div style="height:100%;width:' + conf + '%;background:' + cCol + ';border-radius:2px;"></div></div>'
+                     + '<span style="font-size:9px;color:' + cCol + ';font-family:var(--font-mono);font-weight:700;">' + conf + '%</span></div>'
+                     + '<div style="display:flex;gap:5px;margin-top:6px;">'
+                     + '<button onclick="heliosApprove(' + item.id + ')" style="padding:3px 8px;border-radius:4px;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.08);color:var(--class-iii);font-size:9px;font-weight:700;cursor:pointer;font-family:var(--font-body);">Approve</button>'
+                     + '<button onclick="heliosReject(' + item.id + ')" style="padding:3px 8px;border-radius:4px;border:1px solid rgba(248,113,113,.3);background:rgba(248,113,113,.08);color:var(--error);font-size:9px;font-weight:700;cursor:pointer;font-family:var(--font-body);">Reject</button>'
+                     + '<button onclick="heliosDefer(' + item.id + ')" style="padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-tertiary);font-size:9px;cursor:pointer;font-family:var(--font-body);">Defer</button>'
+                     + '</div></div>';
+            }).join('');
+        }
+    }
+
+    var recEl = document.getElementById('homeRecentList');
+    if (recEl) {
+        var history = (typeof getSearchHistory === 'function') ? getSearchHistory().slice(0, 12) : [];
+        if (!history.length) {
+            recEl.innerHTML = '<span style="font-size:11px;color:var(--text-tertiary);">No searches yet this session</span>';
+        } else {
+            recEl.innerHTML = history.map(function(h) {
+                var name = h.variantName || h.query;
+                var v    = STATE.variantsById.get(h.variantId);
+                var cls  = v && v.cftr_class ? v.cftr_class : '';
+                var age  = (typeof formatTimeAgo === 'function') ? formatTimeAgo(h.ts) : '';
+                return '<button onclick="selectVariant(\'' + escapeAttr(name) + '\',false)"'
+                     + ' style="display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-primary);cursor:pointer;font-family:inherit;transition:border-color .15s;"'
+                     + ' onmouseover="this.style.borderColor=\'var(--brand)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+                     + '<span style="font-size:11px;font-weight:700;font-family:var(--font-mono);">' + escapeHTML(name) + '</span>'
+                     + (cls ? '<span style="font-size:9px;color:var(--text-tertiary);">' + escapeHTML(cls) + '</span>' : '')
+                     + (age ? '<span style="font-size:9px;color:var(--text-tertiary);">' + age + '</span>' : '')
+                     + '</button>';
+            }).join('');
+        }
+    }
+}
+
 function renderVariantList() {
     const container = document.getElementById('variantList');
     if (!container) return;
@@ -8682,6 +8949,7 @@ function renderVariantList() {
             <div class="collapsed-icon-row ${cls}" style="background:${clsBg[cls]||clsBg.cx};color:${clsColor[cls]||clsColor.cx};font-weight:700;font-size:11px;">
                 ${v.cftr_class || '?'}
             </div>
+            ${(function(){var _g=calculateGapScore(v);var _w=Math.max(4,_g.score);var _c=_g.score>=75?'var(--error)':_g.score>=55?'#f59e0b':_g.score>=35?'#fbbf24':_g.score>=15?'var(--brand)':'var(--class-iii)';return '<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--border)"><div style="height:100%;width:'+_w+'%;background:'+_c+';border-radius:0 1px 1px 0"></div></div>';})()}
         </div>`;
     }).join('');
 
@@ -9915,6 +10183,7 @@ async function confirmDeleteVariant() {
             STATE.view.selectedVariant = null;
             document.getElementById('variantDetail').classList.add('hidden');
             document.getElementById('detailEmpty').classList.remove('hidden');
+            setTimeout(() => renderHomeDashboard(), 60);
         }
         // Write to audit log
         writeAuditLog({
@@ -11502,14 +11771,9 @@ function helixShowDetailMissState(query) {
 
 // Reset detail empty panel to default state (call on clearSearch)
 function helixResetDetailEmpty() {
-    const title = document.getElementById('detailEmptyTitle');
-    const sub   = document.getElementById('detailEmptySub');
-    const ql    = document.getElementById('detailEmptyQuickLinks');
     const panel = document.getElementById('detailEmptyMissPanel');
-    if (title) title.textContent = 'Select a variant';
-    if (sub)   sub.textContent   = 'Choose a CFTR variant from the explorer to view comprehensive clinical data, therapeutic predictions, and evidence chain.';
-    if (ql)    ql.style.display  = '';
     if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
+    if (STATE.system.initialized) setTimeout(() => renderHomeDashboard(), 60);
 }
 
 // ========== RESEARCH GAP ENGINE ==========
@@ -13655,6 +13919,47 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// ═══════════════════════════════════════════════════════════════
+// THEME TOGGLE — light / dark
+// ═══════════════════════════════════════════════════════════════
+(function() {
+    const STORAGE_KEY = 'neumuacfq_theme';
+    const html = document.documentElement;
+
+    function applyTheme(theme) {
+        if (theme === 'light') {
+            html.setAttribute('data-theme', 'light');
+            const icon  = document.getElementById('themeIcon');
+            const label = document.getElementById('themeLabel');
+            if (icon)  { icon.className  = 'fas fa-sun theme-icon'; }
+            if (label) { label.textContent = 'Dark'; }
+        } else {
+            html.removeAttribute('data-theme');
+            const icon  = document.getElementById('themeIcon');
+            const label = document.getElementById('themeLabel');
+            if (icon)  { icon.className  = 'fas fa-moon theme-icon'; }
+            if (label) { label.textContent = 'Light'; }
+        }
+        // Notify Chart.js charts (if any are listening)
+        try { window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } })); } catch(e) {}
+    }
+
+    window.toggleTheme = function() {
+        const current = html.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        const next    = current === 'light' ? 'dark' : 'light';
+        try { localStorage.setItem(STORAGE_KEY, next); } catch(e) {}
+        applyTheme(next);
+    };
+
+    // Apply saved preference on load
+    let saved = 'dark';
+    try { saved = localStorage.getItem(STORAGE_KEY) || 'dark'; } catch(e) {}
+    // Run after DOM ready so icon elements exist
+    document.addEventListener('DOMContentLoaded', () => applyTheme(saved), { once: true });
+    // Also run immediately in case DOMContentLoaded already fired
+    if (document.readyState !== 'loading') applyTheme(saved);
+})();
 
 // ========== LOADING SCREEN — REAL MILESTONE SYSTEM ==========
 // Progress is driven by actual async work in init(). No fake timers.
@@ -17381,7 +17686,7 @@ Object.assign(window, {
     saveMissNote, highlightMatch,
     renderVelocityHeatmap, renderCoSearchClusters,
     renderSearchHistoryDropdown, clearSearchHistory,
-    saveToSearchHistory, getSearchHistory,
+    saveToSearchHistory, getSearchHistory, renderHomeDashboard,
     // Phase 3-5 additions
     showDisputeModal, closeDisputeModal, submitDispute,
     exportCohort, exportIRB, exportFilteredCohort, exportIRBPackage,
