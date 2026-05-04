@@ -7,10 +7,8 @@
 
     <!--
         SECURITY — Content Security Policy
-        Restricts resource loading to known trusted origins only.
-        'unsafe-inline' is required for the existing inline <style> and <script> blocks.
-        When those are eventually externalised, replace with a nonce or hash.
-        frame-ancestors 'none' prevents clickjacking of this clinical UI.
+        NOTE: frame-ancestors is intentionally omitted from this meta tag —
+        it is only honoured when delivered as an HTTP response header.
         upgrade-insecure-requests forces HTTPS for all sub-resource requests.
     -->
     <meta http-equiv="Content-Security-Policy" content="
@@ -30,8 +28,8 @@
                     https://eutils.ncbi.nlm.nih.gov
                     https://gnomad.broadinstitute.org
                     https://api.ipapi.com
-                    https://ipapi.co;
-        frame-ancestors 'none';
+                    https://ipapi.co
+                    https://cdn.jsdelivr.net;
         upgrade-insecure-requests;
     ">
 
@@ -11504,7 +11502,64 @@ function renderCharts() {
         if (STATE.ui.charts[id]) STATE.ui.charts[id].destroy();
         const cfg = id === 'classChart' ? classCfg : id === 'responseChart' ? respCfg : compCfg;
         STATE.ui.charts[id] = new Chart(canvas, cfg);
+        // Store reference on canvas for drill-down click handler
+        canvas._chart = STATE.ui.charts[id];
     });
+
+    // ── Drill-down click-to-filter (merged from former second renderCharts) ──
+    // Runs after a brief delay to let Chart.js finish rendering
+    const drillTip = { callbacks: {
+        label: ctx => ctx.dataset.label
+            ? ` ${ctx.dataset.label}: ${ctx.parsed.y ?? ctx.parsed.x ?? ctx.raw} — click to filter`
+            : ` ${ctx.label}: ${ctx.raw} — click to filter`
+    }};
+
+    setTimeout(() => {
+        const cc = document.getElementById('classChart');
+        if (cc?._chart) {
+            cc.style.cursor = 'pointer';
+            cc.title = 'Click a segment to filter by class';
+            cc._chart.options.plugins.tooltip.callbacks = drillTip.callbacks;
+            cc._chart.update('none');
+            cc.onclick = evt => {
+                const pts = cc._chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+                if (!pts.length) return;
+                const label = cc._chart.data.labels[pts[0].index];
+                closeDashboard();
+                setTimeout(() => helixChartDrillFilter('class', label, `Class ${label}`), 150);
+            };
+        }
+        const rc = document.getElementById('responseChart');
+        if (rc?._chart) {
+            rc.style.cursor = 'pointer';
+            rc.title = 'Click a bar to filter by ETI status';
+            rc._chart.options.plugins.tooltip.callbacks = drillTip.callbacks;
+            rc._chart.update('none');
+            rc.onclick = evt => {
+                const pts = rc._chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+                if (!pts.length) return;
+                const label = rc._chart.data.labels[pts[0].index];
+                const typeMap = { 'Responsive':'eti_responsive','Non-responsive':'eti_nonresponsive','Unknown':'eti_unknown' };
+                closeDashboard();
+                setTimeout(() => helixChartDrillFilter(typeMap[label] || 'eti_responsive', null, label), 150);
+            };
+        }
+        const mc = document.getElementById('completionChart');
+        if (mc?._chart) {
+            mc.style.cursor = 'pointer';
+            mc.title = 'Click a bar to filter by data completeness';
+            mc._chart.options.plugins.tooltip.callbacks = drillTip.callbacks;
+            mc._chart.update('none');
+            mc.onclick = evt => {
+                const pts = mc._chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+                if (!pts.length) return;
+                const label = mc._chart.data.labels[pts[0].index];
+                const typeMap = { 'Complete':'complete','Partial':'partial','Minimal':'minimal' };
+                closeDashboard();
+                setTimeout(() => helixChartDrillFilter(typeMap[label] || 'complete', null, label), 150);
+            };
+        }
+    }, 200);
 }
 
 function refreshDashboardStats() {
@@ -18454,7 +18509,14 @@ async function helixSaveSnapshot() {
             body: JSON.stringify(snapshot)
         });
         console.log('[NeumuacFQ] Daily snapshot saved:', snapshot.snapshot_date);
-    } catch(e) { console.warn('[NeumuacFQ] Snapshot save failed (table may not exist yet):', e.message); }
+    } catch(e) {
+        // 404 = table not yet created — suppress to console.debug, not warn
+        if (e.message && e.message.includes('404')) {
+            console.debug('[NeumuacFQ] platform_snapshots table not found — run SQL migration to enable trend tracking');
+        } else {
+            console.warn('[NeumuacFQ] Snapshot save failed:', e.message);
+        }
+    }
 }
 
 // Save snapshot once per day — check localStorage timestamp
@@ -18473,6 +18535,11 @@ async function helixLoadTrends() {
     if (!container) return;
     try {
         const r = await hFetch('platform_snapshots?order=snapshot_date.asc&limit=90');
+        // 404 = table not created yet — show a quiet informational message, not an error
+        if (r.status === 404) {
+            container.innerHTML = `<div style="font-size:11px;color:var(--text-tertiary);padding:16px;">Trend data unavailable — <code>platform_snapshots</code> table needs creating (see SQL migrations).</div>`;
+            return;
+        }
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const snaps = await r.json();
         if (!snaps.length) {
@@ -19441,7 +19508,7 @@ async function loadCrossSessionHistory() {
             `${CONFIG.SUPABASE.URL}/rest/v1/search_history_log?institution_id=eq.${institutionId}&order=last_searched.desc&limit=50`,
             { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
         );
-        if (!res.ok) return;
+        if (!res.ok) return; // 404 = table not created yet — silent fallback to localStorage
         const rows = await res.json();
         if (!rows.length) return;
 
@@ -21404,67 +21471,6 @@ function helixChartDrillFilter(type, value, label) {
     showNotification(`Filtered: ${label} (${filtered.length} variant${filtered.length!==1?'s':''})`, 'info', 3000);
 }
 
-const _origRenderCharts = renderCharts;
-function renderCharts() {
-    _origRenderCharts();
-
-    // Drill-down tooltip style
-    const drillTip = { callbacks: {
-        label: ctx => ctx.dataset.label
-            ? ` ${ctx.dataset.label}: ${ctx.parsed.y ?? ctx.parsed.x ?? ctx.raw} — click to filter`
-            : ` ${ctx.label}: ${ctx.raw} — click to filter`
-    }};
-
-    setTimeout(() => {
-        // Class doughnut
-        const cc = document.getElementById('classChart');
-        if (cc?._chart) {
-            cc.style.cursor = 'pointer';
-            cc.title = 'Click a segment to filter by class';
-            cc._chart.options.plugins.tooltip.callbacks = drillTip.callbacks;
-            cc._chart.update('none');
-            cc.onclick = evt => {
-                const pts = cc._chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-                if (!pts.length) return;
-                const label = cc._chart.data.labels[pts[0].index];
-                closeDashboard();
-                setTimeout(() => helixChartDrillFilter('class', label, `Class ${label}`), 150);
-            };
-        }
-        // ETI response bar
-        const rc = document.getElementById('responseChart');
-        if (rc?._chart) {
-            rc.style.cursor = 'pointer';
-            rc.title = 'Click a bar to filter by ETI status';
-            rc._chart.options.plugins.tooltip.callbacks = drillTip.callbacks;
-            rc._chart.update('none');
-            rc.onclick = evt => {
-                const pts = rc._chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-                if (!pts.length) return;
-                const label = rc._chart.data.labels[pts[0].index];
-                const typeMap = { 'Responsive':'eti_responsive','Non-responsive':'eti_nonresponsive','Unknown':'eti_unknown' };
-                closeDashboard();
-                setTimeout(() => helixChartDrillFilter(typeMap[label] || 'eti_responsive', null, label), 150);
-            };
-        }
-        // Completeness bar
-        const mc = document.getElementById('completionChart');
-        if (mc?._chart) {
-            mc.style.cursor = 'pointer';
-            mc.title = 'Click a bar to filter by data completeness';
-            mc._chart.options.plugins.tooltip.callbacks = drillTip.callbacks;
-            mc._chart.update('none');
-            mc.onclick = evt => {
-                const pts = mc._chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-                if (!pts.length) return;
-                const label = mc._chart.data.labels[pts[0].index];
-                const typeMap = { 'Complete':'complete','Partial':'partial','Minimal':'minimal' };
-                closeDashboard();
-                setTimeout(() => helixChartDrillFilter(typeMap[label] || 'complete', null, label), 150);
-            };
-        }
-    }, 200);
-}
 Object.assign(window, { renderCharts, helixChartDrillFilter });
 
 // ================================================================
