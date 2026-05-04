@@ -2255,6 +2255,77 @@
             position: relative;
         }
 
+        /* ── Canvas breadcrumb strip ──────────────────────────────────────────
+           Anchored to the TOP of app-main, outside the scrollable main-inner.
+           Always visible regardless of canvas scroll position.
+           Shows when a variant is selected; hidden when canvas is empty.
+           z-index sits above canvas content but below modals.                */
+        #canvasBreadcrumb {
+            display: none; /* shown by JS when variant selected */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 36px;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            animation: breadcrumbIn 120ms ease;
+        }
+        #canvasBreadcrumb.visible { display: flex; }
+        @keyframes breadcrumbIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        #canvasBreadcrumb .cb-name {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 320px;
+        }
+        #canvasBreadcrumb .cb-class {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        #canvasBreadcrumb .cb-eti {
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        #canvasBreadcrumb .cb-dismiss {
+            margin-left: auto;
+            flex-shrink: 0;
+            background: none;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 11px;
+            padding: 3px 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all .15s;
+            font-family: var(--font-body);
+        }
+        #canvasBreadcrumb .cb-dismiss:hover {
+            background: rgba(248,113,113,0.08);
+            border-color: rgba(248,113,113,0.3);
+            color: #f87171;
+        }
+
         .app-main::-webkit-scrollbar { width: 6px; }
         .app-main::-webkit-scrollbar-track { background: var(--surface); }
         .app-main::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; }
@@ -4560,6 +4631,10 @@
          MAIN CONTENT
          ============================================================ -->
     <main class="app-main" id="appMain">
+        <!-- Canvas breadcrumb — always-visible context strip when a variant is open.
+             Sticky to top of app-main, outside the scrollable content.
+             Populated and shown/hidden by _updateCanvasBreadcrumb(). -->
+        <div id="canvasBreadcrumb" role="status" aria-live="polite"></div>
         <div class="main-inner">
             <!-- Empty state -->
             <div class="detail-empty" id="detailEmpty">
@@ -8906,6 +8981,7 @@ function selectVariant(name, fromSearch) {
     const variant = STATE.variantsByLegacyName.get(name);
     if (!variant) return;
     STATE.view.selectedVariant = variant;
+    _updateCanvasBreadcrumb(variant); // always-visible context strip
     helixHistoryPush(variant);
     saveToSearchHistory(name, variant.id, variant.legacy_name);
     helixHideMissAction();
@@ -8931,13 +9007,109 @@ function clearSearch() {
     document.getElementById('searchClear')?.classList.add('hidden');
     document.getElementById('searchDropdown')?.classList.add('hidden');
     document.getElementById('appShell')?.classList.remove('search-active');
-    // Clear sustained edges — browse mode has no confirmation state
     document.querySelectorAll('.variant-row.exact-confirmed, .variant-row.exact-incomplete')
         .forEach(r => r.classList.remove('exact-confirmed', 'exact-incomplete'));
     helixHideMissAction();
-    helixResetDetailEmpty();
+
+    // Keep canvas — clearing search means "browse full list", not "abandon context".
+    // The breadcrumb strip makes the open variant unambiguous at all times.
+    if (!STATE.view.selectedVariant) {
+        helixResetDetailEmpty();
+    }
+
     applyFilterChain();
+
+    // Auto-scroll list to reveal the selected row so both panels visually
+    // point at the same variant simultaneously — the core spatial fix.
+    if (STATE.view.selectedVariant) {
+        _scrollListToSelected();
+    }
 }
+
+// Truly deselects — the explicit "I am done" action.
+function dismissCanvas() {
+    STATE.view.selectedVariant = null;
+    _updateCanvasBreadcrumb(null);
+    document.getElementById('variantDetail')?.classList.add('hidden');
+    document.getElementById('detailEmpty')?.classList.remove('hidden');
+    helixResetDetailEmpty();
+    renderVariantList(); // remove .selected highlight from list
+}
+
+// ── Canvas breadcrumb ─────────────────────────────────────────────────────────
+// Slim strip anchored to top of app-main. Always visible when a variant is open.
+// Survives canvas scroll. Updated on every selectVariant and cleared on dismiss.
+function _updateCanvasBreadcrumb(variant) {
+    const bar = document.getElementById('canvasBreadcrumb');
+    if (!bar) return;
+
+    if (!variant) {
+        bar.classList.remove('visible');
+        bar.innerHTML = '';
+        return;
+    }
+
+    const cls = variant.cftr_class || null;
+    const clsColor = cls ? ({
+        I:'var(--class-i)', II:'var(--class-ii)', III:'var(--class-iii)',
+        IV:'var(--class-iv)', V:'var(--class-v)', VI:'var(--class-vi)'
+    }[cls] || 'var(--text-tertiary)') : 'var(--text-tertiary)';
+
+    const etiColor = variant.eti_prediction === 'responsive'   ? '#34d399'
+                   : variant.eti_prediction === 'non_responsive' ? '#f87171'
+                   : 'var(--text-tertiary)';
+    const etiLabel = variant.eti_prediction === 'responsive'   ? 'ETI ✓'
+                   : variant.eti_prediction === 'non_responsive' ? 'ETI ✗'
+                   : 'ETI ?';
+
+    bar.innerHTML = `
+        <i class="fas fa-dna" style="font-size:10px;opacity:.45;flex-shrink:0;"></i>
+        <span class="cb-name" title="${escapeAttr(variant.legacy_name)}">${escapeHTML(variant.legacy_name)}</span>
+        ${cls ? `<span class="cb-class"
+            style="background:${clsColor}14;color:${clsColor};border:1px solid ${clsColor}30;">
+            Class ${escapeHTML(cls)}</span>` : ''}
+        <span class="cb-eti" style="color:${etiColor};">${etiLabel}</span>
+        ${variant.validation_count > 0
+            ? `<span style="font-size:9px;color:var(--text-tertiary);flex-shrink:0;">
+                   <i class="fas fa-check-circle" style="color:#34d399;margin-right:2px;font-size:8px;"></i>
+                   ${variant.validation_count} validation${variant.validation_count > 1 ? 's' : ''}
+               </span>`
+            : ''}
+        <button class="cb-dismiss" onclick="dismissCanvas()"
+                title="Close variant detail — return to dashboard">
+            <i class="fas fa-times" style="font-size:9px;"></i> Close
+        </button>`;
+
+    bar.classList.add('visible');
+}
+
+// ── Auto-scroll list to selected row ─────────────────────────────────────────
+// Called after clearSearch so the sidebar list and canvas both show the same
+// variant simultaneously — making the spatial relationship obvious.
+function _scrollListToSelected() {
+    if (!STATE.view.selectedVariant) return;
+    const selectedId = STATE.view.selectedVariant.id;
+    const idx = STATE.view.filteredVariants.findIndex(v => v.id === selectedId);
+    if (idx < 0) return; // selected variant not in current filter — don't force it
+
+    // Switch to the correct page
+    const targetPage = Math.floor(idx / CONFIG.UI.ITEMS_PER_PAGE) + 1;
+    if (targetPage !== STATE.view.currentPage) {
+        STATE.view.currentPage = targetPage;
+        renderVariantList();
+        updatePagination();
+    }
+
+    // Scroll the row into view
+    requestAnimationFrame(() => {
+        const list = document.getElementById('variantList');
+        if (!list || list.offsetParent === null) return; // sidebar hidden (mobile)
+        const rows = list.querySelectorAll('.variant-row.selected');
+        rows.forEach(r => r.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+    });
+}
+
+Object.assign(window, { dismissCanvas });
 
 function quickSearch(name) {
     const input = document.getElementById('searchInput');
@@ -13703,6 +13875,8 @@ function initSearch() {
         const val = this.value;
         clear?.classList.toggle('hidden', !val);
         KB.highlightIndex = -1;
+        // Hide the "Viewing" pill as soon as the clinician starts a new search
+        if (val) _updateCanvasBreadcrumb(STATE.view.selectedVariant); // keep breadcrumb fresh
 
         clearTimeout(STATE.ui.searchTimeout);
         STATE.ui.searchTimeout = setTimeout(() => {
