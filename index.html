@@ -7333,8 +7333,8 @@ async function persistSearchEvent(query, isHit, matchedField, matchedVariantId) 
                 latitude:          loc.latitude  || null,
                 longitude:         loc.longitude || null,
                 ip_source:         loc.ip_source || null,
-                hospital_name:     hospital,
-                institution_id:    STATE.searchIntelligence.hospitalObj?.id || null
+                hospital_name:     hospital
+                // institution_id removed — column not in search_logs schema
             })
         });
 
@@ -7364,8 +7364,8 @@ async function persistSearchEvent(query, isHit, matchedField, matchedVariantId) 
                         body: JSON.stringify({
                             query:          normQuery,
                             last_seen_at:   new Date().toISOString(),
-                            top_hospital:   hospital || null,
-                            institution_id: STATE.searchIntelligence.hospitalObj?.id || null
+                            top_hospital:   hospital || null
+                            // institution_id removed — not in search_miss_queue schema
                         })
                     }
                 );
@@ -19153,9 +19153,10 @@ Object.assign(window, {
     // Compound genotype calculator + MDT
     openCompoundGenotypeCalculator, runCompoundGenotypeCalculation, generateMDTReport,
     cgcSaveCase, cgcDeleteCase, cgcLoadCase, cgcRenderSavedCases,
-    // ACMG — wrapped to avoid ReferenceError if Object.assign runs before function is hoisted
-    computeACMGScore: (...a) => computeACMGScore(...a),
-    renderACMGPanel:  (...a) => renderACMGPanel(...a),
+    // ACMG — Block 1 functions, accessible in global scope because Block 1 executed first.
+    // Capture originals BEFORE this Object.assign overwrites window.* — prevents recursion.
+    computeACMGScore: (function(){ const _f = computeACMGScore; return function(){ return _f.apply(this, arguments); }; })(),
+    renderACMGPanel:  (function(){ const _f = renderACMGPanel;  return function(){ return _f.apply(this, arguments); }; })(),
     // Clinical reference
     renderClinicalReferencePanel, renderClinicalAlertBanner,
     // Areas 2-5 search additions
