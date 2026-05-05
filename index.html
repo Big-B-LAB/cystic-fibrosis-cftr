@@ -9649,7 +9649,11 @@ function renderHomeDashboard() {
             var lastDays = v.last_searched_at ? (Date.now() - new Date(v.last_searched_at)) / 86400000 : 999;
             var demandW  = hits >= 30 ? 2.0 : hits >= 10 ? 1.5 : hits >= 3 ? 1.2 : 1.0;
             var recencyW = lastDays <= 7 ? 1.4 : lastDays <= 30 ? 1.2 : 1.0;
-            var heliosB  = (HELIOS.pendingItems||[]).some(function(i){ return i.variant_id === v.id; }) ? 1.2 : 1.0;
+            // URGENT Helios items get dominant 3.0× boost — they warrant top of the list
+            // ROUTINE items get 1.2× — visible but not overwhelming
+            var heliosItems = (HELIOS.pendingItems||[]).filter(function(i){ return i.variant_id === v.id; });
+            var heliosB = heliosItems.some(function(i){ return i.priority === 'URGENT'; }) ? 3.0
+                        : heliosItems.length > 0 ? 1.2 : 1.0;
             var valPen   = (!(v.validation_count||0) && hits >= 3) ? 15 : 0;
             var composite = Math.min(100, Math.round(gap.score * demandW * recencyW * heliosB + valPen));
             return { v: v, composite: composite, gap: gap, hits: hits, lastDays: lastDays };
@@ -10052,13 +10056,11 @@ const ACMG_CRITERIA = {
         PM5:  { label:'PM5', name:'Novel missense change at pathogenic amino acid position', weight:2, auto: null },
         PP1:  { label:'PP1', name:'Co-segregation with disease in multiple family members', weight:1, auto: null },
         PP3:  { label:'PP3', name:'Multiple lines of computational evidence support damaging effect', weight:1,
-                // Evidence-based: fires when 2+ high-quality sources OR both CFTR2 and ClinVar present
-                // Removed class proxy — CFTR class alone is not computational evidence
                 auto: v => {
-                    const links = v.evidence_links || [];
-                    const highQ   = links.filter(e => (e.quality_score||0) >= 7).length;
-                    const hasCF2  = links.some(e => /cftr2/i.test(e.source||e.type||''));
-                    const hasCLV  = links.some(e => /clinvar/i.test(e.source||e.type||''));
+                    const links  = v.evidence_links || [];
+                    const highQ  = links.filter(e => (e.quality_score||0) >= 7).length;
+                    const hasCF2 = links.some(e => /cftr2/i.test(e.source||e.type||''));
+                    const hasCLV = links.some(e => /clinvar/i.test(e.source||e.type||''));
                     return highQ >= 2 || (hasCF2 && hasCLV);
                 },
                 note: 'Auto-triggered when 2+ high-quality evidence links (score ≥7) exist, or both CFTR2 and ClinVar sources are present.' },
@@ -10255,9 +10257,7 @@ function renderACMGPanel(variant) {
     </div>`;
 }
 
-// ================================================================
-// CLINICAL REFERENCE PANEL
-// Addresses document recommendations:
+
 // - Sweat chloride ranges per class
 // - Residual CFTR function %
 // - Pancreatic sufficiency probability
@@ -10423,7 +10423,71 @@ function renderVariantDetail(variant, fromSearch) {
         requestAnimationFrame(() => triggerHitFlash(variant, isExactTier0));
     }
 
+    // ── Contradiction alert (patient safety) ─────────────────────────────────
+    // Query DB for unresolved contradictions on this variant and render a
+    // prominent red banner at the top of the detail panel if any exist.
+    // Fire-and-forget — doesn't block render; updates asynchronously.
+    let contradictionAlertHTML = '';
+    const contPanel = document.createElement('div');
+    contPanel.id = `contAlert-${variant.id}`;
+    // Async: fetch contradictions in background and inject banner if found
+    (async () => {
+        try {
+            const r = await fetch(
+                `${CONFIG.SUPABASE.URL}/rest/v1/contradictions?variant_id=eq.${variant.id}&resolved=eq.false&select=field,severity,details,detected_at&order=severity.desc`,
+                { headers: { apikey: CONFIG.SUPABASE.ANON_KEY, Authorization: `Bearer ${CONFIG.SUPABASE.ANON_KEY}` } }
+            );
+            if (!r.ok) return;
+            const rows = await r.json();
+            if (!rows.length) return;
+            const critCount = rows.filter(c => c.severity === 'CRITICAL').length;
+            const sevColor  = critCount > 0 ? '#f87171' : '#fbbf24';
+            const sevLabel  = critCount > 0 ? 'CRITICAL' : 'HIGH';
+            const el = document.getElementById(`contAlert-${variant.id}`);
+            if (!el) return;
+            el.innerHTML = `
+                <div style="padding:10px 16px 9px;background:rgba(248,113,113,0.07);
+                            border-bottom:2px solid rgba(248,113,113,0.35);
+                            display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fas fa-exclamation-triangle" style="color:${sevColor};font-size:13px;margin-top:1px;flex-shrink:0;"></i>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:11.5px;font-weight:700;color:${sevColor};margin-bottom:4px;letter-spacing:.02em;">
+                            ${rows.length} unresolved contradiction${rows.length > 1 ? 's' : ''} detected
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:3px;">
+                            ${rows.slice(0,3).map(c => `
+                                <div style="font-size:10.5px;color:var(--text-secondary);">
+                                    <span style="font-weight:600;font-family:var(--font-mono);
+                                        padding:0 4px;border-radius:3px;
+                                        background:rgba(248,113,113,0.1);color:${sevColor};">
+                                        ${escapeHTML(c.severity)}
+                                    </span>
+                                    <span style="margin-left:5px;color:var(--text-secondary);">
+                                        ${escapeHTML(c.field?.replace(/_/g,' ') || 'Unknown field')}
+                                    </span>
+                                    ${c.detected_at ? `<span style="margin-left:5px;font-size:9.5px;color:var(--text-tertiary);">${new Date(c.detected_at).toLocaleDateString('en-GB')}</span>` : ''}
+                                </div>`).join('')}
+                        </div>
+                        <div style="margin-top:6px;font-size:10px;color:var(--text-tertiary);">
+                            Review in Helios to resolve before clinical use of this classification.
+                        </div>
+                    </div>
+                    <button onclick="openHelios()" style="flex-shrink:0;font-size:10px;font-weight:700;
+                        padding:4px 10px;border-radius:5px;border:1px solid rgba(248,113,113,0.4);
+                        background:rgba(248,113,113,0.08);color:${sevColor};cursor:pointer;
+                        font-family:var(--font-body);white-space:nowrap;">
+                        Review in Helios →
+                    </button>
+                </div>`;
+        } catch(e) { /* non-fatal — never block render */ }
+    })();
+
     const cls = variant.cftr_class ? `c${variant.cftr_class.toLowerCase()}` : 'cx';
+
+    // Insert the contradiction alert placeholder as the first element
+    // It will be populated asynchronously if contradictions exist
+    container.innerHTML = '';
+    container.appendChild(contPanel);
     const isResponsive = variant.eti_prediction === 'responsive';
     const isNonResponsive = variant.eti_prediction === 'non_responsive';
     const isExceptional = variant.class_subtype === 'exceptional';
@@ -12593,7 +12657,8 @@ function exportClinicalReport(variantOrAll) {
     }
 
     const pages = variants.map((v, idx) => {
-        const evidenceLinks = []; // would be populated from STATE if available
+        // Fix: use actual evidence links from the variant object, not an empty array
+        const evidenceLinks = Array.isArray(v.evidence_links) ? v.evidence_links : [];
         const validationCount = v.validation_count || 0;
         const lastValidator  = v.last_validator_name ? `${v.last_validator_name}${v.last_validator_role ? ' · ' + v.last_validator_role : ''}` : null;
         const pubmedIds = v.pubmed_ids ? v.pubmed_ids.split(/[\s,;]+/).filter(Boolean) : [];
@@ -12668,7 +12733,31 @@ function exportClinicalReport(variantOrAll) {
             <!-- CLINICAL REFERENCE DATA IN REPORT -->
             ${buildReportClinicalRefCard(v)}
 
-            <!-- EVIDENCE / PUBMED -->
+            <!-- EVIDENCE LINKS -->
+            ${evidenceLinks.length ? `
+            <div class="report-card" style="margin:0 24px 16px;">
+                <div class="report-card-title">Evidence Links (${evidenceLinks.length})</div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    ${evidenceLinks.slice(0,12).map(e => `
+                        <div style="display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:12px;font-weight:600;color:#1e293b;margin-bottom:2px;line-height:1.4;">
+                                    ${escapeHTML(e.title || e.type || 'Evidence')}
+                                </div>
+                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                    ${e.source ? `<span style="font-size:10px;color:#64748b;font-weight:600;">${escapeHTML(e.source)}</span>` : ''}
+                                    ${e.year ? `<span style="font-size:10px;color:#94a3b8;">${escapeHTML(String(e.year))}</span>` : ''}
+                                    ${e.pmid ? `<span style="font-size:10px;color:#2563eb;">PMID:${escapeHTML(e.pmid)}</span>` : ''}
+                                    ${e.quality_score ? `<span style="font-size:10px;color:#16a34a;font-weight:600;">Quality: ${escapeHTML(String(e.quality_score))}/10</span>` : ''}
+                                </div>
+                                ${e.url ? `<div style="font-size:10px;color:#3b82f6;margin-top:2px;word-break:break-all;">${escapeHTML(e.url)}</div>` : ''}
+                            </div>
+                        </div>`).join('')}
+                    ${evidenceLinks.length > 12 ? `<div style="font-size:11px;color:#94a3b8;">+${evidenceLinks.length - 12} more evidence links — see full database record</div>` : ''}
+                </div>
+            </div>` : ''}
+
+            <!-- PUBMED IDs (legacy field) -->
             ${pubmedIds.length ? `
             <div class="report-card" style="margin:0 24px 16px;">
                 <div class="report-card-title">PubMed References (${pubmedIds.length})</div>
@@ -12723,11 +12812,48 @@ function exportClinicalReport(variantOrAll) {
 </style>
 </head>
 <body>
-<div class="no-print" style="position:sticky;top:0;z-index:99;display:flex;align-items:center;gap:12px;padding:10px 20px;background:#0f172a;border-bottom:1px solid #1e293b;">
-    <span style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#fff;">NeumuacFQ Clinical Report</span>
-    <span style="font-size:12px;color:#64748b;">${variants.length} variant${variants.length > 1 ? 's' : ''} · ${dateStr}</span>
-    <button onclick="window.print()" style="margin-left:auto;padding:7px 20px;background:#2563eb;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">⬇ Print / Save PDF</button>
-    <button onclick="window.close()" style="padding:7px 14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#cbd5e1;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">Close</button>
+<div class="no-print" style="position:sticky;top:0;z-index:99;display:flex;align-items:center;
+     gap:10px;padding:0 24px;height:52px;
+     background:#0f172a;border-bottom:1px solid #1e293b;
+     font-family:'IBM Plex Sans',-apple-system,sans-serif;">
+    <!-- Logo + title -->
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <span style="font-size:16px;font-weight:800;color:#fff;letter-spacing:-.02em;">NeumuacFQ</span>
+        <span style="width:1px;height:18px;background:#334155;"></span>
+        <span style="font-size:12px;color:#64748b;font-weight:500;">Clinical Variant Report</span>
+    </div>
+    <!-- Meta -->
+    <span style="font-size:11px;color:#475569;margin-left:4px;">
+        ${variants.length} variant${variants.length > 1 ? 's' : ''} · ${dateStr}
+    </span>
+    <!-- Spacer -->
+    <div style="flex:1;"></div>
+    <!-- Actions -->
+    <button onclick="window.print()"
+        style="display:inline-flex;align-items:center;gap:7px;
+               padding:0 18px;height:34px;border-radius:7px;border:none;
+               background:#2563eb;color:#fff;font-size:12px;font-weight:600;
+               cursor:pointer;font-family:inherit;letter-spacing:.01em;
+               transition:background .15s;"
+        onmouseover="this.style.background='#1d4ed8'"
+        onmouseout="this.style.background='#2563eb'">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;">
+            <path d="M3 11H1a1 1 0 01-1-1V6a1 1 0 011-1h14a1 1 0 011 1v4a1 1 0 01-1 1h-2" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+            <rect x="3" y="9" width="10" height="7" rx="1" stroke="white" stroke-width="1.4"/>
+            <path d="M3 5V1h10v4" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        Print / Save as PDF
+    </button>
+    <button onclick="window.close()"
+        style="display:inline-flex;align-items:center;gap:6px;
+               padding:0 14px;height:34px;border-radius:7px;
+               border:1px solid #334155;background:transparent;
+               color:#94a3b8;font-size:12px;cursor:pointer;font-family:inherit;
+               transition:all .15s;"
+        onmouseover="this.style.borderColor='#475569';this.style.color='#cbd5e1'"
+        onmouseout="this.style.borderColor='#334155';this.style.color='#94a3b8'">
+        Close
+    </button>
 </div>
 ${pages}
 </body></html>`);
@@ -14755,56 +14881,140 @@ function kbOpenCommandPalette() {
     let cpIdx = -1;
 
     const COMMANDS = [
-        { label: 'Open Helios AI', icon: 'fa-sun', action: () => openHelios() },
-        { label: 'Analytics Dashboard', icon: 'fa-chart-bar', action: () => showDashboard() },
-        { label: 'Add Variant', icon: 'fa-plus', action: () => showImportModal() },
-        { label: 'Export Clinical PDF', icon: 'fa-file-medical', action: () => exportClinicalReport('single') },
-        { label: 'Batch PDF Report', icon: 'fa-file-medical-alt', action: () => exportClinicalReport('all') },
-        { label: 'Export CSV', icon: 'fa-file-csv', action: () => exportReport() },
-        { label: 'Back', icon: 'fa-arrow-left', action: () => helixHistoryBack() },
-        { label: 'Forward', icon: 'fa-arrow-right', action: () => helixHistoryForward() },
+        // ── Variant actions (context-sensitive) ──────────────────────────────
+        { label: 'Validate current variant', icon: 'fa-check-double', group: 'Variant',
+          action: () => { overlay.remove(); const v = STATE.view.selectedVariant; if(v) openValidationModal(v.legacy_name, v.id); else showNotification('Select a variant first','warning'); } },
+        { label: 'Annotate current variant', icon: 'fa-pen', group: 'Variant',
+          action: () => { overlay.remove(); const v = STATE.view.selectedVariant; if(v) showAnnotationModal(v); else showNotification('Select a variant first','warning'); } },
+        { label: 'Export clinical PDF',       icon: 'fa-file-medical', group: 'Variant',
+          action: () => { overlay.remove(); exportClinicalReport('single'); } },
+        { label: 'Pin for comparison',        icon: 'fa-columns', group: 'Variant',
+          action: () => { overlay.remove(); const v = STATE.view.selectedVariant; if(v) helixPinVariant(v); } },
+        // ── Navigation ────────────────────────────────────────────────────────
+        { label: 'Open Helios AI inbox',      icon: 'fa-sun',             group: 'Navigation', action: () => { overlay.remove(); openHelios(); } },
+        { label: 'Analytics dashboard',       icon: 'fa-chart-bar',       group: 'Navigation', action: () => { overlay.remove(); showDashboard(); } },
+        { label: 'Geography intelligence',    icon: 'fa-globe',           group: 'Navigation', action: () => { overlay.remove(); document.getElementById('siTabGeo')?.click(); } },
+        { label: 'Search intelligence',       icon: 'fa-brain',           group: 'Navigation', action: () => { overlay.remove(); document.getElementById('siTabSearch')?.click(); } },
+        { label: 'Audit trail',               icon: 'fa-history',         group: 'Navigation', action: () => { overlay.remove(); showAuditTrail(); } },
+        // ── Filters & sort ────────────────────────────────────────────────────
+        { label: 'Clear all filters',         icon: 'fa-filter-circle-xmark', group: 'Filters',
+          action: () => { overlay.remove(); _clearAllFilters(); } },
+        { label: 'Sort by clinical demand',   icon: 'fa-fire',            group: 'Filters',
+          action: () => { overlay.remove(); STATE.view.sortMode='demand'; applyFilterChain(); } },
+        { label: 'Sort by gap score',         icon: 'fa-chart-line',      group: 'Filters',
+          action: () => { overlay.remove(); STATE.view.sortMode='gap'; applyFilterChain(); } },
+        { label: 'Sort A–Z',                  icon: 'fa-sort-alpha-down',  group: 'Filters',
+          action: () => { overlay.remove(); STATE.view.sortMode='alpha'; STATE.view.sortAsc=true; applyFilterChain(); } },
+        { label: 'Show missing data only',    icon: 'fa-exclamation',     group: 'Filters',
+          action: () => { overlay.remove(); filterVariants('missing'); } },
+        // ── Actions ───────────────────────────────────────────────────────────
+        { label: 'Add variant',               icon: 'fa-plus',            group: 'Actions', action: () => { overlay.remove(); showImportModal(); } },
+        { label: 'Batch PDF report',          icon: 'fa-file-medical-alt', group: 'Actions', action: () => { overlay.remove(); exportClinicalReport('all'); } },
+        { label: 'Export CSV',                icon: 'fa-file-csv',         group: 'Actions', action: () => { overlay.remove(); exportReport(); } },
+        { label: 'Undo last edit',            icon: 'fa-undo',            group: 'Actions',
+          action: () => { overlay.remove(); undoLastEdit(); } },
+        { label: 'Redo',                      icon: 'fa-redo',            group: 'Actions',
+          action: () => { overlay.remove(); redoLastEdit(); } },
+        { label: 'Toggle write mode',         icon: 'fa-lock-open',       group: 'Actions',
+          action: () => { overlay.remove(); isWriteMode() ? deactivateWriteMode() : openWriteModeModal('Command palette'); } },
+        { label: 'Back',                      icon: 'fa-arrow-left',      group: 'Actions', action: () => { overlay.remove(); helixHistoryBack(); } },
+        { label: 'Forward',                   icon: 'fa-arrow-right',     group: 'Actions', action: () => { overlay.remove(); helixHistoryForward(); } },
     ];
 
     function renderCmdResults(query) {
         const q = query.toLowerCase().trim();
+
+        // Variant results — show up to 10 with class badge + ETI dot
         const variantMatches = q.length >= 2
             ? STATE.variants.filter(v =>
-                v.legacy_name?.toLowerCase().includes(q) ||
-                v.protein_name?.toLowerCase().includes(q)
-              ).slice(0, 6).map(v => ({
-                label: v.legacy_name,
-                sub: v.protein_name || (v.cftr_class ? 'Class ' + v.cftr_class : ''),
-                icon: 'fa-dna',
-                action: () => { selectVariant(v.legacy_name); overlay.remove(); }
-              }))
+                (v.legacy_name||'').toLowerCase().includes(q) ||
+                (v.protein_name||'').toLowerCase().includes(q) ||
+                (v.cdna_name||'').toLowerCase().includes(q)
+              ).slice(0, 10)
             : [];
-        const cmdMatches = COMMANDS.filter(c => !q || c.label.toLowerCase().includes(q));
-        const all = [...variantMatches, ...cmdMatches];
+
+        // Command results
+        const cmdMatches = q.length === 0
+            ? COMMANDS
+            : COMMANDS.filter(c => c.label.toLowerCase().includes(q) || (c.group||'').toLowerCase().includes(q));
+
         cpIdx = -1;
-        if (!all.length) {
-            res.innerHTML = `<div style="padding:24px;text-align:center;font-size:12px;color:var(--text-tertiary);">No results</div>`;
+        const totalResults = variantMatches.length + cmdMatches.length;
+
+        if (!totalResults) {
+            res.innerHTML = `<div style="padding:24px;text-align:center;font-size:12px;color:var(--text-tertiary);">
+                <i class="fas fa-search" style="display:block;font-size:20px;margin-bottom:8px;opacity:.3;"></i>
+                No results for "${escapeHTML(query)}"
+            </div>`;
             return;
         }
-        res.innerHTML = all.map((item, i) => `
-            <div class="cmd-row" data-idx="${i}" onclick="cmdPaletteSelect(${i})"
-                style="display:flex;align-items:center;gap:12px;padding:10px 18px;cursor:pointer;border-bottom:1px solid rgba(99,140,210,0.06);transition:background .1s;"
-                onmouseover="this.style.background='rgba(41,121,255,0.07)'" onmouseout="this.style.background=cpIdx===${i}?'rgba(41,121,255,0.1)':''">
-                <i class="fas ${item.icon}" style="font-size:12px;color:var(--brand);width:16px;text-align:center;flex-shrink:0;"></i>
-                <div style="flex:1;min-width:0;">
-                    <div style="font-size:13px;color:var(--text-primary);">${escapeHTML(item.label)}</div>
-                    ${item.sub ? `<div style="font-size:10.5px;color:var(--text-tertiary);font-family:var(--font-mono);">${escapeHTML(item.sub)}</div>` : ''}
-                </div>
-            </div>`).join('');
-        window._cmdPaletteActions = all.map(a => a.action);
+
+        const CLASS_COLORS = { I:'#f87171',II:'#f97316',III:'#34d399',IV:'#a78bfa',V:'#ec4899',VI:'#22d3ee' };
+        const ETI_COLORS   = { responsive:'#34d399', non_responsive:'#f87171', unknown:'#fbbf24' };
+
+        let html = '';
+
+        // Variant section
+        if (variantMatches.length) {
+            html += `<div style="padding:5px 14px 3px;font-size:9px;font-weight:700;text-transform:uppercase;
+                                 letter-spacing:.1em;color:var(--text-tertiary);">Variants</div>`;
+            html += variantMatches.map((v, i) => {
+                const cls      = v.cftr_class;
+                const clsColor = cls ? (CLASS_COLORS[cls] || 'var(--text-tertiary)') : 'var(--text-tertiary)';
+                const etiColor = ETI_COLORS[v.eti_prediction] || 'var(--text-tertiary)';
+                const isEtiRes = v.eti_prediction === 'responsive';
+                return `<div class="cmd-row" data-idx="${i}" onclick="selectVariant('${escapeAttr(v.legacy_name)}',true);overlay_close();"
+                    style="display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;
+                           transition:background .1s;border-bottom:1px solid rgba(255,255,255,0.03);">
+                    <i class="fas fa-dna" style="font-size:10px;color:var(--text-tertiary);flex-shrink:0;width:14px;"></i>
+                    <span style="font-family:var(--font-mono);font-size:12.5px;font-weight:700;
+                                 color:var(--text-primary);flex:1;min-width:0;white-space:nowrap;
+                                 overflow:hidden;text-overflow:ellipsis;">${escapeHTML(v.legacy_name)}</span>
+                    ${cls ? `<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;
+                                 background:${clsColor}18;color:${clsColor};border:1px solid ${clsColor}30;
+                                 flex-shrink:0;">Class ${escapeHTML(cls)}</span>` : ''}
+                    <span style="width:6px;height:6px;border-radius:50%;background:${etiColor};
+                                 flex-shrink:0;" title="ETI: ${escapeAttr(v.eti_prediction||'unknown')}"></span>
+                </div>`;
+            }).join('');
+        }
+
+        // Command section
+        if (cmdMatches.length) {
+            // Group by group label
+            const groups = {};
+            cmdMatches.forEach(c => { (groups[c.group||''] = groups[c.group||''] || []).push(c); });
+            let cmdIdx = variantMatches.length;
+            Object.entries(groups).forEach(([grp, cmds]) => {
+                html += `<div style="padding:5px 14px 3px;font-size:9px;font-weight:700;text-transform:uppercase;
+                                     letter-spacing:.1em;color:var(--text-tertiary);">${escapeHTML(grp||'Commands')}</div>`;
+                html += cmds.map((c, i) => `
+                    <div class="cmd-row" data-idx="${cmdIdx + i}" onclick="this.closest('[id]').remove();(${c.action.toString()})();"
+                        style="display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;
+                               transition:background .1s;border-bottom:1px solid rgba(255,255,255,0.03);">
+                        <i class="fas ${c.icon}" style="font-size:11px;color:var(--brand);flex-shrink:0;width:14px;"></i>
+                        <span style="font-size:12.5px;color:var(--text-primary);flex:1;">${escapeHTML(c.label)}</span>
+                    </div>`).join('');
+                cmdIdx += cmds.length;
+            });
+        }
+
+        res.innerHTML = html;
+
+        // Hover highlight
+        res.querySelectorAll('.cmd-row').forEach(el => {
+            el.addEventListener('mouseover', () => {
+                res.querySelectorAll('.cmd-row').forEach(r => r.style.background = '');
+                el.style.background = 'rgba(41,121,255,0.08)';
+                cpIdx = parseInt(el.dataset.idx, 10);
+            });
+            el.addEventListener('mouseout',  () => el.style.background = '');
+        });
     }
 
-    window.cmdPaletteSelect = (idx) => {
-        if (window._cmdPaletteActions?.[idx]) {
-            overlay.remove();
-            window._cmdPaletteActions[idx]();
-        }
-    };
-
+    // Global close helper for inline onclick handlers
+    overlay.overlay_close = () => overlay.remove();
+    window._cmdOverlay = overlay;
     inp.addEventListener('input', () => renderCmdResults(inp.value));
     inp.addEventListener('keydown', e => {
         const rows = res.querySelectorAll('.cmd-row');
@@ -14820,8 +15030,8 @@ function kbOpenCommandPalette() {
             rows[cpIdx]?.scrollIntoView({ block: 'nearest' });
         } else if (e.key === 'Enter') {
             e.preventDefault();
-            if (cpIdx >= 0) cmdPaletteSelect(cpIdx);
-            else if (rows.length === 1) cmdPaletteSelect(0);
+            if (cpIdx >= 0) rows[cpIdx]?.click();
+            else if (rows.length === 1) rows[0]?.click();
         } else if (e.key === 'Escape') { overlay.remove(); }
     });
 
@@ -22646,7 +22856,42 @@ function lookupPushToBackground(query) {
 }
 
 // ── Core async lookup ───────────────────────────────────────────
+// ── Lookup result cache ───────────────────────────────────────────────────────
+// Keyed by normalised query. Prevents hitting external APIs (ClinVar/CFTR2/PubMed)
+// repeatedly for the same query across sessions. Cached in sessionStorage so it
+// survives page navigation but not a hard refresh — appropriate for a clinical tool
+// where you want fresh data each session.
+const LOOKUP_CACHE = (() => {
+    const KEY = 'neumuacfq_lookup_cache_v1';
+    const get = (q) => {
+        try {
+            const store = JSON.parse(sessionStorage.getItem(KEY) || '{}');
+            return store[q] || null;
+        } catch { return null; }
+    };
+    const set = (q, result) => {
+        try {
+            const store = JSON.parse(sessionStorage.getItem(KEY) || '{}');
+            store[q] = { result, cachedAt: Date.now() };
+            sessionStorage.setItem(KEY, JSON.stringify(store));
+        } catch { /* non-fatal */ }
+    };
+    return { get, set };
+})();
+
 async function _lookupExecute(query) {
+    const normQ = normaliseQuery(query);
+
+    // Check cache first — avoids redundant external API calls for known queries
+    const cached = LOOKUP_CACHE.get(normQ);
+    if (cached) {
+        lookupUpdateTraySource('clinvar', 'done');
+        lookupUpdateTraySource('cftr2',   'done');
+        lookupUpdateTraySource('pubmed',  'done');
+        console.log(`[NeumuacFQ] Lookup cache hit for "${normQ}"`);
+        return cached.result;
+    }
+
     // Progress updates via tray
     lookupUpdateTraySource('clinvar', 'active');
 
@@ -22667,12 +22912,17 @@ async function _lookupExecute(query) {
     const found = !!(clinvar || cftr2 || pubmed?.length);
 
     if (!found) {
-        return { found: false, query, sources: [] };
+        const missResult = { found: false, query, sources: [] };
+        // Cache misses too — avoids re-querying for confirmed unknowns
+        LOOKUP_CACHE.set(normQ, missResult);
+        return missResult;
     }
 
     // Merge & score evidence
     const result = _lookupBuildResult(query, clinvar, cftr2, pubmed || []);
 
+    // Cache the successful result
+    LOOKUP_CACHE.set(normQ, result);
     return result;
 }
 
