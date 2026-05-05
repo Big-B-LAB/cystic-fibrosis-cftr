@@ -23441,7 +23441,7 @@ function lookupRetryAlternate(query) {
         LOOKUP_JOB_STATE.result       = null;
         lookupShowTray(alt, 'running');
         _lookupExecute(alt).then(result => {
-            LOOKUP_JOB_STATE.status = result.found ? 'done' : 'notfound';   
+            LOOKUP_JOB_STATE.status = result.found ? 'done' : 'notfound';
             LOOKUP_JOB_STATE.result = result;
             lookupOnComplete(alt, result);
         }).catch(err => lookupOnError(alt, err));
