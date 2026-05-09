@@ -8,7 +8,7 @@
     <!--
         SECURITY — Content Security Policy
         NOTE: frame-ancestors is intentionally omitted from this meta tag —
-        it is only honoured when delivered as an HTTP response header. 
+        it is only honoured when delivered as an HTTP response header.
         upgrade-insecure-requests forces HTTPS for all sub-resource requests.
     -->
     <meta http-equiv="Content-Security-Policy" content="
@@ -6655,7 +6655,36 @@ async function loadJournalImpacts() {
     } catch(e) {}
 }
 
-async function scoreEvidenceQuality(papers) {
+async // Functional assay keyword patterns — drives PS3/BS3 ACMG auto-criteria
+const FUNC_ASSAY_PATTERNS = {
+    ussing_chamber: /\bussing\s*chamber\b/i,
+    organoid:       /\b(intestinal|rectal)\s*organoid|PDO\b/i,
+    frt_cell:       /\bFRT\s*cell|fisher\s*rat\s*thyroid/i,
+    patch_clamp:    /\bpatch.clamp|single.channel/i,
+    swelling_assay: /\bswelling\s*assay|forskolin.induced/i,
+    halide_assay:   /\bhalide\s*sensitive|YFP.based/i,
+    other:          /\b(functional\s*study|functional\s*assay|electrophysiology|chloride\s*transport)\b/i
+};
+const FUNC_DAMAGING = /\b(damaging|deleterious|loss.of.function|LOF|absent|severely.reduced|non.functional|abolished)\b/i;
+const FUNC_BENIGN   = /\b(benign|normal\s*function|residual\s*function|partial\s*function|retained)\b/i;
+
+function detectFunctionalStudy(paper) {
+    const text = [paper.title || '', paper.abstract || ''].join(' ');
+    let assayType = null;
+    for (const [type, pattern] of Object.entries(FUNC_ASSAY_PATTERNS)) {
+        if (pattern.test(text)) { assayType = type; break; }
+    }
+    if (!assayType) return null;
+    const isDamaging = FUNC_DAMAGING.test(text);
+    const isBenign   = FUNC_BENIGN.test(text);
+    return {
+        func_assay_type:     assayType,
+        func_interpretation: isDamaging ? 'damaging' : isBenign ? 'benign' : 'inconclusive',
+        func_confidence:     (isDamaging || isBenign) ? 0.75 : 0.4
+    };
+}
+
+function scoreEvidenceQuality(papers) {
     return papers.map(p => {
         const journalKey = (p.journal || '').toLowerCase();
         const impact = JOURNAL_IMPACT_CACHE[journalKey];
@@ -6663,7 +6692,15 @@ async function scoreEvidenceQuality(papers) {
             ? Math.min(10, Math.round(2 + (impact.impact_factor || 0) / 3))
             : 5;
         const recency_bonus = p.year && p.year >= new Date().getFullYear() - 2 ? 1 : 0;
-        return { ...p, quality_score: quality_score + recency_bonus, impact_factor: impact?.impact_factor || null, quartile: impact?.quartile || null };
+        // Detect functional study language — populates PS3/BS3 ACMG criteria automatically
+        const funcData = detectFunctionalStudy(p);
+        return {
+            ...p,
+            quality_score:       quality_score + recency_bonus,
+            impact_factor:       impact?.impact_factor || null,
+            quartile:            impact?.quartile      || null,
+            ...(funcData || {})  // spreads func_interpretation, func_assay_type, func_confidence if detected
+        };
     });
 }
 
@@ -7105,6 +7142,9 @@ const STATE = {
         clinicianName: null   // individual name if entered, distinct from institution
     },
 
+    // ---- CFTR Class Rules (loaded from DB, falls back to hardcoded) ----
+    _cftrClassRules: null,  // keyed by cftr_class ('I','II',...) once loaded
+
     // ---- Undo / Redo — variant field edits ----
     // Stores the last 50 field changes made in the annotation modal.
     // undoLastEdit() and redoLastEdit() are wired to ⌘Z / ⌘⇧Z.
@@ -7170,16 +7210,49 @@ function closeWriteModeModal() {
     STATE.writeMode._pendingAction = null;
 }
 
-function confirmWriteMode() {
+async function confirmWriteMode() {
     const input = document.getElementById('writeModeInput');
-    const err = document.getElementById('writeModeError');
+    const err   = document.getElementById('writeModeError');
     if (!input) return;
     const entered = input.value.trim();
-    if (entered !== CONFIG.WRITE_CODE) {
+    if (!entered) return;
+
+    // Show loading state on button
+    const btn = document.getElementById('writeModeConfirmBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
+
+    // ── Server-side PIN verification via Supabase RPC ──
+    // The plaintext PIN never touches client-side comparison logic.
+    // Falls back to local check if migration_002 hasn't been deployed yet.
+    let pinVerified = false;
+    try {
+        const pinRes = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/rpc/check_write_pin`, {
+            method: 'POST',
+            headers: {
+                'apikey':        CONFIG.SUPABASE.KEY,
+                'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
+                'Content-Type':  'application/json'
+            },
+            body: JSON.stringify({ p_pin: entered })
+        });
+        if (pinRes.ok) {
+            pinVerified = await pinRes.json(); // RPC returns boolean
+        } else {
+            // 404 = migration_002 not yet deployed; fail open with local fallback
+            console.warn('[NeumuacFQ] check_write_pin RPC not deployed — run migration_002.sql. Using local fallback.');
+            pinVerified = (entered === CONFIG.WRITE_CODE);
+        }
+    } catch(e) {
+        console.warn('[NeumuacFQ] PIN RPC error:', e.message);
+        pinVerified = (entered === CONFIG.WRITE_CODE);
+    }
+
+    if (btn) { btn.disabled = false; btn.textContent = 'Unlock'; }
+
+    if (!pinVerified) {
         if (err) err.style.display = 'block';
         input.value = '';
         input.focus();
-        // Shake animation
         input.style.animation = 'none';
         void input.offsetWidth;
         input.style.animation = 'writeModeShake .35s ease';
@@ -9312,7 +9385,7 @@ async function exportSearchPDF() {
 
     try {
         const res = await fetch(
-            `${CONFIG.SUPABASE.URL}/rest/v1/search_logs?select=query,is_hit,matched_field,city,hospital_name,searched_at&order=searched_at.desc&limit=1000`,
+            `${CONFIG.SUPABASE.URL}/rest/v1/search_logs?select=query,is_hit,matched_field,city,hospital_name,institution_id,searched_at&order=searched_at.desc&limit=1000`,
             { headers: {'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`} }
         );
         const allHistory = res.ok ? await res.json() : [];
@@ -10761,7 +10834,9 @@ async function acmgToggleCriterion(variantName, variantId, criterionKey, current
     const v = STATE.variantsById.get(variantId);
     if (!v) return;
     let overrides = {};
-    try { overrides = JSON.parse(v.acmg_overrides || '{}'); } catch {}
+    try { overrides = JSON.parse(typeof v.acmg_overrides === 'string'
+        ? v.acmg_overrides
+        : JSON.stringify(v.acmg_overrides || {})); } catch { overrides = {}; }
     // Toggle: if currently auto-value, set override; if already overridden, remove override (revert to auto)
     const autoMet = (() => {
         const crit = ACMG_CRITERIA.pathogenic[criterionKey] || ACMG_CRITERIA.benign[criterionKey];
@@ -10777,7 +10852,7 @@ async function acmgToggleCriterion(variantName, variantId, criterionKey, current
         await dbWrite(`variants?id=eq.${variantId}`, {
             method: 'PATCH',
             headers: { 'Prefer': 'return=minimal' },
-            body: JSON.stringify({ acmg_overrides: newVal, updated_at: new Date().toISOString() })
+            body: JSON.stringify({ acmg_overrides: (() => { try { return JSON.parse(newVal); } catch { return {}; } })(), updated_at: new Date().toISOString() })
         }, { label: `ACMG ${criterionKey} override` });
         v.acmg_overrides = newVal;
         STATE.variantsById.set(variantId, v);
@@ -10808,7 +10883,9 @@ function renderACMGPanel(variant) {
 
     // Load persisted overrides from variant_notes (key: acmg_overrides)
     let overrides = {};
-    try { overrides = JSON.parse(variant.acmg_overrides || '{}'); } catch {}
+    try { overrides = JSON.parse(typeof variant.acmg_overrides === 'string'
+        ? variant.acmg_overrides
+        : JSON.stringify(variant.acmg_overrides || {})); } catch { overrides = {}; }
 
     const criteriaHTML = (entries, metSet, color) => entries.map(([key, crit]) => {
         const autoMet   = metSet.has(key);
@@ -10929,7 +11006,20 @@ const IVACAFTOR_VARIANTS = ['G551D','G1244E','G1349D','G178R','G551S','S1251N','
 
 function renderClinicalReferencePanel(variant) {
     const cls = variant.cftr_class;
-    const clsData = cls ? CLASS_CLINICAL_DATA[cls] : null;
+    // Prefer DB-fetched class rules (cftr_class_enriched view) over hardcoded JS object
+    const dbRules = STATE._cftrClassRules?.[cls] || null;
+    const clsData = dbRules ? {
+        sweat_cl:   dbRules.description?.match(/sweat[^;,.]*/i)?.[0] || CLASS_CLINICAL_DATA[cls]?.sweat_cl,
+        residual_fn: CLASS_CLINICAL_DATA[cls]?.residual_fn,
+        panc_suff:   CLASS_CLINICAL_DATA[cls]?.panc_suff,
+        onset:       CLASS_CLINICAL_DATA[cls]?.onset,
+        cftr_rd:     CLASS_CLINICAL_DATA[cls]?.cftr_rd,
+        ivacaftor:   (dbRules.modulators_effective||[]).join(', ') || CLASS_CLINICAL_DATA[cls]?.ivacaftor,
+        eti:         dbRules.typical_eti_response || CLASS_CLINICAL_DATA[cls]?.eti,
+        clinical_notes: dbRules.clinical_notes || null,
+        variant_count:  dbRules.variant_count   || null,
+        eti_count:      dbRules.eti_responsive_count || null
+    } : (cls ? CLASS_CLINICAL_DATA[cls] : null);
 
     // NBS panel membership
     const name = (variant.legacy_name || '').toUpperCase();
@@ -10948,6 +11038,15 @@ function renderClinicalReferencePanel(variant) {
 
     // Nothing to show if no class assigned
     if (!clsData && !nbsHits.length) return '';
+
+    // Live DB stats from cftr_class_enriched view (requires migration_002 + loadCftrClassRules)
+    const dbRow = STATE._cftrClassRules?.[cls];
+    const liveStatsBadge = dbRow ? `<div style="display:flex;gap:16px;flex-wrap:wrap;margin:8px 0;padding:8px 12px;background:rgba(41,121,255,0.05);border-radius:6px;border:1px solid rgba(41,121,255,0.12);">
+        <span style="font-size:10.5px;color:var(--text-secondary);">📊 <strong style="color:var(--text-primary);">${dbRow.variant_count||0}</strong> Class ${cls} variants in DB</span>
+        <span style="font-size:10.5px;color:var(--text-secondary);">ETI responsive: <strong style="color:#4ade80;">${dbRow.eti_responsive_count||0}</strong></span>
+        <span style="font-size:10.5px;color:var(--text-secondary);">Classified: <strong style="color:#60a5fa;">${dbRow.eti_classified_count||0}</strong></span>
+        <span style="font-size:10.5px;color:var(--text-secondary);">Validated: <strong style="color:#a78bfa;">${dbRow.validated_count||0}</strong></span>
+    </div>` : '';
 
     const rows = clsData ? [
         ['Sweat chloride', clsData.sweat_cl],
@@ -10989,7 +11088,7 @@ function renderClinicalReferencePanel(variant) {
             Not included in standard UK/ACMG/EU newborn screening panels
         </div>` : '');
 
-    return `
+    return `${liveStatsBadge}
     <div class="detail-section" style="margin-top:0;border-left:3px solid rgba(41,121,255,0.3);">
         <div class="section-header">
             <div class="section-header-icon" style="background:rgba(41,121,255,0.1);color:#60a5fa;">
@@ -11083,15 +11182,22 @@ function renderVariantDetail(variant, fromSearch) {
                         </div>
                         <div style="display:flex;flex-direction:column;gap:3px;">
                             ${rows.slice(0,3).map(c => `
-                                <div style="font-size:10.5px;color:var(--text-secondary);">
+                                <div style="font-size:10.5px;color:var(--text-secondary);display:flex;align-items:center;gap:6px;">
                                     <span style="font-weight:600;font-family:var(--font-mono);
                                         padding:0 4px;border-radius:3px;
                                         background:rgba(248,113,113,0.1);color:${sevColor};">
                                         ${escapeHTML(c.severity)}
                                     </span>
-                                    <span style="margin-left:5px;color:var(--text-secondary);">
+                                    <span style="color:var(--text-secondary);">
                                         ${escapeHTML(c.field?.replace(/_/g,' ') || 'Unknown field')}
                                     </span>
+                                    <button onclick="resolveContradiction(${c.id},'${escapeHTML(c.field||'')}',this)"
+                                        style="margin-left:auto;font-size:9.5px;padding:1px 7px;border-radius:4px;
+                                        border:1px solid rgba(74,222,128,0.3);background:rgba(74,222,128,0.07);
+                                        color:#4ade80;cursor:pointer;white-space:nowrap;flex-shrink:0;"
+                                        title="Mark this contradiction as resolved (write mode required)">
+                                        ✓ Resolve
+                                    </button>
                                     ${c.detected_at ? `<span style="margin-left:5px;font-size:9.5px;color:var(--text-tertiary);">${new Date(c.detected_at).toLocaleDateString('en-GB')}</span>` : ''}
                                 </div>`).join('')}
                         </div>
@@ -13585,17 +13691,25 @@ function exportFullReport() {
     const headers = ['ID','Legacy Name','Protein','cDNA','Determination','CFTR Class',
         'Subtype','Confidence','ETI Response','Evidence Level','Recommendation',
         'Data Status','Source','Population Frequency','PubMed IDs','Date Updated',
-        'Validation Count','Last Validator','Last Validated'];
+        'Validation Count','Last Validator','Last Validated',
+        'ACMG Overrides','Evidence Links','Func Interpretation'];
     
-    const rows = STATE.variants.map(v => [
-        v.id, v.legacy_name, v.protein_name, v.cdna_name, v.final_determination,
-        v.cftr_class, v.class_subtype, v.class_confidence, v.eti_prediction,
-        v.eti_evidence_level, v.eti_recommendation, v.data_status, v.source_summary,
-        v.population_frequency, v.pubmed_ids, v.date_updated,
-        v.validation_count || 0,
-        v.last_validator_name || '',
-        v.last_validated_at || ''
-    ]);
+    const rows = STATE.variants.map(v => {
+        const funcLinks  = (v.evidence_links||[]).filter(e => e.func_interpretation);
+        const funcInterps = [...new Set(funcLinks.map(e => e.func_interpretation))].join(';');
+        return [
+            v.id, v.legacy_name, v.protein_name, v.cdna_name, v.final_determination,
+            v.cftr_class, v.class_subtype, v.class_confidence, v.eti_prediction,
+            v.eti_evidence_level, v.eti_recommendation, v.data_status, v.source_summary,
+            v.population_frequency, v.pubmed_ids, v.date_updated,
+            v.validation_count || 0,
+            v.last_validator_name || '',
+            v.last_validated_at || '',
+            v.acmg_overrides ? JSON.stringify(v.acmg_overrides) : '',
+            (v.evidence_links||[]).length,
+            funcInterps
+        ];
+    });
     
     generateCSV(headers, rows, `neumuacFQ-full-report-${getCurrentDate()}.csv`);
     showNotification('Full export complete', 'success');
@@ -16434,7 +16548,7 @@ async function init() {
     initializeBulkImport();
     initDevNotice();
     // Phase 1: load DB-driven configs in parallel — non-blocking
-    Promise.all([loadClassRules(), loadJournalImpacts()]).catch(() => {});
+    Promise.all([loadClassRules(), loadJournalImpacts(), loadCftrClassRules()]).catch(() => {});
     await loadVariants();
     initHospital();
     // Phase 5: run surveillance alerts silently after load — never blocks UI
@@ -18432,6 +18546,60 @@ function heliosUpdateGreeting() {
 // ================================================================
 // INBOX
 // ================================================================
+// Render a single discussion thread note — used by both inline render and poll refresh
+function heliosRenderThreadNote(n) {
+    const ts = n.ts ? new Date(n.ts).toLocaleString('en-GB', {
+        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    }) : '';
+    return `<div class="helios-thread-note">
+        <div>
+            <span class="helios-thread-author">${escapeHTML(n.author||'Unknown')}</span>
+            ${n.role ? `<span class="helios-thread-role">${escapeHTML(n.role)}</span>` : ''}
+            <span class="helios-thread-ts">${ts}</span>
+        </div>
+        <div class="helios-thread-msg">${escapeHTML(n.msg||n.message||'')}</div>
+    </div>`;
+}
+
+// Poll discussion thread every 30s when Helios is open
+let _heliosDiscPollInterval = null;
+
+function heliosStartDiscPoll(itemId) {
+    heliosStopDiscPoll();
+    _heliosDiscPollInterval = setInterval(async () => {
+        try {
+            const r = await fetch(
+                `${CONFIG.SUPABASE.URL}/rest/v1/helios_pending_review?id=eq.${itemId}&select=discussion,updated_at`,
+                { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
+            );
+            if (!r.ok) return;
+            const rows = await r.json();
+            if (!rows.length) return;
+            const item = HELIOS.pendingItems.find(i => i.id === itemId);
+            if (!item) return;
+            const serverUpdatedAt = rows[0].updated_at;
+            if (serverUpdatedAt !== item._lastPollAt) {
+                item.discussion  = rows[0].discussion;
+                item._lastPollAt = serverUpdatedAt;
+                // Re-render thread without full inbox reload
+                const threadEl = document.getElementById(`helios-thread-${itemId}`);
+                if (threadEl) {
+                    const discussion = Array.isArray(item.discussion) ? item.discussion
+                        : (item.discussion ? [item.discussion] : []);
+                    threadEl.innerHTML = discussion.map(msg => heliosRenderThreadNote(msg)).join('');
+                }
+            }
+        } catch(e) { /* non-fatal */ }
+    }, 30000);
+}
+
+function heliosStopDiscPoll() {
+    if (_heliosDiscPollInterval) {
+        clearInterval(_heliosDiscPollInterval);
+        _heliosDiscPollInterval = null;
+    }
+}
+
 async function heliosLoadInbox() {
     const list = document.getElementById('heliosInboxList');
     list.innerHTML = `<div class="helios-empty"><div class="helios-spinner" style="margin:0 auto 16px;"></div><p>Loading…</p></div>`;
@@ -18583,15 +18751,7 @@ function renderHeliosItem(item) {
             </div>
         </div>` : '';
 
-    const threadHTML = discussion.map(n => `
-        <div class="helios-thread-note">
-            <div>
-                <span class="helios-thread-author">${escapeHTML(n.author||'Unknown')}</span>
-                ${n.role ? `<span class="helios-thread-role">${escapeHTML(n.role)}</span>` : ''}
-                <span class="helios-thread-ts">${n.ts ? new Date(n.ts).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}</span>
-            </div>
-            <div class="helios-thread-msg">${escapeHTML(n.note||'')}</div>
-        </div>`).join('');
+    const threadHTML = discussion.map(n => heliosRenderThreadNote(n)).join('');
 
     return `
     <div class="helios-inbox-item ${isDone ? item.status : pClass}" id="hitem-${item.id}">
@@ -18639,9 +18799,12 @@ function renderHeliosItem(item) {
             <!-- Thread -->
             <div class="helios-thread">
                 <div class="helios-thread-head">Discussion</div>
-                ${threadHTML || `<div style="padding:10px 12px;font-size:11px;color:var(--helios-text3);">No notes yet</div>`}
+                <div id="helios-thread-${item.id}">${threadHTML || `<div style="padding:10px 12px;font-size:11px;color:var(--helios-text3);">No notes yet</div>`}</div>
                 <div class="helios-thread-add">
-                    <input class="helios-thread-input" id="hnote-${item.id}" placeholder="Add a note…" aria-label="Add a note…">
+                    <input class="helios-thread-input" id="hnote-${item.id}"
+                        placeholder="Add a note…" aria-label="Add a note"
+                        onfocus="heliosStartDiscPoll(${item.id})"
+                        onblur="heliosStopDiscPoll()">
                     <button class="helios-btn helios-btn-ghost" style="padding:5px 10px;" onclick="heliosAddNote(${item.id})">
                         <i class="fas fa-paper-plane"></i>
                     </button>
@@ -18681,6 +18844,87 @@ async function heliosGetClinicianIdentity() {
         hospital:   stored && stored !== 'Anonymous' ? stored : null,
         hospitalId: STATE.searchIntelligence?.hospitalId || null
     };
+}
+
+// ================================================================
+// CFTR CLASS RULES — load from DB and cache in STATE
+// ================================================================
+
+async function loadCftrClassRules() {
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/cftr_class_enriched?select=*`,
+            { headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` } }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+        STATE._cftrClassRules = {};
+        for (const row of rows) {
+            STATE._cftrClassRules[row.cftr_class] = row;
+        }
+        console.log(`[NeumuacFQ] CFTR class rules loaded from DB: ${rows.length} classes`);
+    } catch(e) {
+        console.warn('[NeumuacFQ] CFTR class rules DB fetch failed — using hardcoded fallback:', e.message);
+        STATE._cftrClassRules = null;
+    }
+}
+
+// ================================================================
+// CONTRADICTION RESOLUTION
+// ================================================================
+
+async function resolveContradiction(contradictionId, field, btnEl) {
+    if (!contradictionId) return;
+    requireWriteMode(async () => {
+        const clinician = await heliosGetClinicianIdentity();
+        const note = prompt(
+            `Resolving contradiction: "${(field||'').replace(/_/g,' ')}"
+
+Add a resolution note (optional — press OK to skip):`,
+            ''
+        );
+        if (note === null) return; // cancelled
+
+        if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Resolving…'; }
+        try {
+            const res = await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/rpc/resolve_contradiction`, {
+                method: 'POST',
+                headers: {
+                    'apikey':        CONFIG.SUPABASE.KEY,
+                    'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
+                    'Content-Type':  'application/json'
+                },
+                body: JSON.stringify({
+                    p_id:          contradictionId,
+                    p_resolved_by: clinician.name,
+                    p_note:        note || null
+                })
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            // Log to Helios audit trail
+            await hFetch('helios_audit_log', {
+                method: 'POST',
+                body: JSON.stringify({
+                    action:          'CONTRADICTION_RESOLVED',
+                    clinician_name:  clinician.name,
+                    clinician_role:  clinician.role,
+                    note:            note || null,
+                    db_change_field: field || null,
+                    db_change_new:   'resolved',
+                    created_at:      new Date().toISOString()
+                })
+            });
+
+            // Remove the row from UI immediately
+            const row = btnEl?.closest('div[style]');
+            if (row) { row.style.opacity = '0'; row.style.transition = 'opacity .3s'; setTimeout(() => row.remove(), 300); }
+            showNotification('Contradiction resolved and logged to audit trail.', 'success', 3500);
+        } catch(e) {
+            if (btnEl) { btnEl.disabled = false; btnEl.textContent = '✓ Resolve'; }
+            showNotification('Failed to resolve contradiction: ' + e.message, 'error', 4000);
+        }
+    }, 'Resolve contradiction — enter PIN to continue');
 }
 
 // ================================================================
@@ -19269,6 +19513,59 @@ async function heliosApplyDBChange(item) {
             method: 'PATCH',
             body: JSON.stringify(patch)
         });
+
+        // ── Write evidence_links from evidence_payload on approval ──
+        // Now that we have a confirmed variant_id and curator approval, persist
+        // each evidence item including func_interpretation for PS3/BS3 ACMG scoring.
+        if (item.variant_id && item.evidence_payload) {
+            try {
+                const evidenceItems = JSON.parse(item.evidence_payload);
+                const linksToInsert = evidenceItems
+                    .filter(e => e.url || e.pmid)
+                    .map(e => ({
+                        variant_id:          item.variant_id,
+                        type:                e.source_type || e.type || 'publication',
+                        title:               e.title || 'Untitled',
+                        url:                 e.url || (e.pmid ? `https://pubmed.ncbi.nlm.nih.gov/${e.pmid}/` : null),
+                        source:              e.source || e.source_type || 'ROBOTIC_AUTO',
+                        pmid:                e.pmid || null,
+                        journal:             e.journal || null,
+                        year:                e.year || null,
+                        quality_score:       e.quality_score || null,
+                        study_type:          e.study_type || null,
+                        func_interpretation: e.func_interpretation || null,
+                        func_assay_type:     e.func_assay_type     || null,
+                        func_confidence:     e.func_confidence      || null,
+                        added_by:            'HELIOS_AUTO',
+                        date_added:          new Date().toISOString(),
+                        fingerprint:         e.pmid
+                            ? btoa('pmid:' + e.pmid).slice(0, 40)
+                            : btoa(encodeURIComponent((e.url||'').slice(0,60))).slice(0,40)
+                    }));
+                if (linksToInsert.length) {
+                    await hFetch('evidence_links', {
+                        method: 'POST',
+                        headers: { 'Prefer': 'resolution=ignore-duplicates,return=minimal' },
+                        body: JSON.stringify(linksToInsert)
+                    });
+                    console.log(`[Helios] Wrote ${linksToInsert.length} evidence_links for variant ${item.variant_id}`);
+                    // Refresh pubmed_ids on variants row (now that migration_003 added the column)
+                    fetch(`${CONFIG.SUPABASE.URL}/rest/v1/rpc/get_variant_pmids`, {
+                        method: 'POST',
+                        headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ p_variant_id: item.variant_id })
+                    }).then(r => r.json()).then(pmids => {
+                        if (pmids) hFetch(`variants?id=eq.${item.variant_id}`, {
+                            method: 'PATCH',
+                            headers: { 'Prefer': 'return=minimal' },
+                            body: JSON.stringify({ pubmed_ids: pmids })
+                        });
+                    }).catch(() => {});
+                }
+            } catch(evErr) {
+                console.warn('[Helios] evidence_links write failed (non-fatal):', evErr.message);
+            }
+        }
         if (r.ok) {
             // Update local state
             const v = STATE.variants.find(x => x.id === item.variant_id);
@@ -20398,6 +20695,8 @@ async function heliosRunGeoSignal() {
 // ================================================================
 Object.assign(window, {
     openHelios, closeHelios, heliosTab, heliosFilter,
+    resolveContradiction,
+    heliosRenderThreadNote, heliosStartDiscPoll, heliosStopDiscPoll,
     heliosApprove, heliosApproveWithNote, heliosReject, heliosDefer,
     heliosMarkExceptional, heliosCreateVariantFromMiss,
     heliosCheckDrift, heliosMissQueueIntelligence, heliosCheckEvidenceContradictions,
@@ -22339,6 +22638,9 @@ function exportIRBPackage() {
                             source_title: e.title || null,
                             source_url:   e.url   || null
                         }))
+                },
+                acmg: {
+                    overrides:        v.acmg_overrides || null
                 },
                 research_gap: {
                     gap_score:       gap.score,
