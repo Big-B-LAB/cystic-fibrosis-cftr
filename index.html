@@ -7048,19 +7048,47 @@ function getClassDescription(cftrClass) {
 
 const ROBOTIC_SCAN_QUEUE = new Set(); // prevent duplicate concurrent scans
 
+async function _probeCorsForEutils() {
+    // Quick CORS probe — fetch a known small endpoint.
+    // If CORS is blocked the fetch will throw a TypeError before we read anything.
+    try {
+        const r = await fetch(
+            'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=CFTR&retmax=1&retmode=json',
+            { signal: AbortSignal.timeout(4000), mode: 'cors' }
+        );
+        // If we got here, CORS is actually allowed in this environment
+        return r.ok;
+    } catch(e) {
+        return false; // CORS blocked or network error
+    }
+}
+
 async function triggerRoboticSearchOnMiss(query, missId) {
     if (ROBOTIC_SCAN_QUEUE.has(query)) return; // already scanning
     ROBOTIC_SCAN_QUEUE.add(query);
 
-    console.log(`[NeumuacFQ Robotic] Auto-triggered scan for: "${query}"`);
+    console.log(`[NeumuacFQ Robotic] Checking CORS availability before scanning "${query}"…`);
+
+    // Probe CORS first — eutils blocks browser-side requests in most environments
+    const corsOk = await _probeCorsForEutils();
+    if (!corsOk) {
+        console.warn(`[NeumuacFQ Robotic] CORS blocked for eutils.ncbi.nlm.nih.gov — skipping browser-side scan for "${query}". Miss stays pending for server-side processing.`);
+        // Record that we attempted but were blocked — honest audit trail
+        fetch(`${CONFIG.SUPABASE.URL}/rest/v1/search_miss_queue?query=eq.${encodeURIComponent(query)}`, {
+            method: 'PATCH',
+            headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
+                       'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ robotic_attempted: true, robotic_blocked: true })
+        }).catch(() => {});
+        ROBOTIC_SCAN_QUEUE.delete(query);
+        return;
+    }
+
+    console.log(`[NeumuacFQ Robotic] CORS available — scanning "${query}"…`);
 
     try {
-        // Mark miss as in_review immediately
-        await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/search_miss_queue?query=eq.${encodeURIComponent(query)}`, {
-            method: 'PATCH',
-            headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-            body: JSON.stringify({ status: 'in_review' })
-        });
+        // NOTE: We intentionally do NOT set status:'in_review' here.
+        // Status stays 'pending' until findings are confirmed and a Helios item is created.
 
         const runId = uuid();
         const results = await Promise.allSettled([
@@ -7076,10 +7104,25 @@ async function triggerRoboticSearchOnMiss(query, missId) {
         const totalFindings = pubmedPapers.length + clinvarHits.length + cftr2Hits.length;
 
         if (totalFindings === 0) {
-            console.log(`[NeumuacFQ Robotic] No findings for "${query}" across all sources`);
+            console.log(`[NeumuacFQ Robotic] No findings for "${query}" across all sources — miss stays pending`);
+            // Record honest outcome: scanned but found nothing
+            fetch(`${CONFIG.SUPABASE.URL}/rest/v1/search_miss_queue?query=eq.${encodeURIComponent(query)}`, {
+                method: 'PATCH',
+                headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
+                           'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                body: JSON.stringify({ robotic_attempted: true, robotic_blocked: false })
+            }).catch(() => {});
             ROBOTIC_SCAN_QUEUE.delete(query);
             return;
         }
+
+        // Only NOW — after confirmed findings — mark as in_review
+        await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/search_miss_queue?query=eq.${encodeURIComponent(query)}`, {
+            method: 'PATCH',
+            headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
+                       'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ status: 'in_review', robotic_attempted: true, robotic_blocked: false })
+        }).catch(() => {});
 
         // Score evidence quality using journal_impacts cache
         const scoredPapers = await scoreEvidenceQuality(pubmedPapers);
@@ -8578,14 +8621,11 @@ async function persistSearchEvent(query, isHit, matchedField, matchedVariantId) 
                         })
                     }
                 );
-                // PHASE 2: Auto-trigger robotic search — no curator button needed
-                // Fire and forget — never blocks the UI
-                setTimeout(() => triggerRoboticSearchOnMiss(normQuery, null), 500);
-                // Show clinician a status message so the search is not silent
-                showNotification(
-                    `"${query}" not found — NeumuacFQ is searching PubMed, ClinVar & CFTR2 robotically. Check Helios inbox within 24h.`,
-                    'info', 7000
-                );
+                // Robotic browser-side search removed — CORS blocks all eutils.ncbi.nlm.nih.gov
+                // calls from the browser silently. Path B (Supabase edge function) will handle
+                // server-side scanning. Miss is logged as 'pending' — human note card is the
+                // primary signal until the edge function is deployed.
+                // Silent: no notification — the miss card UI gives the user honest feedback.
             }
         }
     } catch (e) { /* silent — logging never breaks the UI */ }
@@ -17784,111 +17824,227 @@ function helixShowMissAction(query) {
     const container = document.getElementById('missActionContainer');
     if (!container || !query) return;
 
-    // Build external search URLs for the query
-    const enc = encodeURIComponent(query.trim());
+    const enc       = encodeURIComponent(query.trim());
+    const shortQ    = query.length > 22 ? query.slice(0,20) + '\u2026' : query;
+
     const extDbs = [
-        {
-            name: 'CFTR2',
-            url: `https://cftr2.org/mutation_details/${enc}`,
-            icon: 'fa-dna',
-            desc: 'Clinical & functional database',
-            color: '#60a5fa'
-        },
-        {
-            name: 'ClinVar',
-            url: `https://www.ncbi.nlm.nih.gov/clinvar/?term=${enc}+CFTR`,
-            icon: 'fa-database',
-            desc: 'NIH variant significance',
-            color: '#34d399'
-        },
-        {
-            name: 'CFTR-France',
-            url: `https://www.cftr.iurc.montp.inserm.fr/cftr/`,
-            icon: 'fa-globe',
-            desc: 'French CF mutation database',
-            color: '#c084fc'
-        },
-        {
-            name: 'PubMed',
-            url: `https://pubmed.ncbi.nlm.nih.gov/?term=${enc}+CFTR+cystic+fibrosis`,
-            icon: 'fa-book-medical',
-            desc: 'Literature search',
-            color: '#fbbf24'
-        }
+        { name:'CFTR2',   url:`https://cftr2.org/mutation_details/${enc}`,                                    icon:'fa-dna',          color:'#60a5fa', desc:'Functional & clinical' },
+        { name:'ClinVar', url:`https://www.ncbi.nlm.nih.gov/clinvar/?term=${enc}+CFTR`,                      icon:'fa-database',     color:'#34d399', desc:'NIH significance' },
+        { name:'LOVD',    url:`https://databases.lovd.nl/shared/variants/CFTR?search_variant_published_as=${enc}`, icon:'fa-list-alt', color:'#fb923c', desc:'LOVD' },
+        { name:'PubMed',  url:`https://pubmed.ncbi.nlm.nih.gov/?term=${enc}+CFTR+cystic+fibrosis`,           icon:'fa-book-medical', color:'#fbbf24', desc:'Literature' },
+        { name:'CFTR-FR', url:'https://www.cftr.iurc.montp.inserm.fr/cftr/',                                 icon:'fa-globe',        color:'#c084fc', desc:'French DB' },
     ];
+
+    const safeQ = escapeAttr(query);
+    const safeQH = escapeHTML(query);
+    const safeShortH = escapeHTML(shortQ);
 
     container.innerHTML = `
         <div id="missActionPanel" style="
-            margin-top:10px;
-            border-radius:10px;
-            border:1px solid rgba(248,113,113,0.25);
-            background:rgba(248,113,113,0.04);
-            overflow:hidden;
-            animation:fadeIn 200ms ease;
-        ">
+            margin-top:10px;border-radius:12px;
+            border:1px solid rgba(248,113,113,0.22);
+            background:rgba(10,4,6,0.7);
+            overflow:hidden;animation:fadeIn 200ms ease;">
+
             <!-- Header -->
-            <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px 10px;">
-                <div style="width:28px;height:28px;border-radius:7px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+            <div style="padding:12px 14px 10px;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid rgba(248,113,113,0.1);">
+                <div style="width:30px;height:30px;border-radius:8px;background:rgba(248,113,113,0.1);
+                    border:1px solid rgba(248,113,113,0.2);display:flex;align-items:center;
+                    justify-content:center;flex-shrink:0;">
                     <i class="fas fa-search-minus" style="color:#f87171;font-size:12px;"></i>
                 </div>
                 <div style="flex:1;min-width:0;">
-                    <div style="font-size:13px;font-weight:600;color:var(--text-primary);line-height:1.3;">
-                        <span style="font-family:var(--font-mono);color:#fca5a5;">"${escapeHTML(query)}"</span> is not in this database
+                    <div style="font-size:13px;font-weight:700;color:#fca5a5;font-family:var(--font-mono);">
+                        "${safeQH}"
                     </div>
-                    <div style="font-size:11px;color:var(--text-tertiary);margin-top:3px;line-height:1.4;">
-                        This variant has not been classified in NeumuacFQ yet. Search external databases below, or add it if you have clinical evidence.
+                    <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;line-height:1.4;">
+                        Not in NeumuacFQ yet \u2014 logged for curation review
                     </div>
                 </div>
-                <button onclick="helixHideMissAction()" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;padding:2px;font-size:12px;flex-shrink:0;line-height:1;">✕</button>
+                <button onclick="helixHideMissAction()" style="background:none;border:none;
+                    color:var(--text-tertiary);cursor:pointer;padding:2px;font-size:12px;
+                    flex-shrink:0;opacity:.6;" title="Dismiss">\u2715</button>
             </div>
 
-            <!-- External DB links -->
-            <div style="padding:0 14px 10px;display:flex;flex-direction:column;gap:5px;">
-                <div style="font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;">Search in external databases</div>
-                ${extDbs.map(db => `
-                    <a href="${db.url}" target="_blank" rel="noopener noreferrer" style="
-                        display:flex;align-items:center;gap:10px;
-                        padding:7px 10px;
-                        border-radius:7px;
-                        background:rgba(255,255,255,0.03);
-                        border:1px solid rgba(255,255,255,0.06);
-                        text-decoration:none;
-                        transition:background .12s,border-color .12s;
-                        cursor:pointer;
-                    " onmouseover="this.style.background='rgba(255,255,255,0.07)';this.style.borderColor='rgba(255,255,255,0.14)'"
-                       onmouseout="this.style.background='rgba(255,255,255,0.03)';this.style.borderColor='rgba(255,255,255,0.06)'">
-                        <div style="width:24px;height:24px;border-radius:5px;background:${db.color}18;border:1px solid ${db.color}30;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="fas ${db.icon}" style="color:${db.color};font-size:10px;"></i>
-                        </div>
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:12px;font-weight:600;color:var(--text-primary);">${db.name}</div>
-                            <div style="font-size:11px;color:var(--text-tertiary);">${db.desc}</div>
-                        </div>
-                        <i class="fas fa-external-link-alt" style="color:var(--text-tertiary);font-size:10px;flex-shrink:0;"></i>
-                    </a>
-                `).join('')}
+            <!-- Human flag -->
+            <div style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,0.05);">
+                <div style="font-size:10.5px;font-weight:700;color:var(--text-secondary);
+                    text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;
+                    display:flex;align-items:center;gap:6px;">
+                    <i class="fas fa-flag" style="color:#fbbf24;font-size:10px;"></i>
+                    Know something about it? Flag for curation
+                </div>
+                <textarea id="missNoteInput_${safeQ}"
+                    maxlength="500"
+                    placeholder="e.g. seen in 2 patients this week \u00b7 found in CFTR2 2024 \u00b7 Class I suspected \u00b7 DOI: 10.1016/\u2026 (max 500 chars)"
+                    oninput="helixMissNoteCount('${safeQ}',this)"
+                    style="width:100%;min-height:66px;padding:9px 11px;
+                        background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);
+                        border-radius:8px;color:var(--text-primary);font-size:12px;
+                        font-family:var(--font-body);resize:vertical;outline:none;
+                        line-height:1.5;box-sizing:border-box;transition:border-color .15s;"
+                    onfocus="this.style.borderColor='rgba(251,191,36,0.4)'"
+                    onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+                ></textarea>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:8px;">
+                    <div id="missNoteCount_${safeQ}"
+                         style="font-size:10px;color:var(--text-tertiary);font-family:var(--font-mono);">0 / 500</div>
+                    <button onclick="helixSubmitMissNote('${safeQ}')"
+                        style="padding:6px 14px;border-radius:7px;
+                            background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);
+                            color:#fbbf24;font-size:11.5px;font-weight:700;cursor:pointer;
+                            font-family:var(--font-body);display:flex;align-items:center;gap:6px;
+                            transition:background .15s;white-space:nowrap;"
+                        onmouseover="this.style.background='rgba(251,191,36,0.2)'"
+                        onmouseout="this.style.background='rgba(251,191,36,0.1)'">
+                        <i class="fas fa-paper-plane" style="font-size:10px;"></i>
+                        Flag for curation
+                    </button>
+                </div>
+                <div id="missNoteStatus_${safeQ}" style="font-size:11px;margin-top:5px;min-height:16px;"></div>
             </div>
 
-            <!-- Add variant footer -->
-            <div style="padding:8px 14px 10px;border-top:1px solid rgba(255,255,255,0.05);">
-                <button onclick="helixQuickAddFromMiss('${escapeAttr(query)}')" style="
-                    width:100%;padding:7px 14px;
-                    border-radius:7px;
-                    background:rgba(248,113,113,0.08);
-                    border:1px solid rgba(248,113,113,0.22);
-                    color:#fca5a5;font-size:12px;font-weight:600;
-                    cursor:pointer;font-family:var(--font-body);
-                    display:flex;align-items:center;justify-content:center;gap:7px;
-                    transition:background .15s;
-                " onmouseover="this.style.background='rgba(248,113,113,0.15)'"
-                   onmouseout="this.style.background='rgba(248,113,113,0.08)'">
-                    <i class="fas fa-plus-circle" style="font-size:12px;"></i>
-                    Add "${escapeHTML(query.length > 20 ? query.slice(0,18)+'…' : query)}" to NeumuacFQ
+            <!-- External DBs -->
+            <div style="padding:10px 14px 8px;">
+                <div style="font-size:10.5px;font-weight:600;color:var(--text-tertiary);
+                    text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;">
+                    Search in external databases
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                    ${extDbs.map(db => `
+                        <a href="${db.url}" target="_blank" rel="noopener noreferrer"
+                           title="${db.desc}"
+                           style="display:inline-flex;align-items:center;gap:5px;
+                               padding:5px 9px;border-radius:6px;text-decoration:none;
+                               background:rgba(255,255,255,0.03);
+                               border:1px solid rgba(255,255,255,0.08);
+                               font-size:11.5px;font-weight:600;color:${db.color};
+                               transition:background .12s,border-color .12s;"
+                           onmouseover="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='${db.color}55'"
+                           onmouseout="this.style.background='rgba(255,255,255,0.03)';this.style.borderColor='rgba(255,255,255,0.08)'">
+                            <i class="fas ${db.icon}" style="font-size:10px;"></i>${db.name}
+                            <i class="fas fa-external-link-alt" style="font-size:8px;opacity:.5;"></i>
+                        </a>`).join('')}
+                </div>
+            </div>
+
+            <!-- Add directly -->
+            <div style="padding:8px 14px 11px;border-top:1px solid rgba(255,255,255,0.05);">
+                <button onclick="helixQuickAddFromMiss('${safeQ}')"
+                    style="width:100%;padding:7px 14px;border-radius:7px;
+                        background:rgba(248,113,113,0.06);border:1px dashed rgba(248,113,113,0.25);
+                        color:#fca5a5;font-size:11.5px;font-weight:600;cursor:pointer;
+                        font-family:var(--font-body);display:flex;align-items:center;
+                        justify-content:center;gap:7px;transition:background .15s;"
+                    onmouseover="this.style.background='rgba(248,113,113,0.13)'"
+                    onmouseout="this.style.background='rgba(248,113,113,0.06)'">
+                    <i class="fas fa-plus-circle" style="font-size:11px;"></i>
+                    Add "${safeShortH}" directly to NeumuacFQ
                 </button>
             </div>
         </div>`;
+
+    // Auto-focus note textarea
+    setTimeout(() => {
+        try {
+            const ta = document.getElementById('missNoteInput_' + CSS.escape(query));
+            if (ta) ta.focus();
+        } catch(e) {}
+    }, 80);
 }
 
+function helixMissNoteCount(query, ta) {
+    try {
+        const el = document.getElementById('missNoteCount_' + CSS.escape(query));
+        if (el) {
+            const n = (ta.value || '').length;
+            el.textContent = n + ' / 500';
+            el.style.color = n > 450 ? '#f87171' : 'var(--text-tertiary)';
+        }
+    } catch(e) {}
+}
+
+async function helixSubmitMissNote(query) {
+    try {
+        const key    = CSS.escape(query);
+        const ta     = document.getElementById('missNoteInput_'  + key);
+        const status = document.getElementById('missNoteStatus_' + key);
+        if (!ta || !status) return;
+
+        const note = ta.value.trim();
+        if (!note) {
+            status.innerHTML = '<span style="color:#f87171;">Please write a short note first.</span>';
+            ta.focus();
+            return;
+        }
+
+        // Disable while saving
+        ta.disabled = true; ta.style.opacity = '.5';
+        status.innerHTML = '<span style="color:var(--text-tertiary);"><i class="fas fa-spinner fa-spin" style="margin-right:4px;font-size:10px;"></i>Saving\u2026</span>';
+
+        const normQuery   = query.toLowerCase().trim();
+        const institution = STATE.searchIntelligence?.hospital || null;
+        const instId      = STATE.searchIntelligence?.hospitalId || null;
+        const sessionId   = STATE.searchIntelligence?.sessionId || null;
+        const now         = new Date().toISOString();
+
+        // 1. Patch miss queue record with note + flag metadata
+        await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/search_miss_queue?query=eq.${encodeURIComponent(normQuery)}`, {
+            method: 'PATCH',
+            headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
+                       'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+                notes:           note,
+                human_flagged:   true,
+                flagged_by:      institution,
+                flagged_at:      now,
+                flagged_session: sessionId
+            })
+        });
+
+        // 2. Create Helios pending review item — curators see it immediately
+        await fetch(`${CONFIG.SUPABASE.URL}/rest/v1/helios_pending_review`, {
+            method: 'POST',
+            headers: { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}`,
+                       'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+                item_type:      'HUMAN_MISS_FLAG',
+                variant_name:   normQuery,
+                bot_summary:    `"${query}" flagged by clinician` + (institution ? ` at ${institution}` : ''),
+                bot_reasoning:  [
+                    `Clinician note: "${note}"`,
+                    institution ? `Institution: ${institution}` : '',
+                    sessionId   ? `Session: ${sessionId}` : '',
+                    `App mode: ${STATE.appMode || 'clinical'}`,
+                    instId      ? `Institution ID: ${instId}` : ''
+                ].filter(Boolean).join('\n'),
+                bot_confidence: institution ? 75 : 60,
+                priority:       institution ? 'URGENT' : 'ROUTINE',
+                scan_source:    'HUMAN_FLAG',
+                created_at:     now
+            })
+        });
+
+        // 3. Honest confirmation
+        status.innerHTML = '<span style="color:#34d399;"><i class="fas fa-check-circle" style="margin-right:4px;font-size:10px;"></i>Flagged \u2014 a curator will review this. You\'ll see it in the database when classified.</span>';
+        helixMissNoteCount(query, { value: '' });
+
+        // Update in-memory miss state
+        const miss = STATE.searchIntelligence.globalMisses.get(normQuery);
+        if (miss) miss.human_flagged = true;
+
+        showNotification(`"${query}" flagged for curation`, 'success');
+
+    } catch(e) {
+        try {
+            const key    = CSS.escape(query);
+            const ta     = document.getElementById('missNoteInput_'  + key);
+            const status = document.getElementById('missNoteStatus_' + key);
+            if (ta)     { ta.disabled = false; ta.style.opacity = '1'; }
+            if (status) status.innerHTML = `<span style="color:#f87171;">Save failed \u2014 ${escapeHTML(e.message)}</span>`;
+        } catch(_) {}
+    }
+}
 function helixHideMissAction() {
     const c = document.getElementById('missActionContainer');
     if (c) c.innerHTML = '';
@@ -18792,6 +18948,7 @@ Object.assign(window, {
     showImportModal, closeImportModal, switchImportTab, validateImport,
     executeJsonImport, submitManualForm, clearManualForm, clearImportForm,
     showAnnotationModal, closeAnnotationModal, saveAnnotation,
+    helixMissNoteCount, helixSubmitMissNote, _probeCorsForEutils,
     showDeleteModal, closeDeleteModal, confirmDeleteVariant,
     showValidationModal, closeValidationModal, submitValidation,
     showDashboard, closeDashboard, refreshDashboardStats, exportReport, exportFullReport,
