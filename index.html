@@ -240,7 +240,7 @@
             --info-bg: rgba(96,165,250,0.08);
 
             /* Layout */
-            --sidebar-width: 320px; /* scales up at 1440p+ via media queries */
+            --sidebar-width: 300px;
             --sidebar-collapsed: 56px;
             --header-height: 56px;
             --transition: 220ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -863,7 +863,7 @@
             border:1px solid rgba(99,140,210,0.18);
             border-radius:8px; padding:6px 11px;
             cursor:text; color:#3a5a7a; font-size:10.5px;
-            min-width:155px; margin:0 8px;
+            min-width:220px; max-width:480px; width:100%; margin:0 8px;
             transition:all .15s; font-family:var(--font-body); white-space:nowrap;
         }
         .hdr-search:hover {
@@ -1049,17 +1049,20 @@
         /* Loading screen logo card */
         .load-logo-card {
             display: block;
-            margin: 0 auto 24px;
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 18px 32px;
-            box-shadow: 0 12px 56px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+            margin: 0 auto 20px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 16px 28px;
+            box-shadow: 0 16px 64px rgba(0,0,5,0.8), 0 0 0 1px rgba(41,121,255,0.08);
             width: fit-content;
+            backdrop-filter: blur(4px);
         }
         .load-logo-img {
-            height: 100px;
+            height: 72px;
             width: auto;
             display: block;
+            filter: drop-shadow(0 2px 8px rgba(0,0,20,0.3));
         }
         /* Loading screen logo */
         .load-logo-wrap {
@@ -1660,8 +1663,7 @@
             border-bottom: 1px solid var(--border);
             cursor: pointer;
             transition: background 120ms ease, border-color 120ms ease;
-            position: relative;
-            min-height: 68px;
+            min-height: 72px;
         }
 
         .variant-row:hover {
@@ -2894,72 +2896,68 @@
         .app-main::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; }
 
         .main-inner {
-            max-width: 100%;
-            margin: 0;
-            padding: 24px;
+            width: 100%;
+            padding: 20px 24px;
+            box-sizing: border-box;
         }
 
-        /* ── Wide-screen layout — hospital monitors ── */
+        /* ── Wide-screen layout — laptop + hospital monitors ─────────
+           Strategy: sidebar grows, content fills available width,
+           detail-grid switches to 3 cols so content uses the space.
+           No centering — full bleed from sidebar edge to screen edge.
+        ── */
+
+        /* ── Wide-screen layout ─────────────────────────────────────
+           Philosophy:
+           - Sidebar grows with viewport to show more variant info
+           - main-inner fills 100% of remaining width (no max-width cap)
+           - detail-grid stays 2-col (only 2 sections exist in the grid)
+             but cards get wider as screen grows — that's the win
+           - field-grid inside cards goes 3-col at 1440px+ for data density
+           - nomenclature row goes 4-col at 1440px+
+           - search bar grows to use header space
+        ─────────────────────────────────────────────────────────────── */
+
         @media (min-width: 1280px) {
-            :root { --sidebar-width: 340px; }
-            .main-inner { padding: 24px 28px; }
+            :root { --sidebar-width: 320px; }
+            .main-inner { padding: 20px 28px; }
         }
 
         @media (min-width: 1440px) {
-            :root { --sidebar-width: 360px; }
-            .main-inner { padding: 26px 32px; }
-            .detail-grid { grid-template-columns: 1fr 1fr 1fr !important; }
-            .nomenclature-row { grid-template-columns: 1fr 1fr 1fr 1fr !important; }
+            :root { --sidebar-width: 340px; }
+            .main-inner { padding: 22px 32px; }
+            /* field-grid inside sections — 3 cols for data density */
+            .field-grid { grid-template-columns: 1fr 1fr 1fr !important; }
+            /* nomenclature row — all 4 cards in one row */
+            .nomenclature-row { grid-template-columns: repeat(4, 1fr) !important; }
+            /* search bar — use the extra header space */
+            .hdr-search { min-width: 300px !important; }
         }
 
         @media (min-width: 1600px) {
-            :root { --sidebar-width: 380px; }
-            .main-inner { padding: 28px 36px; }
+            :root { --sidebar-width: 360px; }
+            .main-inner { padding: 24px 36px; }
         }
 
         @media (min-width: 1920px) {
-            :root {
-                --sidebar-width: 400px;
-            }
-            .main-inner {
-                max-width: 1680px;
-                padding: 32px 40px;
-            }
-            .detail-grid {
-                grid-template-columns: 1fr 1fr 1fr !important;
-            }
-            .report-grid-2,
-            .rpt-grid-2 {
-                grid-template-columns: 1fr 1fr 1fr !important;
-            }
-            /* Helios inbox — 2 column layout on large screens */
+            :root { --sidebar-width: 380px; }
+            .main-inner { padding: 28px 44px; }
+            .hdr-search { min-width: 400px !important; max-width: 640px !important; }
+            /* Helios inbox — 2 column grid on large screens */
             #heliosInboxList {
                 display: grid !important;
                 grid-template-columns: 1fr 1fr !important;
                 gap: 10px !important;
                 align-items: start !important;
             }
-            /* Keep greeting + filters full width above the grid */
-            .helios-greeting,
-            .helios-filter-row {
+            .helios-greeting, .helios-filter-row {
                 grid-column: 1 / -1 !important;
             }
         }
 
         @media (min-width: 2560px) {
-            :root {
-                --sidebar-width: 440px;
-            }
-            .main-inner {
-                max-width: 2000px;
-                padding: 36px 48px;
-            }
-            .field-grid {
-                grid-template-columns: 1fr 1fr 1fr !important;
-            }
-            .helios-card-body {
-                max-height: 700px !important;
-            }
+            :root { --sidebar-width: 420px; }
+            .main-inner { padding: 32px 56px; }
         }
 
         /* ============================================================
@@ -5348,21 +5346,31 @@
                 <div class="load-bar-shimmer"></div>
             </div>
             <div class="load-status">
-                <span class="load-status-text" id="loadStatusText">Iniciando sistema…</span>
+                <span class="load-status-text" id="loadStatusText">Connecting to CFTR database…</span>
                 <span class="load-pct" id="loadPct">0%</span>
             </div>
         </div>
 
         <div class="load-variant-counter" id="loadVariantCounter"></div>
         <div class="load-hospital-greeting" id="loadHospitalGreeting"></div>
-        <button class="load-retry-btn" id="loadRetryBtn" onclick="location.reload()">↺ Reintentar conexión</button>
+        <button class="load-retry-btn" id="loadRetryBtn" onclick="location.reload()">↺ Retry connection</button>
+
+        <!-- Clinical tagline -->
+        <div style="text-align:center;margin-top:4px;margin-bottom:0;">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(99,140,210,0.6);letter-spacing:.12em;text-transform:uppercase;">
+                CFTR Precision Medicine Platform
+            </div>
+            <div style="font-size:12px;color:rgba(99,140,210,0.35);margin-top:3px;font-style:italic;letter-spacing:.02em;">
+                Advancing precision medicine in cystic fibrosis
+            </div>
+        </div>
 
         <!-- Dev sticker on loading screen -->
         <div class="load-sticker">
             <span class="load-sticker-dot"></span>
-            <span class="load-sticker-text">v4.0 &nbsp;·&nbsp; Active development</span>
+            <span class="load-sticker-text">v5.1 &nbsp;·&nbsp; NeumuacFQ CFTR Platform</span>
             <span class="load-sticker-divider"></span>
-            <span class="load-sticker-contact">Contacto: Neumología · CHUAC</span>
+            <span class="load-sticker-contact">Neumología · CHUAC</span>
         </div>
     </div>
 </div>
@@ -19405,13 +19413,13 @@ async function startCurationSprint() {
     const greetingEl = document.getElementById('loadHospitalGreeting');
 
     const MILESTONES = [
-        { key: 'boot',        pct: 8,   msg: 'Iniciando sistema...' },
-        { key: 'db_connect',  pct: 22,  msg: 'Conectando base de datos CFTR...' },
-        { key: 'fetch_page',  pct: 40,  msg: 'Cargando variantes geneticas...' },
-        { key: 'index',       pct: 62,  msg: 'Construyendo indice de busqueda...' },
-        { key: 'search_intel',pct: 75,  msg: 'Hidratando inteligencia de busqueda...' },
-        { key: 'render',      pct: 88,  msg: 'Preparando interfaz clinica...' },
-        { key: 'done',        pct: 100, msg: 'Sistema listo.' },
+        { key: 'boot',        pct: 8,   msg: 'Initialising NeumuacFQ…' },
+        { key: 'db_connect',  pct: 22,  msg: 'Connecting to CFTR database…' },
+        { key: 'fetch_page',  pct: 40,  msg: 'Loading variant registry…' },
+        { key: 'index',       pct: 62,  msg: 'Building search index…' },
+        { key: 'search_intel',pct: 75,  msg: 'Loading search intelligence…' },
+        { key: 'render',      pct: 88,  msg: 'Preparing clinical interface…' },
+        { key: 'done',        pct: 100, msg: 'Ready.' },
     ];
     const milestoneMap = new Map(MILESTONES.map(m => [m.key, m]));
     let currentPct = 0;
@@ -19435,21 +19443,26 @@ async function startCurationSprint() {
     }
 
     let typeTimer = null;
+    let typeGen   = 0; // generation counter — stale timers check this
     function setStatus(msg) {
         clearTimeout(typeTimer);
+        typeGen++;
+        const gen = typeGen;
         statusEl.style.opacity = '0';
         setTimeout(() => {
+            if (gen !== typeGen) return; // superseded
             statusEl.textContent = '';
             statusEl.style.opacity = '1';
             let i = 0;
             function type() {
+                if (gen !== typeGen) return; // superseded mid-type
                 if (i < msg.length) {
                     statusEl.textContent += msg[i++];
-                    typeTimer = setTimeout(type, 22 + Math.random() * 18);
+                    typeTimer = setTimeout(type, 18 + Math.random() * 14);
                 }
             }
             type();
-        }, 140);
+        }, 120);
     }
 
     function advance(key) {
@@ -19466,7 +19479,7 @@ async function startCurationSprint() {
 
     function setVariantCount(n) {
         if (n === 0) { counterEl.textContent = ''; return; }
-        counterEl.textContent = n.toLocaleString() + ' variantes encontradas...';
+        counterEl.textContent = n.toLocaleString() + ' variants loaded';
     }
 
     function showHospitalGreeting() {
