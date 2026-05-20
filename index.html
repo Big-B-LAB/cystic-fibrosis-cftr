@@ -117,7 +117,60 @@
         .w-full { width: 100%; }
         .overflow-hidden { overflow: hidden; }
         .overflow-y-auto { overflow-y: auto; }
-    </style>
+    
+/* ════════════════════════════════════════════
+   NeumuacFQ BATCH 1+2 — COMPONENT STYLES
+   ════════════════════════════════════════════ */
+
+/* Item 6 — Confidence breakdown */
+.conf-score-wrap { display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap; }
+.conf-score-num { font-family:var(--font-mono);font-size:13px;font-weight:700;letter-spacing:.02em;min-width:36px; }
+.conf-score-label { font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.08em; }
+.conf-chips { display:flex;flex-wrap:wrap;gap:4px;align-items:center; }
+.conf-chip { font-size:10px;padding:2px 7px;border-radius:4px;font-family:var(--font-body);letter-spacing:.04em;white-space:nowrap; }
+.conf-chip-present { background:rgba(41,121,255,.12);border:1px solid rgba(41,121,255,.3);color:var(--brand); }
+.conf-chip-present em { font-style:normal;font-weight:700;margin-left:3px;opacity:.7; }
+.conf-chip-absent { background:rgba(90,122,170,.05);border:1px solid rgba(90,122,170,.12);color:var(--text-tertiary);opacity:.6; }
+.conf-unknown { color:var(--text-tertiary);font-size:11px; }
+.conf-breakdown-full { display:flex;flex-direction:column;gap:8px;padding:12px;background:rgba(41,121,255,.04);border:1px solid rgba(41,121,255,.15);border-radius:8px;max-width:360px; }
+.conf-header { display:flex;align-items:baseline;gap:6px; }
+.conf-bar-track { height:3px;background:var(--border);border-radius:2px;overflow:hidden; }
+.conf-bar-fill { height:100%;border-radius:2px;transition:width .4s ease; }
+.conf-disclaimer { font-size:10px;color:var(--text-tertiary);line-height:1.5;border-top:1px solid var(--border);padding-top:8px;margin-top:2px; }
+
+/* Item 3 — Evidence tier badges */
+.evidence-tier-badge { display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle;white-space:nowrap; }
+
+/* Item 5 — CFTR class diagram */
+.cftr-class-diagram-wrap { display:flex;flex-direction:column;gap:14px; }
+.cftr-class-detail { display:flex;flex-direction:column;gap:6px;padding:12px;background:rgba(41,121,255,.04);border:1px solid rgba(41,121,255,.12);border-radius:8px; }
+.cftr-class-badge-lg { display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:5px;border:1px solid;letter-spacing:.04em;align-self:flex-start; }
+.cftr-class-desc { font-size:12px;color:var(--text-secondary);line-height:1.6;margin:0; }
+.cftr-class-eti-note { font-size:11px;font-weight:500;margin:0;line-height:1.5; }
+.cftr-class-examples { font-size:11px;color:var(--text-tertiary);display:flex;flex-wrap:wrap;gap:4px;align-items:center; }
+
+/* Item 9 — Population frequency panel */
+.pop-freq-panel { display:flex;flex-direction:column;gap:10px;padding:14px;background:rgba(41,121,255,.04);border:1px solid rgba(41,121,255,.13);border-radius:9px; }
+.pop-header { display:flex;justify-content:space-between;align-items:center; }
+.pop-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary); }
+.pop-source { font-size:10px;color:var(--text-tertiary);padding:2px 7px;border:1px solid var(--border);border-radius:4px; }
+.pop-overall { font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
+.pop-rows { display:flex;flex-direction:column;gap:5px; }
+.pop-row { display:grid;grid-template-columns:150px 1fr 80px;align-items:center;gap:8px; }
+.pop-label { font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.pop-bar-wrap { height:8px;background:rgba(41,121,255,.1);border-radius:4px;overflow:hidden; }
+.pop-bar { height:100%;border-radius:4px;transition:width .4s ease;opacity:.75; }
+.pop-af { font-size:10px;color:var(--text-tertiary);text-align:right; }
+.pop-footer { font-size:10px;color:var(--text-tertiary);line-height:1.5;border-top:1px solid var(--border);padding-top:8px; }
+.pop-acmg { font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.06em; }
+.pop-acmg.ba1 { background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444; }
+.pop-acmg.pm2 { background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e; }
+.pop-freq-empty { padding:16px 0; }
+
+/* Item 10 — Skip link */
+.skip-link { position:absolute;top:-40px;left:0;background:var(--brand);color:#fff;padding:8px 16px;font-size:13px;font-weight:600;z-index:100000;border-radius:0 0 8px 0;transition:top .2s ease;text-decoration:none; }
+.skip-link:focus { top:0;outline:3px solid #fff;outline-offset:2px; }
+</style>
     <!--
         Chart.js — LAZY LOADED on first dashboard open (see lazyLoadChartJs below).
         Removed from <head> to save ~200KB of parse cost on every page load.
@@ -6959,6 +7012,186 @@ const CONFIG = {
     WRITE_DURATION: 30 * 60 * 1000
 };
 
+
+
+// ════ NeumuacFQ IMPROVEMENT — ITEM 8 ════
+// ════════════════════════════════════════════════════════════════════════
+// ITEM 8 — SESSION SECURITY
+// WHERE TO INSERT: Immediately after the CONFIG definition block (~line 6960).
+//   Search for: "// ========== UUID POLYFILL =========="
+//   Insert the SESSION_SECURITY block BEFORE that line.
+//   Then add the one-liner calls at DOMContentLoaded (see comments below).
+//
+// TWO IMPROVEMENTS:
+//   A) Idle timeout — write mode auto-locks after configurable inactivity.
+//      Clinical workstations get walked away from. This is non-negotiable.
+//   B) PIN hashing — the current WRITE_CODE:'helix2024' is visible to anyone
+//      who opens DevTools > Sources. Replace with a SHA-256 hash so the
+//      plaintext PIN never lives in client code.
+//
+// HOW TO GENERATE THE HASH:
+//   Run in browser console: NeumuacFQ.fn.hashPin('yourNewPin').then(console.log)
+//   Copy the output into SESSION_SECURITY.WRITE_CODE_HASH below.
+// ════════════════════════════════════════════════════════════════════════
+
+const SESSION_SECURITY = Object.freeze({
+    // ── Idle timeout ─────────────────────────────────────────────────
+    IDLE_TIMEOUT_MS:       15 * 60 * 1000,  // 15 min — lock write mode on inactivity
+    IDLE_WARNING_MS:       13 * 60 * 1000,  // 13 min — show "locking in 2 min" warning
+    IDLE_CHECK_INTERVAL:   30 * 1000,       // check every 30s (low CPU cost)
+
+    // ── PIN hash ─────────────────────────────────────────────────────
+    // SHA-256 hash of the write PIN. Generate with:
+    //   NeumuacFQ.fn.hashPin('yourPin').then(console.log)
+    // NEVER store the plaintext PIN. Change this hash when PIN changes.
+    // Current hash corresponds to the default setup PIN — CHANGE BEFORE DEPLOYMENT.
+    WRITE_CODE_HASH: 'b89a88e14bfc90b8c52f87e1428e3972c32b3c0fc10df4fa1e7b8f6cdb6e4b22',
+
+    // ── RLS policy notes (for Supabase dashboard) ────────────────────
+    // The anon key is public by design, but these RLS policies MUST be in
+    // place on every table to prevent cross-clinician data access:
+    //
+    //   variants table:
+    //     SELECT: auth.role() = 'anon'  (read-only for all — variants are shared)
+    //     INSERT/UPDATE/DELETE: false    (only via service_role from a backend)
+    //       ↑ The writeMode PIN is a UX gate, not a security gate.
+    //         Real write protection requires a backend proxy that holds
+    //         the service_role key. Add this before any multi-institution use.
+    //
+    //   helios_pending_review, audit_log:
+    //     SELECT: auth.uid() = created_by_uid  (clinician sees only their own)
+    //     INSERT: auth.role() = 'anon'          (any authenticated session)
+    //     UPDATE/DELETE: false
+    //
+    // Add Row Level Security via Supabase Dashboard → Table Editor → RLS
+});
+
+// ── SHA-256 PIN hasher ──────────────────────────────────────────────────
+// Exposed on NeumuacFQ.fn so it's accessible from DevTools for PIN rotation.
+async function hashPin(plaintext) {
+    const encoded = new TextEncoder().encode(String(plaintext));
+    const buffer  = await crypto.subtle.digest('SHA-256', encoded);
+    return Array.from(new Uint8Array(buffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+}
+
+// ── PIN verifier — replaces plain string comparison in confirmWriteMode() ──
+// WHERE TO USE: In confirmWriteMode(), replace:
+//   if (val !== CONFIG.WRITE_CODE) { ... show error ... }
+// WITH:
+//   const match = await verifyPin(val);
+//   if (!match) { ... show error ... }
+async function verifyPin(input) {
+    const hash = await hashPin(input);
+    return hash === SESSION_SECURITY.WRITE_CODE_HASH;
+}
+
+// ── Idle timeout manager ──────────────────────────────────────────────
+const IdleGuard = (() => {
+    let _lastActivity  = Date.now();
+    let _checkInterval = null;
+    let _warningShown  = false;
+
+    // Reset the activity clock on any meaningful user gesture
+    const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'click', 'touchstart', 'scroll'];
+
+    function _resetActivity() {
+        _lastActivity = Date.now();
+        if (_warningShown) {
+            _warningShown = false;
+            // Dismiss the warning notification if it's still visible
+            const warn = document.getElementById('idleWarningToast');
+            if (warn) warn.remove();
+        }
+    }
+
+    function _checkIdle() {
+        const idle = Date.now() - _lastActivity;
+
+        // Warning at 13 min
+        if (idle >= SESSION_SECURITY.IDLE_WARNING_MS && !_warningShown) {
+            _warningShown = true;
+            _showIdleWarning();
+        }
+
+        // Lock at 15 min — deactivate write mode silently
+        if (idle >= SESSION_SECURITY.IDLE_TIMEOUT_MS) {
+            if (STATE?.writeMode?.active) {
+                _lockWriteMode();
+            }
+        }
+    }
+
+    function _showIdleWarning() {
+        // Reuse the platform's showNotification if available, else create a toast
+        if (typeof showNotification === 'function') {
+            showNotification(
+                'Write mode will lock in 2 minutes due to inactivity',
+                'warning', 120000
+            );
+        }
+    }
+
+    function _lockWriteMode() {
+        if (!STATE?.writeMode) return;
+        STATE.writeMode.active = false;
+        STATE.writeMode.expiry = null;
+        if (STATE.writeMode.timerInterval) {
+            clearInterval(STATE.writeMode.timerInterval);
+            STATE.writeMode.timerInterval = null;
+        }
+        _warningShown = false;
+        console.log('[NeumuacFQ Security] Write mode auto-locked due to inactivity');
+        showNotification('Write mode locked — inactivity timeout', 'info', 4000);
+        // Update the lock icon in the header
+        const icon = document.getElementById('writeModeIcon');
+        const btn  = document.getElementById('writeModeBtn');
+        if (icon) icon.className = 'fas fa-lock';
+        if (btn)  btn.classList.remove('write-mode-active');
+    }
+
+    return {
+        // Call once at DOMContentLoaded:
+        //   IdleGuard.start();
+        start() {
+            ACTIVITY_EVENTS.forEach(evt =>
+                document.addEventListener(evt, _resetActivity, { passive: true })
+            );
+            _checkInterval = setInterval(_checkIdle, SESSION_SECURITY.IDLE_CHECK_INTERVAL);
+            console.log('[NeumuacFQ Security] Idle guard active — timeout:', SESSION_SECURITY.IDLE_TIMEOUT_MS / 60000, 'min');
+        },
+
+        stop() {
+            ACTIVITY_EVENTS.forEach(evt =>
+                document.removeEventListener(evt, _resetActivity)
+            );
+            if (_checkInterval) clearInterval(_checkInterval);
+        },
+
+        // Expose for testing
+        getIdleMs: () => Date.now() - _lastActivity,
+    };
+})();
+
+// ── HOW TO WIRE THESE UP ───────────────────────────────────────────────
+// 1) At DOMContentLoaded, add:
+//      IdleGuard.start();
+//
+// 2) In confirmWriteMode(), make it async and replace the PIN check:
+//      async function confirmWriteMode() {
+//          const val = document.getElementById('writeModeInput')?.value?.trim();
+//          const match = await verifyPin(val);         // ← replaces val !== CONFIG.WRITE_CODE
+//          if (!match) { /* show error */ return; }
+//          // ... rest of function unchanged ...
+//      }
+//
+// 3) Expose hashPin on NeumuacFQ.fn in the DOMContentLoaded registration block:
+//      NeumuacFQ.fn.hashPin = hashPin;
+//
+// 4) Remove WRITE_CODE from CONFIG entirely. It no longer needs to exist.
+// ════ END ITEM 8 ════
+
 // ========== UUID POLYFILL ==========
 // uuid() is unavailable in some older mobile WebViews and
 // non-HTTPS contexts. Replace all direct calls with uuid() which degrades
@@ -7167,6 +7400,296 @@ async function enrichWithGnomAD(variant) {
     return formatted;
 }
 
+
+
+// ════ NeumuacFQ IMPROVEMENT — ITEM 9 ════
+// ════════════════════════════════════════════════════════════════════════
+// ITEM 9 — GEOGRAPHIC PREVALENCE MAP
+// WHERE TO INSERT: After enrichWithGnomAD() (~line 7165).
+//   Search for: "// ========== PHASE 1: cftr_class_rules LOADER =========="
+//   Insert this block immediately BEFORE that line.
+// WHY: The existing geo map shows where clinicians search from.
+//   What's clinically useful is where a variant IS prevalent — F508del
+//   is ~70% of CF alleles in Northern Europeans, W1282X is enriched
+//   in Ashkenazi Jewish populations, 3120+1G→A predominates in sub-
+//   Saharan African ancestry. The gnomAD API already returns population-
+//   stratified frequencies. This module fetches and displays them as a
+//   per-population bar chart attached to the selected variant panel,
+//   alongside an ancestry-to-geography narrative.
+// ════════════════════════════════════════════════════════════════════════
+
+// ── gnomAD population codes and geography ────────────────────────────
+const GNOMAD_POPULATIONS = Object.freeze([
+    { code: 'nfe',  label: 'Northern European',   region: 'Northern Europe',     flag: '🇪🇺' },
+    { code: 'fin',  label: 'Finnish',              region: 'Finland',             flag: '🇫🇮' },
+    { code: 'asj',  label: 'Ashkenazi Jewish',     region: 'Eastern Europe / ME', flag: '✡️'  },
+    { code: 'afr',  label: 'African / African-Am', region: 'Sub-Saharan Africa',  flag: '🌍' },
+    { code: 'amr',  label: 'Latino / Admixed Am.', region: 'Latin America',       flag: '🌎' },
+    { code: 'eas',  label: 'East Asian',           region: 'East Asia',           flag: '🌏' },
+    { code: 'sas',  label: 'South Asian',          region: 'South Asia',          flag: '🌏' },
+    { code: 'mid',  label: 'Middle Eastern',       region: 'Middle East',         flag: '🌍' },
+    { code: 'oth',  label: 'Other / remaining',    region: 'Mixed',               flag: '🌐' },
+]);
+
+/**
+ * Fetches gnomAD v4 population-stratified allele frequencies for a variant.
+ * Extends the existing fetchGnomADFrequency which only fetches overall AF.
+ *
+ * @param {Object} variant - Variant with legacy_name, protein_name, cdna_name
+ * @returns {Promise<{ overall: number|null, populations: Object[] }|null>}
+ */
+async function fetchGnomADPopulationFrequencies(variant) {
+    const searchTerm = (variant.cdna_name || variant.protein_name || variant.legacy_name || '').replace(/"/g, '');
+    if (!searchTerm) return null;
+
+    const query = `{
+        variant(variantId: "${searchTerm}", dataset: gnomad_r4) {
+            genome {
+                af
+                populations {
+                    id
+                    af
+                    ac
+                    an
+                }
+            }
+            exome {
+                af
+                populations {
+                    id
+                    af
+                    ac
+                    an
+                }
+            }
+        }
+    }`;
+
+    try {
+        const res = await fetch('https://gnomad.broadinstitute.org/api', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query }),
+            signal: AbortSignal.timeout(12000)
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        const v = data?.data?.variant;
+        if (!v) return null;
+
+        // Prefer genome data (larger cohort), fall back to exome
+        const source = v.genome?.populations?.length ? v.genome : v.exome;
+        if (!source) return null;
+
+        const overall = source.af ?? null;
+        const populations = (source.populations || []).map(pop => {
+            const meta = GNOMAD_POPULATIONS.find(p =>
+                pop.id.toLowerCase().startsWith(p.code)
+            );
+            return {
+                id:     pop.id,
+                code:   pop.id.toLowerCase().replace(/_.*/, ''),
+                label:  meta?.label  ?? pop.id,
+                region: meta?.region ?? pop.id,
+                flag:   meta?.flag   ?? '',
+                af:     pop.af  ?? 0,
+                ac:     pop.ac  ?? 0,
+                an:     pop.an  ?? 0,
+            };
+        }).filter(p => p.an > 0)   // exclude populations with no coverage
+          .sort((a, b) => b.af - a.af);
+
+        return { overall, populations };
+    } catch (e) {
+        console.warn('[NeumuacFQ gnomAD] Population frequency fetch failed:', e.message);
+        return null;
+    }
+}
+
+/**
+ * Renders a population frequency panel as HTML.
+ * Shows per-population AF as a horizontal bar chart with clinical context.
+ * Safe for innerHTML — no user data, all numbers from API.
+ *
+ * @param {string} variantName - Display name for the variant
+ * @param {{ overall: number, populations: Object[] }} data - gnomAD result
+ * @returns {string} HTML string
+ */
+function renderPopulationFrequencyPanel(variantName, data) {
+    if (!data?.populations?.length) {
+        return `<div class="pop-freq-empty">
+            <span style="font-size:11px;color:var(--text-tertiary);">
+                No population frequency data available in gnomAD v4 for this variant.
+            </span>
+        </div>`;
+    }
+
+    const maxAF = Math.max(...data.populations.map(p => p.af), 0.00001);
+    const formatAF = af => af < 0.0001 ? af.toExponential(2) : af.toFixed(6);
+    const overallStr = data.overall !== null ? formatAF(data.overall) : '—';
+
+    // ACMG allele frequency context for overall AF
+    let acmgContext = '';
+    if (data.overall !== null) {
+        if (data.overall > 0.05)    acmgContext = '<span class="pop-acmg ba1">BA1 — common allele (>5%)</span>';
+        else if (data.overall < 0.001) acmgContext = '<span class="pop-acmg pm2">PM2 — rare allele (&lt;0.1%)</span>';
+    }
+
+    const rows = data.populations.slice(0, 8).map(pop => {
+        const barPct = Math.round((pop.af / maxAF) * 100);
+        const afStr  = formatAF(pop.af);
+        return `<div class="pop-row">
+            <div class="pop-label" title="${pop.region}">${pop.label}</div>
+            <div class="pop-bar-wrap">
+                <div class="pop-bar" style="width:${barPct}%;background:var(--brand);"></div>
+            </div>
+            <div class="pop-af font-mono">${afStr}</div>
+        </div>`;
+    }).join('');
+
+    return `<div class="pop-freq-panel">
+        <div class="pop-header">
+            <span class="pop-title">Population frequencies</span>
+            <span class="pop-source">gnomAD v4</span>
+        </div>
+        <div class="pop-overall">
+            Overall AF: <strong class="font-mono">${overallStr}</strong>
+            ${acmgContext}
+        </div>
+        <div class="pop-rows">${rows}</div>
+        <div class="pop-footer">
+            Higher AF in a population = variant more likely to occur in that ancestry group.
+            <a href="https://gnomad.broadinstitute.org/variant/${encodeURIComponent(variantName)}"
+               target="_blank" rel="noopener noreferrer"
+               style="color:var(--brand);text-decoration:none;">
+               View in gnomAD ↗
+            </a>
+        </div>
+    </div>`;
+}
+
+/**
+ * Loads and renders population frequencies for the currently selected variant.
+ * Call from the variant detail panel when the geography/prevalence section opens.
+ *
+ * @param {Object} variant - The selected variant
+ * @param {string} containerId - ID of the DOM element to render into
+ */
+async function loadAndRenderPopulationFrequencies(variant, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Loading state
+    container.innerHTML = `<div style="font-size:11px;color:var(--text-tertiary);padding:12px 0;">
+        <i class="fas fa-spinner fa-spin" style="margin-right:6px;font-size:10px;"></i>
+        Loading gnomAD population data…
+    </div>`;
+
+    const data = await fetchGnomADPopulationFrequencies(variant);
+    container.innerHTML = renderPopulationFrequencyPanel(variant.legacy_name, data);
+}
+
+// ── CSS to add near the geo section ────────────────────────────────────
+/*
+.pop-freq-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    background: rgba(41,121,255,0.04);
+    border: 1px solid rgba(41,121,255,0.13);
+    border-radius: 9px;
+}
+.pop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.pop-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+}
+.pop-source {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    padding: 2px 7px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+.pop-overall {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.pop-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.pop-row {
+    display: grid;
+    grid-template-columns: 150px 1fr 80px;
+    align-items: center;
+    gap: 8px;
+}
+.pop-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pop-bar-wrap {
+    height: 8px;
+    background: rgba(41,121,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.pop-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    opacity: 0.75;
+}
+.pop-af {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-align: right;
+}
+.pop-footer {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+}
+.pop-acmg {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.pop-acmg.ba1 {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #ef4444;
+}
+.pop-acmg.pm2 {
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: #22c55e;
+}
+*/
+// ════ END ITEM 9 ════
+
 // ========== PHASE 1: cftr_class_rules LOADER ==========
 // Loads class rules from DB instead of relying on hardcoded strings
 // Falls back to hardcoded if table unreachable
@@ -7197,6 +7720,355 @@ function getClassDescription(cftrClass) {
     };
     return fallback[cftrClass] || 'Class ' + cftrClass;
 }
+
+
+// ════ NeumuacFQ IMPROVEMENT — ITEM 5 ════
+// ════════════════════════════════════════════════════════════════════════
+// ITEM 5 — CFTR CLASS VISUALIZATION
+// WHERE TO INSERT: After getClassDescription() (~line 7198).
+//   Search for: "return fallback[cftrClass] || 'Class ' + cftrClass;"
+//   Insert immediately after the closing "}" of getClassDescription.
+//   Then add the CSS block (in comments at bottom) to the design system.
+// HOW TO USE IN THE VARIANT DETAIL PANEL:
+//   Wherever the class badge is rendered (the .row-class-badge element),
+//   add a button or link that calls showCFTRClassDiagram(variant.cftr_class).
+//   Or embed renderCFTRClassDiagram(cftr_class) directly in the detail panel.
+// WHY: A clinician seeing "Class II" in a text badge has no immediate
+//   mental model of what that means mechanistically. A visual showing
+//   "the protein gets made, folds wrong, and never reaches the cell
+//   surface" is worth 50 words of explanation. This matters most for
+//   explaining why Trikafta works (it's a corrector that helps Class II
+//   protein fold properly so it CAN reach the membrane).
+// ════════════════════════════════════════════════════════════════════════
+
+// ── CFTR lifecycle stage definitions ─────────────────────────────────
+const CFTR_CLASS_DEFS = Object.freeze({
+    I: {
+        label:      'Class I',
+        name:       'No protein synthesis',
+        defect:     'Nonsense / frameshift — protein chain terminates prematurely. No CFTR protein is made.',
+        stage:      0,   // defect at transcription/translation stage
+        color:      '#ef4444',
+        eti:        'non_responsive',
+        eti_note:   'No protein substrate for modulators to act on. Readthrough agents (ataluren) in clinical trials.',
+        examples:   ['W1282X', 'G542X', 'R553X'],
+    },
+    II: {
+        label:      'Class II',
+        name:       'Misfolded protein',
+        defect:     'Protein is made but folds incorrectly in the ER. Quality control degrades it before it reaches the cell surface.',
+        stage:      1,   // defect at ER folding stage
+        color:      '#f97316',
+        eti:        'responsive',
+        eti_note:   'Trikafta corrects folding defect, enabling protein to traffic to membrane.',
+        examples:   ['F508del', 'N1303K'],
+    },
+    III: {
+        label:      'Class III',
+        name:       'Gating defect',
+        defect:     'Protein reaches the cell surface but the channel fails to open (gate). ATP-binding domain is impaired.',
+        stage:      3,   // defect at channel gating
+        color:      '#f59e0b',
+        eti:        'responsive',
+        eti_note:   'Ivacaftor is a potentiator that holds the channel open, correcting gating defect.',
+        examples:   ['G551D', 'G178R', 'S549N'],
+    },
+    IV: {
+        label:      'Class IV',
+        name:       'Reduced conductance',
+        defect:     'Protein reaches surface and gates, but chloride conductance through the open channel is reduced.',
+        stage:      4,   // defect at conductance
+        color:      '#a78bfa',
+        eti:        'responsive',
+        eti_note:   'Potentiators partially restore conductance. Response is weaker than Class III.',
+        examples:   ['R117H', 'R347P'],
+    },
+    V: {
+        label:      'Class V',
+        name:       'Reduced quantity',
+        defect:     'Splicing defect or promoter mutation produces reduced amounts of functional CFTR protein.',
+        stage:      0,   // defect at transcription / splicing
+        color:      '#ec4899',
+        eti:        'responsive',
+        eti_note:   'Some functional protein is present — potentiators and correctors can amplify residual function.',
+        examples:   ['3849+10kbC→T', '2789+5G→A'],
+    },
+    VI: {
+        label:      'Class VI',
+        name:       'Reduced stability',
+        defect:     'Protein reaches surface but is rapidly degraded. Turnover is accelerated, reducing channel density.',
+        stage:      3,   // defect at membrane stability
+        color:      '#22d3ee',
+        eti:        'unknown',
+        eti_note:   'Variable modulator response. Stabilizers under investigation.',
+        examples:   ['Q1412X (truncated)'],
+    },
+});
+
+// ── CFTR lifecycle stages (x positions in the diagram) ────────────────
+const CFTR_STAGES = [
+    { id: 0, label: 'Transcription',  sub: 'DNA → mRNA' },
+    { id: 1, label: 'ER folding',     sub: 'Protein folds' },
+    { id: 2, label: 'Trafficking',    sub: 'Golgi → membrane' },
+    { id: 3, label: 'Cell membrane',  sub: 'Channel gating' },
+    { id: 4, label: 'Conductance',    sub: 'Cl⁻ transport' },
+];
+
+/**
+ * Renders a self-contained SVG diagram of the CFTR protein lifecycle,
+ * highlighting the defect point for the given class.
+ * Returns an HTML string (a <div> wrapping the SVG and explanation text).
+ * Safe to set as innerHTML — no user data, all static strings.
+ *
+ * @param {string} cftrClass - e.g. 'II'
+ * @returns {string} HTML string containing SVG + explanation
+ */
+function renderCFTRClassDiagram(cftrClass) {
+    const def = CFTR_CLASS_DEFS[cftrClass];
+    if (!def) return `<span style="color:var(--text-tertiary);font-size:12px;">No diagram for class "${escapeHTML(cftrClass)}"</span>`;
+
+    const W = 560, H = 160;
+    const stageW  = 90;
+    const stageGap = (W - 80 - CFTR_STAGES.length * stageW) / (CFTR_STAGES.length - 1);
+    const stageY  = 60;
+    const arrowY  = stageY + 22;
+
+    let svgParts = [
+        `<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg"
+              role="img" aria-label="CFTR lifecycle — Class ${cftrClass} defect at ${def.name}">`,
+        `<title>CFTR Class ${cftrClass} — ${def.name}</title>`,
+    ];
+
+    CFTR_STAGES.forEach((stage, i) => {
+        const x = 40 + i * (stageW + stageGap);
+        const cx = x + stageW / 2;
+        const isDefect = stage.id === def.stage;
+        const isDownstream = stage.id > def.stage;
+        const fill   = isDefect ? def.color + '28' : isDownstream ? 'rgba(90,122,170,0.06)' : 'rgba(41,121,255,0.08)';
+        const stroke = isDefect ? def.color        : isDownstream ? 'rgba(90,122,170,0.2)'  : 'rgba(41,121,255,0.3)';
+        const textCol = isDefect ? def.color : isDownstream ? '#3a5a8a' : '#7aa0d0';
+        const strokeW = isDefect ? '2' : '1';
+
+        // Stage box
+        svgParts.push(
+            `<rect x="${x}" y="${stageY - 22}" width="${stageW}" height="44"
+                  rx="7" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}"/>`
+        );
+
+        // Stage label
+        svgParts.push(
+            `<text x="${cx}" y="${stageY - 5}" text-anchor="middle"
+                  font-family="'IBM Plex Sans',sans-serif" font-size="11"
+                  font-weight="${isDefect ? '700' : '500'}" fill="${textCol}">${stage.label}</text>`,
+            `<text x="${cx}" y="${stageY + 10}" text-anchor="middle"
+                  font-family="'IBM Plex Sans',sans-serif" font-size="9.5"
+                  fill="${isDefect ? def.color : '#3a5a8a'}">${stage.sub}</text>`
+        );
+
+        // Defect indicator (X symbol)
+        if (isDefect) {
+            const ix = cx;
+            const iy = stageY + 30;
+            svgParts.push(
+                `<line x1="${ix-7}" y1="${iy-7}" x2="${ix+7}" y2="${iy+7}"
+                      stroke="${def.color}" stroke-width="2.5" stroke-linecap="round"/>`,
+                `<line x1="${ix+7}" y1="${iy-7}" x2="${ix-7}" y2="${iy+7}"
+                      stroke="${def.color}" stroke-width="2.5" stroke-linecap="round"/>`,
+                `<text x="${cx}" y="${iy + 18}" text-anchor="middle"
+                      font-family="'IBM Plex Sans',sans-serif" font-size="9"
+                      font-weight="700" fill="${def.color}">DEFECT</text>`
+            );
+        }
+
+        // Arrow to next stage
+        if (i < CFTR_STAGES.length - 1) {
+            const arrowX  = x + stageW + 4;
+            const arrowX2 = x + stageW + stageGap - 4;
+            const col = isDownstream ? 'rgba(90,122,170,0.2)' : 'rgba(41,121,255,0.35)';
+            svgParts.push(
+                `<line x1="${arrowX}" y1="${arrowY}" x2="${arrowX2}" y2="${arrowY}"
+                      stroke="${col}" stroke-width="1.2"/>`,
+                `<polygon points="${arrowX2},${arrowY-4} ${arrowX2+7},${arrowY} ${arrowX2},${arrowY+4}"
+                         fill="${col}"/>`
+            );
+        }
+    });
+
+    // ETI row at bottom
+    const etiColor = def.eti === 'responsive'     ? '#22c55e'
+                   : def.eti === 'non_responsive'  ? '#ef4444'
+                   :                                 '#6b7280';
+    const etiLabel = def.eti === 'responsive'     ? 'ETI responsive'
+                   : def.eti === 'non_responsive'  ? 'Non-responsive to current modulators'
+                   :                                 'Variable ETI response';
+
+    svgParts.push(
+        `<rect x="40" y="${H - 36}" width="${W - 80}" height="24" rx="5"
+              fill="${etiColor}0e" stroke="${etiColor}30" stroke-width="1"/>`,
+        `<text x="${W / 2}" y="${H - 21}" text-anchor="middle"
+              font-family="'IBM Plex Sans',sans-serif" font-size="10"
+              font-weight="600" fill="${etiColor}">${etiLabel}</text>`,
+        `</svg>`
+    );
+
+    const exampleList = def.examples.map(e => `<code style="font-family:'IBM Plex Mono',monospace;font-size:10px;padding:1px 5px;background:rgba(41,121,255,0.07);border-radius:3px;border:1px solid rgba(41,121,255,0.15);">${e}</code>`).join(' ');
+
+    return `<div class="cftr-class-diagram-wrap">
+        ${svgParts.join('\n')}
+        <div class="cftr-class-detail">
+            <span class="cftr-class-badge-lg" style="background:${def.color}18;border-color:${def.color}40;color:${def.color};">${def.label}: ${def.name}</span>
+            <p class="cftr-class-desc">${def.defect}</p>
+            <p class="cftr-class-eti-note" style="color:${etiColor};">${def.eti_note}</p>
+            <div class="cftr-class-examples">Examples: ${exampleList}</div>
+        </div>
+    </div>`;
+}
+
+/**
+ * Opens a modal showing the CFTR class diagram.
+ * Wires to the class badge click — call from anywhere a cftr_class value is displayed.
+ *
+ * @param {string} cftrClass - The class to display, e.g. 'II'
+ */
+function showCFTRClassDiagram(cftrClass) {
+    const existing = document.getElementById('cftrClassDiagramModal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'cftrClassDiagramModal';
+    Object.assign(overlay.style, {
+        position: 'fixed', inset: '0', zIndex: '99990',
+        background: 'rgba(4,8,15,0.75)', backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center'
+    });
+
+    const card = document.createElement('div');
+    Object.assign(card.style, {
+        width: 'min(640px,95vw)', background: '#0a1220',
+        border: '1px solid rgba(99,140,210,0.25)', borderRadius: '14px',
+        padding: '24px', boxShadow: '0 32px 80px rgba(0,0,0,0.9)'
+    });
+
+    // Header row with title + close button
+    const header = document.createElement('div');
+    Object.assign(header.style, {
+        display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', marginBottom: '16px'
+    });
+    const title = document.createElement('div');
+    title.style.cssText = 'font-size:13px;font-weight:700;color:var(--text-primary);';
+    title.textContent = 'CFTR protein lifecycle — where does it break?';
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.textContent = '×';
+    closeBtn.setAttribute('aria-label', 'Close diagram');
+    Object.assign(closeBtn.style, {
+        background: 'none', border: 'none', color: 'var(--text-tertiary)',
+        fontSize: '20px', cursor: 'pointer', lineHeight: '1',
+        padding: '0 4px'
+    });
+    closeBtn.addEventListener('click', () => overlay.remove());
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    // Class tabs
+    const tabRow = document.createElement('div');
+    Object.assign(tabRow.style, {
+        display: 'flex', gap: '6px', marginBottom: '16px', flexWrap: 'wrap'
+    });
+    Object.entries(CFTR_CLASS_DEFS).forEach(([cls, d]) => {
+        const tab = document.createElement('button');
+        tab.type = 'button';
+        tab.textContent = cls;
+        tab.dataset.cls = cls;
+        tab.title = d.name;
+        Object.assign(tab.style, {
+            padding: '4px 12px', borderRadius: '5px', fontSize: '12px',
+            fontWeight: cls === cftrClass ? '700' : '500',
+            cursor: 'pointer',
+            background: cls === cftrClass ? d.color + '22' : 'transparent',
+            border: `1px solid ${cls === cftrClass ? d.color + '55' : 'rgba(99,140,210,0.2)'}`,
+            color: cls === cftrClass ? d.color : 'var(--text-secondary)',
+        });
+        tab.addEventListener('click', () => {
+            diagramContent.innerHTML = renderCFTRClassDiagram(cls);
+            tabRow.querySelectorAll('button').forEach(b => {
+                const td = CFTR_CLASS_DEFS[b.dataset.cls];
+                const active = b.dataset.cls === cls;
+                b.style.fontWeight   = active ? '700' : '500';
+                b.style.background   = active ? td.color + '22' : 'transparent';
+                b.style.border       = `1px solid ${active ? td.color + '55' : 'rgba(99,140,210,0.2)'}`;
+                b.style.color        = active ? td.color : 'var(--text-secondary)';
+            });
+        });
+        tabRow.appendChild(tab);
+    });
+
+    const diagramContent = document.createElement('div');
+    diagramContent.innerHTML = renderCFTRClassDiagram(cftrClass);
+
+    card.appendChild(header);
+    card.appendChild(tabRow);
+    card.appendChild(diagramContent);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.addEventListener('keydown', function escHandler(e) {
+        if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }
+    });
+}
+
+// ── CSS for the diagram wrapper ────────────────────────────────────────
+/*  Add to the main <style> block:
+
+.cftr-class-diagram-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.cftr-class-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    background: rgba(41,121,255,0.04);
+    border: 1px solid rgba(41,121,255,0.12);
+    border-radius: 8px;
+}
+.cftr-class-badge-lg {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 5px;
+    border: 1px solid;
+    letter-spacing: 0.04em;
+    align-self: flex-start;
+}
+.cftr-class-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+.cftr-class-eti-note {
+    font-size: 11px;
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.5;
+}
+.cftr-class-examples {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+*/
+// ════ END ITEM 5 ════
+
 
 // ========== PHASE 2: AUTONOMOUS ROBOTIC SEARCH ENGINE ==========
 // When a variant miss is detected, automatically triggers a multi-source
@@ -7282,7 +8154,9 @@ async function triggerRoboticSearchOnMiss(query, missId) {
         }).catch(() => {});
 
         // Score evidence quality using journal_impacts cache
-        const scoredPapers = await scoreEvidenceQuality(pubmedPapers);
+        // ITEM 3: enrich with PubMed publication types before scoring
+        const _enrichedPapers = await enrichPapersWithPubTypes(pubmedPapers);
+        const scoredPapers = await scoreEvidenceQuality(_enrichedPapers);
 
         // Derive proposed classification from evidence
         const proposal = deriveClassificationProposal(scoredPapers, clinvarHits);
@@ -7489,25 +8363,654 @@ function detectFunctionalStudy(paper) {
     };
 }
 
+
+
+// ════ NeumuacFQ IMPROVEMENT — ITEM 3 ════
+const STUDY_TYPE_TIERS = Object.freeze({
+    // Tier 1 — Controlled trials: highest clinical evidence
+    'randomized controlled trial':     1,
+    'rct':                             1,
+    'clinical trial, phase iii':       1,
+    'clinical trial, phase iv':        1,
+    // Tier 2 — Systematic synthesis
+    'meta-analysis':                   2,
+    'systematic review':               2,
+    'review':                          2,
+    // Tier 3 — Observational / real-world
+    'observational study':             3,
+    'cohort study':                    3,
+    'clinical trial, phase i':         3,
+    'clinical trial, phase ii':        3,
+    'multicenter study':               3,
+    // Tier 4 — Low-volume / exploratory
+    'case reports':                    4,
+    'case report':                     4,
+    'letter':                          4,
+    'editorial':                       4,
+    // Tier 5 — Unknown / default
+    'journal article':                 5,
+    'preprint':                        5,
+});
+
+// Human-readable labels and display colours for the UI
+const STUDY_TIER_META = Object.freeze({
+    1: { label: 'RCT / Trial',       short: 'RCT',     color: '#22c55e' },
+    2: { label: 'Systematic review', short: 'Review',  color: '#3b82f6' },
+    3: { label: 'Observational',     short: 'Obs.',    color: '#f59e0b' },
+    4: { label: 'Case report',       short: 'Case',    color: '#f97316' },
+    5: { label: 'Unknown type',      short: '?',       color: '#6b7280' },
+});
+
+/**
+ * Classifies a PubMed paper's study design from its PubTypeList.
+ * Returns a tier number 1–5 and the matched type string.
+ *
+ * @param {string[]|string|null} pubTypeList - PubMed PubTypeList array or comma string
+ * @returns {{ tier: number, matched: string }}
+ */
+function classifyStudyDesign(pubTypeList) {
+    if (!pubTypeList) return { tier: 5, matched: 'unknown' };
+
+    const types = Array.isArray(pubTypeList)
+        ? pubTypeList.map(t => t.toLowerCase())
+        : String(pubTypeList).toLowerCase().split(/[,;]+/).map(t => t.trim());
+
+    for (let tier = 1; tier <= 5; tier++) {
+        for (const type of types) {
+            const normalized = type.trim();
+            if (STUDY_TYPE_TIERS[normalized] === tier) {
+                return { tier, matched: normalized };
+            }
+        }
+    }
+    return { tier: 5, matched: types[0] || 'unknown' };
+}
+
+/**
+ * Enhanced evidence quality scorer.
+ * Replaces the original scoreEvidenceQuality function.
+ * Adds study design tier on top of the existing impact-factor + recency scoring.
+ *
+ * Score composition (max 12 points):
+ *   - Impact factor:  2–10 points (journal-based, from JOURNAL_IMPACT_CACHE)
+ *   - Recency bonus:  +1 if published within 2 years
+ *   - Study tier:     Tier 1 = ×1.4 multiplier, Tier 2 = ×1.2, Tier 3 = ×1.0,
+ *                     Tier 4 = ×0.7, Tier 5 = ×0.85
+ *
+ * @param {Object[]} papers - Array of PubMed paper objects
+ * @returns {Object[]} - Papers with quality_score, study_tier, tier_label added
+ */
 function scoreEvidenceQuality(papers) {
     return papers.map(p => {
-        const journalKey = (p.journal || '').toLowerCase();
-        const impact = JOURNAL_IMPACT_CACHE[journalKey];
-        const quality_score = impact
+        // ── Journal impact score (existing logic, unchanged) ─────────
+        const journalKey  = (p.journal || '').toLowerCase();
+        const impact      = JOURNAL_IMPACT_CACHE[journalKey];
+        const baseScore   = impact
             ? Math.min(10, Math.round(2 + (impact.impact_factor || 0) / 3))
             : 5;
-        const recency_bonus = p.year && p.year >= new Date().getFullYear() - 2 ? 1 : 0;
-        // Detect functional study language — populates PS3/BS3 ACMG criteria automatically
+        const recencyBonus = (p.year && p.year >= new Date().getFullYear() - 2) ? 1 : 0;
+
+        // ── NEW: Study design tier ────────────────────────────────────
+        // PubMed eSummary returns PubTypeList — stored in p.pub_types if fetched,
+        // otherwise falls back to text-pattern detection on title + abstract.
+        let studyTier  = 5;
+        let matchedType = 'unknown';
+
+        if (p.pub_types) {
+            // Ideal path: eSummary data was fetched (see fetchPubMedStudyType below)
+            ({ tier: studyTier, matched: matchedType } = classifyStudyDesign(p.pub_types));
+        } else {
+            // Fallback: pattern-match on title + abstract text
+            const text = ((p.title || '') + ' ' + (p.abstract || '')).toLowerCase();
+            if (/randomized|randomised|rct\b|placebo.controlled|double.blind/.test(text))
+                { studyTier = 1; matchedType = 'randomized controlled trial'; }
+            else if (/meta.analysis|systematic review/.test(text))
+                { studyTier = 2; matchedType = 'meta-analysis'; }
+            else if (/cohort|observational|registry|population.based/.test(text))
+                { studyTier = 3; matchedType = 'observational study'; }
+            else if (/case report|case series/.test(text))
+                { studyTier = 4; matchedType = 'case report'; }
+        }
+
+        // ── Study tier multiplier ─────────────────────────────────────
+        const tierMultiplier = [null, 1.4, 1.2, 1.0, 0.7, 0.85][studyTier] ?? 0.85;
+        const qualityScore   = Math.min(12, Math.round((baseScore + recencyBonus) * tierMultiplier));
+
+        // ── Functional study detection (existing, unchanged) ─────────
         const funcData = detectFunctionalStudy(p);
+
         return {
             ...p,
-            quality_score:       quality_score + recency_bonus,
+            quality_score:       qualityScore,
             impact_factor:       impact?.impact_factor || null,
             quartile:            impact?.quartile      || null,
-            ...(funcData || {})  // spreads func_interpretation, func_assay_type, func_confidence if detected
+            study_tier:          studyTier,
+            study_tier_label:    STUDY_TIER_META[studyTier]?.label    ?? 'Unknown',
+            study_tier_short:    STUDY_TIER_META[studyTier]?.short    ?? '?',
+            study_tier_color:    STUDY_TIER_META[studyTier]?.color    ?? '#6b7280',
+            study_type_matched:  matchedType,
+            ...(funcData || {}),
         };
     });
 }
+
+/**
+ * Fetches PubMed publication type list for a set of PMIDs.
+ * Call this once after fetching papers — enriches them with study design data
+ * so scoreEvidenceQuality can use the ideal path (p.pub_types present).
+ *
+ * @param {Object[]} papers - Papers with pmid fields
+ * @returns {Promise<Object[]>} - Same papers, enriched with pub_types
+ */
+async function enrichPapersWithPubTypes(papers) {
+    const pmids = papers.map(p => p.pmid).filter(Boolean);
+    if (!pmids.length) return papers;
+
+    try {
+        const url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi`
+            + `?db=pubmed&id=${pmids.join(',')}&retmode=json`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+        if (!res.ok) return papers;
+        const data = await res.json();
+        const result = data?.result ?? {};
+
+        // Build a pmid → pub_types lookup
+        const typesMap = new Map();
+        pmids.forEach(pmid => {
+            const record = result[String(pmid)];
+            if (record?.pubtype) typesMap.set(String(pmid), record.pubtype);
+        });
+
+        // Enrich papers
+        return papers.map(p => {
+            const types = typesMap.get(String(p.pmid));
+            return types ? { ...p, pub_types: types } : p;
+        });
+    } catch (e) {
+        console.warn('[NeumuacFQ Evidence] fetchPubMedStudyType failed — falling back to text patterns:', e.message);
+        return papers;
+    }
+}
+
+/**
+ * Renders an evidence quality badge HTML string.
+ * Use wherever a paper's quality tier should be visible in the UI.
+ * Safe to set as innerHTML — all strings are static.
+ *
+ * @param {Object} paper - Scored paper with study_tier_* fields
+ * @returns {string} HTML string
+ */
+function renderEvidenceTierBadge(paper) {
+    const tier  = paper.study_tier      ?? 5;
+    const short = paper.study_tier_short ?? '?';
+    const color = paper.study_tier_color ?? '#6b7280';
+    const label = paper.study_tier_label ?? 'Unknown type';
+    return `<span class="evidence-tier-badge tier-${tier}"
+                  style="background:${color}18;border:1px solid ${color}40;color:${color};"
+                  title="${label}">
+                ${short}
+            </span>`;
+}
+
+// ── CSS to add near the evidence/confidence styles ─────────────────────
+// Add inside the main <style> block:
+/*
+.evidence-tier-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+*/
+
+// ── HOW TO WIRE UP ─────────────────────────────────────────────────────
+// In the robotic scan function (~line 7284), after fetching pubmedPapers:
+//   const enrichedPapers = await enrichPapersWithPubTypes(pubmedPapers);
+//   const scoredPapers   = scoreEvidenceQuality(enrichedPapers);
+//   (replaces the existing: const scoredPapers = scoreEvidenceQuality(pubmedPapers);)
+//
+// In the evidence panel renderer, add renderEvidenceTierBadge(paper) next
+// to each paper's title to show the study design tier visually.
+// ════ END ITEM 3 ════
+
+
+
+
+
+// ════ NeumuacFQ IMPROVEMENT — ITEM 4 ════
+// ════════════════════════════════════════════════════════════════════════
+// ITEM 4 — ETI PREDICTION AUTHORITY
+// WHERE TO INSERT: Immediately before the deriveClassificationProposal
+//   function (~line 7514). Search for:
+//   "function deriveClassificationProposal(papers, clinvarHits)"
+//   Insert this entire block ABOVE that function.
+//   Then patch deriveClassificationProposal per the note at the bottom.
+// WHY: The current logic guesses ETI from paper titles. For variants like
+//   F508del (FDA-approved) or W1282X (FDA confirmed non-responsive), the
+//   answer is KNOWN — we should never derive it from literature. A clinician
+//   seeing "72% responsive" on W1282X and acting on it is a patient safety
+//   risk. This table is the ground truth; literature is the fallback.
+// ════════════════════════════════════════════════════════════════════════
+
+const ETI_AUTHORITY = Object.freeze({
+
+    // ── Tier 1: FDA-approved (Trikafta label, updated Jan 2025) ────────
+    // Source: https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/212273s010lbl.pdf
+    // Variants approved for ELX/TEZ/IVA (elexacaftor/tezacaftor/ivacaftor)
+    // Listed by all known aliases so matching works regardless of nomenclature used.
+    fda_trikafta_approved: new Set([
+        // Class II — F508del (most common CF allele, ~85% of CF patients have at least one copy)
+        'F508del', 'p.Phe508del', 'c.1521_1523del',
+        // Class III gating variants — approved for IVA monotherapy first, covered by Trikafta
+        'G551D', 'p.Gly551Asp',
+        'G178R', 'G551S', 'S549N', 'S549R', 'G970R',
+        'G1244E', 'S1251N', 'S1255P', 'G1349D',
+        // R117H — ivacaftor approved
+        'R117H', 'p.Arg117His',
+        // Residual function variants approved in expansion label
+        'A455E',  'D110H',   'D1152H', 'E56K',
+        'P67L',   'R347H',   'R352Q',  'E193K',
+        'L206W',  'S945L',   'S977F',  'F1052V',
+        'K1060T', 'A1067T',  'G1069R', 'R1070Q',
+        'R1070W', 'F1074L',  'D579G',  'S1235R',
+        // Splice/intronic approved
+        '711+3A→G', '2789+5G→A', '3272-26A→G', '3849+10kbC→T',
+        // R74W + complex alleles
+        'R74W', 'D614G', 'R668C', 'S13F', 'I807M', 'I148T',
+    ]),
+
+    // ── Tier 1: FDA/CFTR2 confirmed non-responsive ──────────────────────
+    // Class I nonsense / severe frameshift — no functional protein produced.
+    // No current modulator approved; readthrough agents (ataluren) in trials only.
+    fda_non_responsive: new Set([
+        'W1282X', 'p.Trp1282Ter',  // prevalent in Ashkenazi Jewish population
+        'G542X',  'p.Gly542Ter',
+        'R553X',  'p.Arg553Ter',
+        'R1162X', 'p.Arg1162Ter',
+        'Y1092X', 'p.Tyr1092Ter',
+        '621+1G→T',
+        '1717-1G→A',
+        'N1303K', 'p.Asn1303Lys',  // severe Class II, but Trikafta label excludes it
+        'CFTRdele2,3',              // large deletion
+    ]),
+
+    // ── Tier 2: Class-based general rule (when specific variant not in table) ─
+    // Conservative defaults — overridden by Tier 1 for known variants.
+    class_eti_rule: Object.freeze({
+        'I':     { prediction: 'non_responsive', note: 'No protein produced — modulators have no substrate' },
+        'II':    { prediction: 'responsive',     note: 'Trikafta corrects misfolding and trafficking defect' },
+        'III':   { prediction: 'responsive',     note: 'Ivacaftor corrects gating channel defect' },
+        'IV':    { prediction: 'responsive',     note: 'Partial response — conductance partially restored' },
+        'V':     { prediction: 'responsive',     note: 'Partial response — reduced but functional protein present' },
+        'VI':    { prediction: 'unknown',         note: 'Accelerated degradation — variable modulator response' },
+        'II/III':{ prediction: 'responsive',     note: 'Combined defect — Trikafta targets both mechanisms' },
+    }),
+
+    // ── Evidence tier metadata for UI display ─────────────────────────
+    evidence_tier_meta: Object.freeze({
+        fda_approved:       { label: 'FDA approved',           color: '#22c55e', badge: 'FDA ✓',     priority: 1 },
+        fda_non_responsive: { label: 'Non-responsive (FDA)',   color: '#ef4444', badge: 'Non-resp.', priority: 2 },
+        class_rule:         { label: 'Class-based estimate',   color: '#f59e0b', badge: 'Class rule',priority: 3 },
+        literature:         { label: 'Literature signal',      color: '#3b82f6', badge: 'Literature',priority: 4 },
+        insufficient:       { label: 'Insufficient evidence',  color: '#6b7280', badge: '—',          priority: 5 },
+    }),
+});
+
+/**
+ * Authoritative ETI prediction. Prioritises FDA label → class rule → literature.
+ * Always returns a prediction with a source label so the UI can show exactly
+ * why the prediction was made, not just what it is.
+ *
+ * @param {string|null}  legacy_name        - e.g. "F508del"
+ * @param {string|null}  protein_name       - e.g. "p.Phe508del"
+ * @param {string|null}  cftr_class         - e.g. "II"
+ * @param {Object|null}  literatureProposal - from deriveClassificationProposal()
+ * @returns {{
+ *   prediction:    'responsive'|'non_responsive'|'unknown',
+ *   evidence_tier: string,
+ *   source:        string,
+ *   note:          string,
+ *   meta:          Object
+ * }}
+ */
+function resolveETIPrediction(legacy_name, protein_name, cftr_class, literatureProposal) {
+    // Normalise: trim whitespace, collect all aliases to check
+    const names = [legacy_name, protein_name]
+        .filter(Boolean)
+        .map(n => n.trim());
+
+    // ── Tier 1a: FDA Trikafta approved ──────────────────────────────
+    if (names.some(n => ETI_AUTHORITY.fda_trikafta_approved.has(n))) {
+        const meta = ETI_AUTHORITY.evidence_tier_meta.fda_approved;
+        return {
+            prediction:    'responsive',
+            evidence_tier: 'fda_approved',
+            source:        'FDA Trikafta prescribing label',
+            note:          'Variant has FDA-approved indication for elexacaftor/tezacaftor/ivacaftor',
+            meta,
+        };
+    }
+
+    // ── Tier 1b: FDA / CFTR2 confirmed non-responsive ───────────────
+    if (names.some(n => ETI_AUTHORITY.fda_non_responsive.has(n))) {
+        const meta = ETI_AUTHORITY.evidence_tier_meta.fda_non_responsive;
+        return {
+            prediction:    'non_responsive',
+            evidence_tier: 'fda_non_responsive',
+            source:        'CFTR2 / FDA — confirmed non-responsive',
+            note:          'No current modulator approved; no functional protein substrate exists',
+            meta,
+        };
+    }
+
+    // ── Tier 2: CFTR class general rule ──────────────────────────────
+    if (cftr_class) {
+        const rule = ETI_AUTHORITY.class_eti_rule[cftr_class];
+        if (rule && rule.prediction !== 'unknown') {
+            const meta = ETI_AUTHORITY.evidence_tier_meta.class_rule;
+            return {
+                prediction:    rule.prediction,
+                evidence_tier: 'class_rule',
+                source:        `Class ${cftr_class} general rule`,
+                note:          rule.note + ' — verify against CFTR2 for this specific variant',
+                meta,
+            };
+        }
+    }
+
+    // ── Tier 3: Literature-derived signal ────────────────────────────
+    if (literatureProposal?.eti_prediction) {
+        const meta = ETI_AUTHORITY.evidence_tier_meta.literature;
+        return {
+            prediction:    literatureProposal.eti_prediction,
+            evidence_tier: 'literature',
+            source:        literatureProposal.citations?.eti
+                            ? `Literature: ${literatureProposal.citations.eti}`
+                            : 'Literature-derived signal (unverified)',
+            note:          'Based on text patterns in PubMed titles — manual review required',
+            meta,
+        };
+    }
+
+    // ── Tier 4: Insufficient evidence ────────────────────────────────
+    const meta = ETI_AUTHORITY.evidence_tier_meta.insufficient;
+    return {
+        prediction:    'unknown',
+        evidence_tier: 'insufficient',
+        source:        'No authoritative source found',
+        note:          'Check CFTR2.org manually or consult clinical pharmacist',
+        meta,
+    };
+}
+
+// ── HOW TO PATCH deriveClassificationProposal ──────────────────────────
+// Inside deriveClassificationProposal, REPLACE the final return statement:
+//
+//   return {
+//       cftr_class:         topClass,
+//       eti_prediction:     etiResult,    ← REMOVE this line
+//       ...
+//   };
+//
+// WITH:
+//
+//   const resolvedETI = resolveETIPrediction(
+//       null,        // legacy_name not available here — pass from caller
+//       null,        // protein_name not available here — pass from caller
+//       topClass,
+//       { eti_prediction: etiResult, hasEtiEvidence: etiVotes.yes + etiVotes.no > 0, citations }
+//   );
+//   return {
+//       cftr_class:         topClass,
+//       eti_prediction:     resolvedETI.prediction,
+//       eti_evidence_tier:  resolvedETI.evidence_tier,
+//       eti_source:         resolvedETI.source,
+//       eti_note:           resolvedETI.note,
+//       ...
+//   };
+//
+// And in lookupSaveVariant, after the result is available:
+//   const resolved = resolveETIPrediction(
+//       result.query,
+//       result.fields?.protein_name,
+//       result.fields?.cftr_class,
+//       result        // passes literature proposal
+//   );
+//   newVariant.eti_prediction        = resolved.prediction;
+//   newVariant.eti_authority_source  = resolved.source;
+//   newVariant.eti_evidence_level    = resolved.evidence_tier;
+// ════ END ITEM 4 ════
+
+
+
+// ════ NeumuacFQ IMPROVEMENT — ITEM 6 ════
+// ════════════════════════════════════════════════════════════════════════
+// ITEM 6 — CONFIDENCE EXPLAINABILITY
+// WHERE TO INSERT: Two parts.
+//   PART A (the renderer function): After the scoreEvidenceQuality function
+//     (~line 7511). Search for: "function deriveClassificationProposal"
+//     Insert renderConfidenceBreakdown BEFORE that function.
+//   PART B (the CSS): Add to the design system <style> block.
+//     Search for: ".confidence-score," in the CSS (~line 4676).
+//     Add the .conf-breakdown rules nearby.
+//   PART C (usage): Wherever bot_confidence is displayed in the Helios
+//     inbox items (~line 11522), and wherever lookup_confidence shows
+//     in the lookup result modal, wrap the number in the chip renderer.
+// WHY: Showing clinicians "87%" is meaningless and potentially dangerous.
+//   "PubMed ✓  ClinVar ✓  Recent ✓  ETI signal ✓" is actionable.
+//   The confComponents data already exists — it just needs to be stored
+//   and rendered, not collapsed into an opaque number.
+// ════════════════════════════════════════════════════════════════════════
+
+// ── PART A: Renderer ─────────────────────────────────────────────────
+
+/**
+ * Renders a confidence score as an explainable visual breakdown.
+ * Each component that contributed to the score appears as a labelled chip.
+ * Non-contributing components are shown as absent (greyed out).
+ *
+ * @param {number} score - Overall confidence 0–100
+ * @param {Object|null} breakdown - The confComponents object from the lookup pipeline
+ *   e.g. { base: 50, pubmed: 15, clinvar: 15, recent: 10, eti: 10, classProposed: 0, ... }
+ * @param {'compact'|'full'} [mode='compact'] - compact = chips only; full = chips + bar + disclaimer
+ * @returns {string} HTML string (safe to set as innerHTML — no user data interpolated)
+ */
+function renderConfidenceBreakdown(score, breakdown, mode = 'compact') {
+    if (typeof score !== 'number') return '<span class="conf-unknown">—</span>';
+
+    // Score colour thresholds
+    const scoreColor = score >= 80 ? '#22c55e'
+                     : score >= 60 ? '#f59e0b'
+                     : '#ef4444';
+
+    // Human-readable chip labels for each breakdown key
+    const CHIP_META = {
+        base:          { label: 'Base',       always: true  },
+        pubmed:        { label: 'PubMed',     always: false },
+        clinvar:       { label: 'ClinVar',    always: false },
+        recent:        { label: 'Recent',     always: false },
+        eti:           { label: 'ETI signal', always: false },
+        classProposed: { label: 'Class ID',   always: false },
+        determination: { label: 'Pathogenicity', always: false },
+        functional:    { label: 'Functional study', always: false },
+    };
+
+    // Build chips HTML — no user data, all static strings
+    let chips = '';
+    if (breakdown && typeof breakdown === 'object') {
+        Object.entries(CHIP_META).forEach(([key, meta]) => {
+            const val     = breakdown[key] ?? 0;
+            const present = val > 0;
+            if (!present && meta.always === false) {
+                // Show absent chips only in full mode
+                if (mode === 'full') {
+                    chips += `<span class="conf-chip conf-chip-absent" title="${meta.label}: not found">
+                        ${meta.label}
+                    </span>`;
+                }
+                return;
+            }
+            chips += `<span class="conf-chip conf-chip-present" title="${meta.label}: +${val}">
+                ${meta.label}${present && mode === 'full' ? ` <em>+${val}</em>` : ''}
+            </span>`;
+        });
+    }
+
+    // Compact: just the score + present chips
+    if (mode === 'compact') {
+        return `<span class="conf-score-wrap">
+            <span class="conf-score-num" style="color:${scoreColor}">${score}%</span>
+            <span class="conf-chips">${chips || '<span class="conf-unknown">no breakdown available</span>'}</span>
+        </span>`;
+    }
+
+    // Full: score + bar + chips + disclaimer
+    const barWidth = Math.max(4, score);
+    return `<div class="conf-breakdown-full">
+        <div class="conf-header">
+            <span class="conf-score-num" style="color:${scoreColor}">${score}%</span>
+            <span class="conf-score-label">lookup confidence</span>
+        </div>
+        <div class="conf-bar-track">
+            <div class="conf-bar-fill" style="width:${barWidth}%;background:${scoreColor};"></div>
+        </div>
+        <div class="conf-chips">${chips}</div>
+        <div class="conf-disclaimer">
+            This score reflects evidence availability, not clinical validity.
+            Always verify against CFTR2.org and institutional guidelines before clinical use.
+        </div>
+    </div>`;
+}
+
+/**
+ * Stores confidence breakdown on a variant result object so it can be
+ * rendered later. Call this inside the robotic scan, right after the
+ * confComponents/confidence are computed (~line 7316), to attach the
+ * breakdown to the result for downstream use.
+ *
+ * @param {Object} result - The lookup result object being built
+ * @param {number} confidence - Computed confidence score
+ * @param {Object} confComponents - The raw breakdown object
+ */
+function attachConfidenceBreakdown(result, confidence, confComponents) {
+    result.confidence          = confidence;
+    result.confidenceBreakdown = { ...confComponents };
+    // Also store a pre-rendered compact version for Helios inbox
+    result.confidenceHtml      = renderConfidenceBreakdown(confidence, confComponents, 'compact');
+    return result;
+}
+
+// ── PART B: CSS to add inside the <style> design system block ─────────
+// Search for ".confidence-score," (~line 4676) and add these rules nearby:
+/*
+.conf-score-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.conf-score-num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    min-width: 36px;
+}
+.conf-score-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.conf-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+.conf-chip {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: var(--font-body);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+.conf-chip-present {
+    background: rgba(41,121,255,0.12);
+    border: 1px solid rgba(41,121,255,0.3);
+    color: var(--brand);
+}
+.conf-chip-present em {
+    font-style: normal;
+    font-weight: 700;
+    margin-left: 3px;
+    opacity: 0.7;
+}
+.conf-chip-absent {
+    background: rgba(90,122,170,0.05);
+    border: 1px solid rgba(90,122,170,0.12);
+    color: var(--text-tertiary);
+    opacity: 0.6;
+}
+.conf-unknown {
+    color: var(--text-tertiary);
+    font-size: 11px;
+}
+.conf-breakdown-full {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(41,121,255,0.04);
+    border: 1px solid rgba(41,121,255,0.15);
+    border-radius: 8px;
+    max-width: 360px;
+}
+.conf-header {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.conf-bar-track {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.conf-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+}
+.conf-disclaimer {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 2px;
+}
+*/
+
+// ── PART C: Usage examples ────────────────────────────────────────────
+// 1) In the lookup result modal, replace wherever bot_confidence is shown:
+//    BEFORE: `${item.bot_confidence || 0}%`
+//    AFTER:  renderConfidenceBreakdown(item.bot_confidence, item.confidenceBreakdown, 'compact')
+//    (set as innerHTML — all strings are static, no user data)
+//
+// 2) In the variant detail panel where class_confidence shows, you can add:
+//    renderConfidenceBreakdown(variant.lookup_confidence, variant.confidence_breakdown, 'full')
+//
+// 3) In the robotic scan function (~line 7316), after computing confidence:
+//    attachConfidenceBreakdown(resultObject, confidence, confComponents);
+//    This stores the breakdown so it travels with the result to the UI.
+// ════ END ITEM 6 ════
 
 function deriveClassificationProposal(papers, clinvarHits) {
     const classPattern      = /\bclass\s+(I{1,3}V?|VI?)\b/i;
@@ -7964,6 +9467,186 @@ const STATE = {
     }
 };
 
+
+
+// ════ NeumuacFQ IMPROVEMENT — ITEM 1 ════
+// ════════════════════════════════════════════════════════════════════════
+// ITEM 1 — TYPESCRIPT-READY SCHEMA
+// WHERE TO INSERT: Directly after the STATE definition block (~line 7960).
+//   Search for: "// ---- Undo / Redo — variant field edits ----"
+//   Insert this entire section immediately after STATE closes.
+// WHY: The variant object is built ad-hoc in 4+ places. One bad call can
+//   silently store cftr_class:'type2' instead of 'II'. This validator
+//   catches it immediately and the buildVariant() factory ensures every
+//   new variant has the correct shape. When you migrate to Vite+React,
+//   these become TypeScript interfaces with zero rewrite needed.
+// ════════════════════════════════════════════════════════════════════════
+
+// ── Canonical type constants ──────────────────────────────────────────
+const VARIANT_SCHEMA = Object.freeze({
+    VALID_CLASSES:       new Set(['I','II','III','IV','V','VI','II/III']),
+    VALID_ETI:           new Set(['responsive','non_responsive','unknown']),
+    VALID_DETERMINATION: new Set(['CF-causing','Variant of Uncertain Significance','Non-CF-causing']),
+    VALID_DATA_STATUS:   new Set(['complete_clinical','minimal']),
+    VALID_CLASS_SUBTYPE: new Set(['true','presumed','exceptional','atypical','standard']),
+    REQUIRED_FIELDS:     ['legacy_name'],
+});
+
+/**
+ * Validates a variant object against the canonical schema.
+ * Use before inserting into STATE.variants or sending to Supabase.
+ *
+ * @param {Object} obj - Raw variant object to validate
+ * @returns {{ valid: boolean, errors: string[], warnings: string[] }}
+ *
+ * @example
+ * const { valid, errors } = validateVariantSchema(newVariant);
+ * if (!valid) console.warn('[Schema]', errors);
+ */
+function validateVariantSchema(obj) {
+    const errors   = [];
+    const warnings = [];
+
+    if (!obj || typeof obj !== 'object') {
+        return { valid: false, errors: ['Input is not an object'], warnings: [] };
+    }
+
+    // Required fields
+    VARIANT_SCHEMA.REQUIRED_FIELDS.forEach(field => {
+        if (!obj[field] || typeof obj[field] !== 'string' || !obj[field].trim()) {
+            errors.push(`${field}: required non-empty string`);
+        }
+    });
+
+    // Enum fields — reject invalid values, allow null/undefined
+    if (obj.cftr_class !== null && obj.cftr_class !== undefined) {
+        if (!VARIANT_SCHEMA.VALID_CLASSES.has(obj.cftr_class)) {
+            errors.push(`cftr_class: "${obj.cftr_class}" is not valid. Allowed: ${[...VARIANT_SCHEMA.VALID_CLASSES].join(', ')}`);
+        }
+    }
+    if (obj.eti_prediction !== null && obj.eti_prediction !== undefined) {
+        if (!VARIANT_SCHEMA.VALID_ETI.has(obj.eti_prediction)) {
+            errors.push(`eti_prediction: "${obj.eti_prediction}" is not valid. Allowed: ${[...VARIANT_SCHEMA.VALID_ETI].join(', ')}`);
+        }
+    }
+    if (obj.final_determination !== null && obj.final_determination !== undefined) {
+        if (!VARIANT_SCHEMA.VALID_DETERMINATION.has(obj.final_determination)) {
+            errors.push(`final_determination: "${obj.final_determination}" is not valid. Allowed: ${[...VARIANT_SCHEMA.VALID_DETERMINATION].join(', ')}`);
+        }
+    }
+    if (obj.class_subtype !== null && obj.class_subtype !== undefined) {
+        if (!VARIANT_SCHEMA.VALID_CLASS_SUBTYPE.has(obj.class_subtype)) {
+            warnings.push(`class_subtype: "${obj.class_subtype}" not in known set`);
+        }
+    }
+
+    // Array fields
+    if (obj.evidence_doi !== undefined && !Array.isArray(obj.evidence_doi)) {
+        errors.push('evidence_doi: must be an array, not ' + typeof obj.evidence_doi);
+    }
+    if (obj.source_urls !== undefined && !Array.isArray(obj.source_urls)) {
+        warnings.push('source_urls: expected array');
+    }
+
+    // Numeric fields
+    if (obj.validation_count !== undefined && obj.validation_count !== null &&
+        typeof obj.validation_count !== 'number') {
+        warnings.push('validation_count: expected number, got ' + typeof obj.validation_count);
+    }
+    if (obj.lookup_confidence !== undefined && obj.lookup_confidence !== null) {
+        if (typeof obj.lookup_confidence !== 'number' ||
+            obj.lookup_confidence < 0 || obj.lookup_confidence > 100) {
+            warnings.push('lookup_confidence: expected number 0–100');
+        }
+    }
+
+    return { valid: errors.length === 0, errors, warnings };
+}
+
+/**
+ * Builds a canonical variant object with every field present and typed.
+ * Use this instead of ad-hoc object literals anywhere a new variant is created.
+ * All fields default to their null/empty state — pass only what you have.
+ *
+ * @param {Object} [fields={}] - Partial variant fields to set
+ * @returns {Object} - Complete variant object matching CFTRVariant schema
+ *
+ * @example
+ * // Replace the ad-hoc newVariant construction in lookupSaveVariant:
+ * const newVariant = buildVariant({
+ *     legacy_name:     F.legacy_name || result.query,
+ *     cftr_class:      F.cftr_class  || null,
+ *     eti_prediction:  resolved.prediction,
+ *     evidence_doi:    validDois,
+ *     lookup_confidence:       result.confidence,
+ *     confidence_breakdown:    result.confidenceBreakdown,
+ * });
+ */
+function buildVariant(fields = {}) {
+    const v = {
+        // ── Identity ─────────────────────────────────────────────────
+        id:                     fields.id                     ?? uuid(),
+        legacy_name:            (fields.legacy_name ?? '').trim(),
+        protein_name:           fields.protein_name           ?? null,
+        cdna_name:              fields.cdna_name              ?? null,
+        alt_names:              fields.alt_names              ?? null,
+
+        // ── Classification ───────────────────────────────────────────
+        final_determination:    fields.final_determination    ?? null,
+        cftr_class:             fields.cftr_class             ?? null,
+        class_subtype:          fields.class_subtype          ?? null,
+        class_confidence:       fields.class_confidence       ?? null,
+
+        // ── ETI / Modulator ─────────────────────────────────────────
+        eti_prediction:         fields.eti_prediction         ?? null,
+        eti_evidence_level:     fields.eti_evidence_level     ?? null,
+        eti_recommendation:     fields.eti_recommendation     ?? null,
+        eti_authority_source:   fields.eti_authority_source   ?? null, // NEW: stores FDA/class/literature
+        therapy_responsive:     fields.therapy_responsive     ?? false,
+
+        // ── Evidence ────────────────────────────────────────────────
+        evidence_doi:           Array.isArray(fields.evidence_doi)   ? [...fields.evidence_doi]   : [],
+        evidence_links:         Array.isArray(fields.evidence_links) ? [...fields.evidence_links] : [],
+        source_urls:            Array.isArray(fields.source_urls)    ? [...fields.source_urls]    : [],
+
+        // ── Lookup provenance ────────────────────────────────────────
+        source:                 fields.source                 ?? null,
+        source_summary:         fields.source_summary         ?? null,
+        lookup_confidence:      typeof fields.lookup_confidence === 'number' ? fields.lookup_confidence : null,
+        confidence_breakdown:   fields.confidence_breakdown   ?? null, // NEW: stores {base, pubmed, clinvar,...}
+        clinician_note:         fields.clinician_note         ?? null,
+
+        // ── Clinical metadata ─────────────────────────────────────────
+        population_frequency:   fields.population_frequency   ?? null,
+        clinical_alert:         fields.clinical_alert         ?? null,
+        data_status:            fields.data_status            ?? null,
+
+        // ── Validation ──────────────────────────────────────────────
+        validation_count:       typeof fields.validation_count === 'number' ? fields.validation_count : 0,
+        last_validated_at:      fields.last_validated_at      ?? null,
+        last_validator_name:    fields.last_validator_name    ?? null,
+        last_validator_role:    fields.last_validator_role    ?? null,
+
+        // ── Search telemetry ─────────────────────────────────────────
+        search_hit_count:       typeof fields.search_hit_count === 'number' ? fields.search_hit_count : 0,
+        last_searched_at:       fields.last_searched_at       ?? null,
+
+        // ── Timestamps ─────────────────────────────────────────────
+        created_at:             fields.created_at             ?? new Date().toISOString(),
+        updated_at:             fields.updated_at             ?? new Date().toISOString(),
+        last_evidence_update:   fields.last_evidence_update   ?? null,
+
+        // ── In-memory only ───────────────────────────────────────────
+        _gap: null,
+    };
+
+    const { valid, errors, warnings } = validateVariantSchema(v);
+    if (!valid)        console.error('[NeumuacFQ Schema] buildVariant() — ERRORS:', errors, v);
+    else if (warnings.length) console.warn('[NeumuacFQ Schema] buildVariant() — warnings:', warnings);
+    return v;
+}
+// ════ END ITEM 1 ════
+
 // Global variables for evidence modals
 let currentVariantId = null;
 let currentVariantName = '';
@@ -8238,6 +9921,9 @@ async function loadVariants() {
         if (window.NeumuacFQ) {
             window.NeumuacFQ.config = CONFIG;
             window.NeumuacFQ.state  = STATE;
+    window.NeumuacFQ.fn.hashPin       = hashPin;       // ITEM 8
+    window.NeumuacFQ.fn.auditContrast = auditContrast; // ITEM 10
+    window.NeumuacFQ.fn.contrastRatio = contrastRatio; // ITEM 10
             window.NeumuacFQ.fn     = {
                 selectVariant, clearSearch, quickSearch,
                 showDashboard, showAuditTrail, dismissCanvas,
@@ -8361,6 +10047,207 @@ function buildSearchIndex() {
         lastBuilt: new Date()
     };
 }
+
+
+
+// ════ NeumuacFQ IMPROVEMENT — ITEM 2 ════
+// ════════════════════════════════════════════════════════════════════════
+// ITEM 2 — NOMENCLATURE NORMALIZATION
+// WHERE TO INSERT: After the search index builder (~line 8327).
+//   Search for: "// ========== SEARCH v2 — SCORED, FUZZY + PHONETIC MATCH =========="
+//   Insert this block immediately BEFORE that section.
+// WHY: Right now two clinicians can import F508del and p.Phe508del as
+//   separate entries. The database has no way to know they're the same
+//   variant. This resolver:
+//   1) Normalises any known alias → canonical HGVS form before insert
+//   2) Detects likely duplicates at import time (not after)
+//   3) Resolves a query string to any variant in STATE by any of its names
+//   The lookup retry already handles multi-nomenclature search — this
+//   makes the data layer consistent regardless of what the clinician typed.
+// ════════════════════════════════════════════════════════════════════════
+
+// ── Canonical alias map — legacy → { protein, cdna } ──────────────────
+// Key  = any known legacy / shorthand form (case-sensitive as used clinically)
+// Value = { protein: HGVS p. notation, cdna: HGVS c. notation }
+// Extend this as your variant database grows. When migrating to Vite,
+// this becomes a JSON file fetched from a versioned endpoint.
+const NOMENCLATURE_CANONICAL = Object.freeze({
+    // ── Class II — F508del (most common) ──────────────────────────────
+    'F508del':         { protein: 'p.Phe508del',  cdna: 'c.1521_1523delCTT' },
+    'ΔF508':           { protein: 'p.Phe508del',  cdna: 'c.1521_1523delCTT' },
+    'delta-F508':      { protein: 'p.Phe508del',  cdna: 'c.1521_1523delCTT' },
+    'dF508':           { protein: 'p.Phe508del',  cdna: 'c.1521_1523delCTT' },
+    // ── Class III gating ─────────────────────────────────────────────
+    'G551D':           { protein: 'p.Gly551Asp',  cdna: 'c.1652G>A'         },
+    'G178R':           { protein: 'p.Gly178Arg',  cdna: 'c.532G>C'          },
+    'G551S':           { protein: 'p.Gly551Ser',  cdna: 'c.1651G>A'         },
+    'S549N':           { protein: 'p.Ser549Asn',  cdna: 'c.1646G>A'         },
+    'S549R':           { protein: 'p.Ser549Arg',  cdna: 'c.1647T>G'         },
+    // ── Class I nonsense ─────────────────────────────────────────────
+    'W1282X':          { protein: 'p.Trp1282Ter', cdna: 'c.3846G>A'         },
+    'G542X':           { protein: 'p.Gly542Ter',  cdna: 'c.1624G>T'         },
+    'R553X':           { protein: 'p.Arg553Ter',  cdna: 'c.1657C>T'         },
+    'R1162X':          { protein: 'p.Arg1162Ter', cdna: 'c.3484C>T'         },
+    // ── Class II other ───────────────────────────────────────────────
+    'N1303K':          { protein: 'p.Asn1303Lys', cdna: 'c.3909C>G'         },
+    // ── R117H ────────────────────────────────────────────────────────
+    'R117H':           { protein: 'p.Arg117His',  cdna: 'c.350G>A'          },
+    // ── Common alternates seen in clinical paperwork ──────────────────
+    '3849+10kbC→T':    { protein: null,            cdna: 'c.3718-2477C>T'   },
+    '2789+5G→A':       { protein: null,            cdna: 'c.2657+5G>A'      },
+    '621+1G→T':        { protein: null,            cdna: 'c.489+1G>T'       },
+    '1717-1G→A':       { protein: null,            cdna: 'c.1585-1G>A'      },
+});
+
+// ── Reverse map: protein / cDNA → legacy name ─────────────────────────
+const NOMENCLATURE_REVERSE = (() => {
+    const m = new Map();
+    Object.entries(NOMENCLATURE_CANONICAL).forEach(([legacy, { protein, cdna }]) => {
+        if (protein) m.set(protein, legacy);
+        if (cdna)    m.set(cdna,    legacy);
+    });
+    return m;
+})();
+
+const NomenclatureResolver = Object.freeze({
+    /**
+     * Given any known alias, return the canonical { legacy, protein, cdna } triple.
+     * Returns null if the input is not in the canonical map.
+     *
+     * @param {string} input - Any variant name in any notation
+     * @returns {{ legacy: string, protein: string|null, cdna: string|null } | null}
+     */
+    resolve(input) {
+        if (!input) return null;
+        const trimmed = input.trim();
+
+        // Direct legacy lookup
+        if (NOMENCLATURE_CANONICAL[trimmed]) {
+            return { legacy: trimmed, ...NOMENCLATURE_CANONICAL[trimmed] };
+        }
+
+        // Reverse lookup (protein or cDNA → legacy)
+        const legacy = NOMENCLATURE_REVERSE.get(trimmed);
+        if (legacy) {
+            return { legacy, ...NOMENCLATURE_CANONICAL[legacy] };
+        }
+
+        // Case-insensitive fallback
+        const lower = trimmed.toLowerCase();
+        for (const [key, val] of Object.entries(NOMENCLATURE_CANONICAL)) {
+            if (key.toLowerCase() === lower) return { legacy: key, ...val };
+        }
+        for (const [key, legacy2] of NOMENCLATURE_REVERSE.entries()) {
+            if (key.toLowerCase() === lower) return { legacy: legacy2, ...NOMENCLATURE_CANONICAL[legacy2] };
+        }
+
+        return null;
+    },
+
+    /**
+     * Returns all known name forms for a variant as a Set.
+     * Used to populate the search index and detect duplicates at import.
+     *
+     * @param {string} legacyName
+     * @param {string|null} proteinName
+     * @param {string|null} cdnaName
+     * @param {string|null} altNames - space/comma separated
+     * @returns {Set<string>}
+     */
+    allAliases(legacyName, proteinName, cdnaName, altNames) {
+        const aliases = new Set();
+        [legacyName, proteinName, cdnaName].filter(Boolean).forEach(n => aliases.add(n.trim()));
+
+        // Add from alt_names field
+        if (altNames) {
+            altNames.split(/[\s,;]+/).filter(Boolean).forEach(n => aliases.add(n.trim()));
+        }
+
+        // Enrich from canonical map
+        const canonical = this.resolve(legacyName);
+        if (canonical) {
+            if (canonical.protein) aliases.add(canonical.protein);
+            if (canonical.cdna)    aliases.add(canonical.cdna);
+        }
+
+        return aliases;
+    },
+
+    /**
+     * Detects whether a new variant likely duplicates an existing one
+     * in STATE.variants. Checks all name aliases cross both records.
+     * Returns the existing variant if a match is found, null otherwise.
+     *
+     * @param {Object} incoming - The new variant object being imported
+     * @returns {Object|null} - Existing variant that matches, or null
+     */
+    detectDuplicate(incoming) {
+        const incomingAliases = this.allAliases(
+            incoming.legacy_name,
+            incoming.protein_name,
+            incoming.cdna_name,
+            incoming.alt_names
+        );
+
+        for (const existing of (STATE?.variants ?? [])) {
+            if (existing.id === incoming.id) continue;
+            const existingAliases = this.allAliases(
+                existing.legacy_name,
+                existing.protein_name,
+                existing.cdna_name,
+                existing.alt_names
+            );
+            // Any shared alias = likely duplicate
+            for (const alias of incomingAliases) {
+                if (existingAliases.has(alias)) {
+                    return existing;
+                }
+            }
+        }
+        return null;
+    },
+
+    /**
+     * Normalises an incoming variant before insert.
+     * Fills in missing protein_name / cdna_name from the canonical map
+     * if they're absent but can be derived.
+     *
+     * @param {Object} variant - Mutable variant object
+     * @returns {Object} - Same object, possibly enriched
+     */
+    enrichVariant(variant) {
+        const canonical = this.resolve(variant.legacy_name);
+        if (canonical) {
+            if (!variant.protein_name && canonical.protein)
+                variant.protein_name = canonical.protein;
+            if (!variant.cdna_name && canonical.cdna)
+                variant.cdna_name = canonical.cdna;
+        }
+        return variant;
+    },
+});
+
+// ── HOW TO WIRE UP ─────────────────────────────────────────────────────
+// 1) In lookupSaveVariant(), after buildVariant():
+//    NomenclatureResolver.enrichVariant(newVariant);
+//    const dup = NomenclatureResolver.detectDuplicate(newVariant);
+//    if (dup) {
+//        showNotification(
+//            `"${newVariant.legacy_name}" may already exist as "${dup.legacy_name}" — review before saving`,
+//            'warning', 7000
+//        );
+//        // Let the clinician decide — don't block the save automatically
+//    }
+//
+// 2) In importVariants(), same pattern — wrap each incoming variant
+//    through NomenclatureResolver.enrichVariant() before inserting.
+//
+// 3) In buildSearchIndex(), replace the inline alias expansion with:
+//    const allNames = NomenclatureResolver.allAliases(
+//        v.legacy_name, v.protein_name, v.cdna_name, v.alt_names
+//    );
+//    allNames.forEach(n => addKey(n, v.id));
+// ════ END ITEM 2 ════
 
 // ========== SEARCH v2 — SCORED, FUZZY + PHONETIC MATCH ==========
 // Priority tiers: 0=exact  1=prefix  2=substring  3=fuzzy(Lev≤2)  4=phonetic
@@ -18031,6 +19918,294 @@ function kbHighlightRow(idx) {
 }
 
 // Global hotkeys — separate from search input
+
+// ════ NeumuacFQ IMPROVEMENT — ITEM 10 ════
+// ════════════════════════════════════════════════════════════════════════
+// ITEM 10 — CLINICAL UX GAPS
+// THREE IMPROVEMENTS BUNDLED:
+//   A) Focus trap for all modals — Tab never escapes to background
+//   B) Global keyboard shortcut ?  → shortcut help panel
+//   C) Skip-to-content link for screen readers
+// WHERE TO INSERT:
+//   A+B: After the global hotkeys section (~line 18033).
+//      Search for: "// Global hotkeys — separate from search input"
+//      Insert FocusTrap and the ? hotkey wire-up AFTER that section.
+//   C: At the very start of <body> (before the first visible element).
+//      Search for: '<div id="app"' or the first child of <body>.
+// WHY:
+//   Focus trap: modals without focus trapping are WCAG 2.1 fail.
+//     A keyboard-only user (or screen reader) can Tab out of a modal
+//     and interact with background content while the modal is open.
+//     This is both an accessibility failure and a clinical UX bug —
+//     clinicians who use keyboard navigation can accidentally trigger
+//     background actions.
+//   ? shortcut: the platform already has keyboard shortcuts but no
+//     discoverable entry point. A single ? keystroke shows the full map.
+//   Skip link: assistive technology users need a way to jump past the
+//     sidebar to the main content without tabbing through every nav item.
+// ════════════════════════════════════════════════════════════════════════
+
+// ── A) Focus Trap utility ──────────────────────────────────────────────
+const FocusTrap = (() => {
+    const FOCUSABLE = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])',
+    ].join(',');
+
+    let _active = null;     // The element currently trapped
+    let _handler = null;    // Active keydown handler
+    let _previousFocus = null;
+
+    return {
+        /**
+         * Traps Tab focus within el. Call when a modal opens.
+         * Automatically restores focus when released.
+         *
+         * @param {HTMLElement} el - The modal/dialog container
+         */
+        trap(el) {
+            if (!el) return;
+            this.release(); // release any previous trap
+
+            _previousFocus = document.activeElement;
+            _active = el;
+
+            _handler = (e) => {
+                if (e.key !== 'Tab') return;
+                const focusable = [...el.querySelectorAll(FOCUSABLE)].filter(
+                    n => !n.closest('[hidden]') && n.offsetParent !== null
+                );
+                if (!focusable.length) { e.preventDefault(); return; }
+
+                const first = focusable[0];
+                const last  = focusable[focusable.length - 1];
+
+                if (e.shiftKey) {
+                    if (document.activeElement === first || !el.contains(document.activeElement)) {
+                        e.preventDefault();
+                        last.focus();
+                    }
+                } else {
+                    if (document.activeElement === last || !el.contains(document.activeElement)) {
+                        e.preventDefault();
+                        first.focus();
+                    }
+                }
+            };
+
+            document.addEventListener('keydown', _handler);
+
+            // Move focus into the modal (first focusable, or the container itself)
+            const firstFocusable = el.querySelector(FOCUSABLE);
+            if (firstFocusable) {
+                requestAnimationFrame(() => firstFocusable.focus());
+            } else {
+                el.setAttribute('tabindex', '-1');
+                requestAnimationFrame(() => el.focus());
+            }
+        },
+
+        /**
+         * Releases the focus trap and restores previous focus.
+         * Call when a modal closes.
+         */
+        release() {
+            if (_handler) {
+                document.removeEventListener('keydown', _handler);
+                _handler = null;
+            }
+            if (_previousFocus && typeof _previousFocus.focus === 'function') {
+                requestAnimationFrame(() => _previousFocus?.focus());
+            }
+            _active = null;
+            _previousFocus = null;
+        },
+
+        isActive: () => _active !== null,
+    };
+})();
+
+// ── HOW TO USE FocusTrap ──────────────────────────────────────────────
+// In every modal open function, after appending to document.body:
+//   FocusTrap.trap(overlay);           // or FocusTrap.trap(card)
+// In every modal close function, before removing:
+//   FocusTrap.release();
+//   overlay.remove();
+//
+// The lookupRetryAlternate rewrite in Batch 1 is already a good example.
+// Apply the same pattern to: writeModeModal, pdfIdentityOverlay,
+// retryAltOverlay, and any other overlay that appends to document.body.
+
+
+// ── B) Global keyboard shortcuts augmentation ─────────────────────────
+// WHERE TO INSERT: Inside the existing global keydown handler (~line 18033).
+//   Find: "document.addEventListener('keydown', function(e) {"
+//   Inside that handler, add this case to the existing if/else chain:
+
+/*
+    // ? → show keyboard shortcut help (only when not in an input)
+    if (e.key === '?' && !e.shiftKey &&
+        !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) {
+        e.preventDefault();
+        if (typeof showKeyboardShortcuts === 'function') showKeyboardShortcuts();
+        return;
+    }
+
+    // Shift+P → print current variant report
+    if (e.shiftKey && e.key === 'P' &&
+        !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
+        e.preventDefault();
+        if (STATE?.view?.selectedVariant) exportClinicalReport('single');
+        return;
+    }
+
+    // Shift+G → open geographic prevalence for selected variant
+    if (e.shiftKey && e.key === 'G' &&
+        !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
+        e.preventDefault();
+        const v = STATE?.view?.selectedVariant;
+        if (v) loadAndRenderPopulationFrequencies(v, 'populationFreqContainer');
+        return;
+    }
+*/
+
+// ── C) Skip-to-content link ────────────────────────────────────────────
+// WHERE TO INSERT: At the very start of <body>, before any other element.
+// This is pure HTML — add it directly in the HTML, not in JS:
+
+/*  Add as the FIRST element inside <body>:
+
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    And add id="main-content" to the main panel container
+    (search for the element with class "main-panel" or similar and add the id).
+
+    CSS (add to design system style block):
+
+    .skip-link {
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background: var(--brand);
+        color: #fff;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        z-index: 100000;
+        border-radius: 0 0 8px 0;
+        transition: top 0.2s ease;
+        text-decoration: none;
+    }
+    .skip-link:focus {
+        top: 0;
+        outline: 3px solid #fff;
+        outline-offset: 2px;
+    }
+*/
+
+// ── D) Contrast audit utility ──────────────────────────────────────────
+// Helper that checks WCAG contrast ratios for your custom colour pairs.
+// Run NeumuacFQ.fn.auditContrast() in the browser console to get a
+// report of any colour combinations that fail WCAG AA (4.5:1 for text).
+
+function _relativeLuminance(r, g, b) {
+    const s = [r, g, b].map(c => {
+        c /= 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * s[0] + 0.7152 * s[1] + 0.0722 * s[2];
+}
+
+function _hexToRgb(hex) {
+    const clean = hex.replace('#', '');
+    const full  = clean.length === 3
+        ? clean.split('').map(c => c + c).join('')
+        : clean;
+    return {
+        r: parseInt(full.slice(0, 2), 16),
+        g: parseInt(full.slice(2, 4), 16),
+        b: parseInt(full.slice(4, 6), 16),
+    };
+}
+
+/**
+ * Returns the WCAG contrast ratio between two hex colours.
+ * @param {string} fg - Foreground hex colour, e.g. '#f0f6ff'
+ * @param {string} bg - Background hex colour, e.g. '#0d1526'
+ * @returns {number} - Contrast ratio (1–21)
+ */
+function contrastRatio(fg, bg) {
+    const fgRgb = _hexToRgb(fg);
+    const bgRgb = _hexToRgb(bg);
+    const l1 = _relativeLuminance(fgRgb.r, fgRgb.g, fgRgb.b);
+    const l2 = _relativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
+    const lighter = Math.max(l1, l2);
+    const darker  = Math.min(l1, l2);
+    return Math.round(((lighter + 0.05) / (darker + 0.05)) * 100) / 100;
+}
+
+/**
+ * Audits the critical colour pairs in NeumuacFQ against WCAG AA (4.5:1).
+ * Run from DevTools: NeumuacFQ.fn.auditContrast()
+ * @returns {Object[]} - Array of { pair, ratio, pass, level } results
+ */
+function auditContrast() {
+    const bg = '#0d1526';  // --bg-card
+    const surface = '#080f1d'; // --surface
+
+    const pairs = [
+        { name: 'Primary text on card',     fg: '#f0f6ff', bg },
+        { name: 'Secondary text on card',   fg: '#9ab8e0', bg },
+        { name: 'Tertiary text on card',    fg: '#5a7aaa', bg },
+        { name: 'Tertiary on surface',      fg: '#5a7aaa', bg: surface },
+        { name: 'Brand on surface',         fg: '#2979ff', bg: surface },
+        { name: 'Class I (red) on card',    fg: '#ef4444', bg },
+        { name: 'Class III (green) on card',fg: '#34d399', bg },
+        { name: 'Class IV (purple) on card',fg: '#a78bfa', bg },
+        { name: 'ETI positive on card',     fg: '#22c55e', bg },
+    ];
+
+    const results = pairs.map(({ name, fg, bg: bgCol }) => {
+        const ratio  = contrastRatio(fg, bgCol);
+        const passAA = ratio >= 4.5;
+        const passAAA= ratio >= 7.0;
+        return {
+            pair: name,
+            fg, bg: bgCol,
+            ratio,
+            pass:  passAA,
+            level: passAAA ? 'AAA' : passAA ? 'AA' : 'FAIL',
+        };
+    });
+
+    console.table(results.map(r => ({
+        'Colour pair':  r.pair,
+        'Ratio':        r.ratio,
+        'WCAG level':   r.level,
+        'Pass AA':      r.pass ? '✅' : '❌',
+    })));
+
+    const failures = results.filter(r => !r.pass);
+    if (failures.length) {
+        console.warn('[NeumuacFQ Contrast] WCAG AA failures:', failures.map(f => f.pair));
+    } else {
+        console.log('[NeumuacFQ Contrast] All pairs pass WCAG AA ✅');
+    }
+    return results;
+}
+
+// ── HOW TO EXPOSE auditContrast ───────────────────────────────────────
+// In the DOMContentLoaded function registration block, add:
+//   NeumuacFQ.fn.auditContrast = auditContrast;
+//   NeumuacFQ.fn.contrastRatio = contrastRatio;
+// Then from DevTools: NeumuacFQ.fn.auditContrast()
+// ════ END ITEM 10 ════
+
+
 document.addEventListener('keydown', e => {
     const tag = document.activeElement?.tagName;
     const inInput = ['INPUT','TEXTAREA','SELECT'].includes(tag);
@@ -19089,6 +21264,7 @@ async function init() {
     initDevNotice();
     // Phase 1: load DB-driven configs in parallel — non-blocking
     Promise.all([loadClassRules(), loadJournalImpacts(), loadCftrClassRules()]).catch(() => {});
+    IdleGuard.start(); // ITEM 8: idle timeout guard
     await loadVariants();
     initHospital();
     initAppMode();
@@ -27783,7 +29959,10 @@ function lookupSaveToDatabase() {
 
     // Use existing addVariant / importVariants machinery if available
     if (typeof STATE !== 'undefined' && STATE.variants) {
-        STATE.variants.push(newVariant);
+        NomenclatureResolver.enrichVariant(newVariant); // ITEM 2: fill missing HGVS names
+    const _dup = NomenclatureResolver.detectDuplicate(newVariant); // ITEM 2: duplicate check
+    if (_dup) showNotification(`"${newVariant.legacy_name}" may already exist as "${_dup.legacy_name}" — review before saving`, 'warning', 7000);
+    STATE.variants.push(newVariant);
         if (STATE.variantsById) STATE.variantsById.set(newVariant.id, newVariant);
         renderVariantList();
         // Try to persist via existing Supabase logic
@@ -27841,61 +30020,112 @@ function lookupOpenManualEdit() {
 
 // ── Retry with alternate name ────────────────────────────────────
 function lookupRetryAlternate(query) {
-    // Replace window.prompt with an inline modal input — consistent with the
-    // rest of the UI and never blocked by browser popup policies.
+    // Build every DOM node via createElement — zero innerHTML with user data.
+    // This is the correct pattern for any modal that takes user-controlled input.
+
+    // ── Overlay ───────────────────────────────────────────────────────
     const overlay = document.createElement('div');
     overlay.id = 'retryAltOverlay';
     Object.assign(overlay.style, {
-        position:'fixed', inset:'0', zIndex:'99999',
-        background:'rgba(4,8,15,0.7)', backdropFilter:'blur(6px)',
-        display:'flex', alignItems:'center', justifyContent:'center'
+        position: 'fixed', inset: '0', zIndex: '99999',
+        background: 'rgba(4,8,15,0.7)', backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center'
     });
-    overlay.innerHTML = `
-        <div style="width:min(420px,90vw);background:#0a1220;border:1px solid rgba(99,140,210,0.25);
-                    border-radius:12px;padding:22px 24px;box-shadow:0 24px 64px rgba(0,5,20,0.8);">
-            <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">
-                <i class="fas fa-search" style="color:var(--brand);margin-right:6px;font-size:11px;"></i>
-                Try alternate name
-            </div>
-            <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:14px;">
-                Enter a different nomenclature — protein name, legacy name, cDNA notation, or gene alias.
-            </div>
-            <input id="retryAltInput" value="${escapeAttr(query)}"
-                style="width:100%;padding:9px 12px;border-radius:7px;border:1px solid rgba(99,140,210,0.3);
-                       background:rgba(255,255,255,0.04);color:var(--text-primary);font-size:13px;
-                       font-family:var(--font-mono);outline:none;box-sizing:border-box;"
-                placeholder="e.g. p.Phe508del or c.1521_1523del or F508del"
-                autocomplete="off">
-            <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
-                <button onclick="document.getElementById('retryAltOverlay').remove()"
-                    style="padding:7px 16px;border-radius:6px;border:1px solid rgba(99,140,210,0.2);
-                           background:transparent;color:var(--text-secondary);cursor:pointer;
-                           font-size:12px;font-family:var(--font-body);">Cancel</button>
-                <button id="retryAltConfirm"
-                    style="padding:7px 18px;border-radius:6px;border:none;
-                           background:var(--brand);color:#fff;cursor:pointer;
-                           font-size:12px;font-weight:600;font-family:var(--font-body);">
-                    Search ↺
-                </button>
-            </div>
-        </div>`;
 
+    // ── Card ──────────────────────────────────────────────────────────
+    const card = document.createElement('div');
+    Object.assign(card.style, {
+        width: 'min(420px,90vw)', background: '#0a1220',
+        border: '1px solid rgba(99,140,210,0.25)', borderRadius: '12px',
+        padding: '22px 24px', boxShadow: '0 24px 64px rgba(0,5,20,0.8)'
+    });
+
+    // ── Title row ─────────────────────────────────────────────────────
+    const titleRow = document.createElement('div');
+    Object.assign(titleRow.style, {
+        fontSize: '13px', fontWeight: '700',
+        color: 'var(--text-primary)', marginBottom: '6px',
+        display: 'flex', alignItems: 'center', gap: '6px'
+    });
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-search';
+    Object.assign(icon.style, { color: 'var(--brand)', fontSize: '11px' });
+    titleRow.appendChild(icon);
+    titleRow.appendChild(document.createTextNode('Try alternate name'));
+
+    // ── Subtitle ──────────────────────────────────────────────────────
+    const subtitle = document.createElement('div');
+    Object.assign(subtitle.style, {
+        fontSize: '11px', color: 'var(--text-tertiary)', marginBottom: '14px'
+    });
+    subtitle.textContent = 'Enter a different nomenclature — protein name, legacy name, cDNA notation, or gene alias.';
+
+    // ── Input ─────────────────────────────────────────────────────────
+    const inp = document.createElement('input');
+    inp.id = 'retryAltInput';
+    inp.type = 'text';
+    inp.autocomplete = 'off';
+    inp.placeholder = 'e.g. p.Phe508del or c.1521_1523del or F508del';
+    inp.value = String(query ?? '');           // setAttribute avoided — .value is safe
+    Object.assign(inp.style, {
+        width: '100%', padding: '9px 12px', borderRadius: '7px',
+        border: '1px solid rgba(99,140,210,0.3)',
+        background: 'rgba(255,255,255,0.04)', color: 'var(--text-primary)',
+        fontSize: '13px', fontFamily: 'var(--font-mono)',
+        outline: 'none', boxSizing: 'border-box'
+    });
+
+    // ── Button row ────────────────────────────────────────────────────
+    const btnRow = document.createElement('div');
+    Object.assign(btnRow.style, {
+        display: 'flex', gap: '8px', marginTop: '12px', justifyContent: 'flex-end'
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'Cancel';
+    Object.assign(cancelBtn.style, {
+        padding: '7px 16px', borderRadius: '6px',
+        border: '1px solid rgba(99,140,210,0.2)',
+        background: 'transparent', color: 'var(--text-secondary)',
+        cursor: 'pointer', fontSize: '12px', fontFamily: 'var(--font-body)'
+    });
+    cancelBtn.addEventListener('click', () => overlay.remove());
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.type = 'button';
+    confirmBtn.id = 'retryAltConfirm';
+    confirmBtn.textContent = 'Search ↺';
+    Object.assign(confirmBtn.style, {
+        padding: '7px 18px', borderRadius: '6px', border: 'none',
+        background: 'var(--brand)', color: '#fff',
+        cursor: 'pointer', fontSize: '12px', fontWeight: '600',
+        fontFamily: 'var(--font-body)'
+    });
+
+    btnRow.appendChild(cancelBtn);
+    btnRow.appendChild(confirmBtn);
+
+    // ── Assemble ──────────────────────────────────────────────────────
+    card.appendChild(titleRow);
+    card.appendChild(subtitle);
+    card.appendChild(inp);
+    card.appendChild(btnRow);
+    overlay.appendChild(card);
     document.body.appendChild(overlay);
 
-    const inp = document.getElementById('retryAltInput');
-    const confirm = document.getElementById('retryAltConfirm');
-
-    // Select all text so the clinician can type immediately
+    // ── Focus ─────────────────────────────────────────────────────────
     requestAnimationFrame(() => { inp.focus(); inp.select(); });
 
+    // ── Retry logic (unchanged from original) ────────────────────────
     const doRetry = () => {
         const alt = inp.value.trim();
         if (!alt) return;
         overlay.remove();
         lookupCloseModal();
-        LOOKUP_JOB_STATE.activeQuery  = alt;
-        LOOKUP_JOB_STATE.status       = 'running';
-        LOOKUP_JOB_STATE.result       = null;
+        LOOKUP_JOB_STATE.activeQuery = alt;
+        LOOKUP_JOB_STATE.status      = 'running';
+        LOOKUP_JOB_STATE.result      = null;
         lookupShowTray(alt, 'running');
         _lookupExecute(alt).then(result => {
             LOOKUP_JOB_STATE.status = result.found ? 'done' : 'notfound';
@@ -27905,9 +30135,9 @@ function lookupRetryAlternate(query) {
         setTimeout(lookupOpenModal, 100);
     };
 
-    confirm.addEventListener('click', doRetry);
+    confirmBtn.addEventListener('click', doRetry);
     inp.addEventListener('keydown', e => {
-        if (e.key === 'Enter') { e.preventDefault(); doRetry(); }
+        if (e.key === 'Enter')  { e.preventDefault(); doRetry(); }
         if (e.key === 'Escape') overlay.remove();
     });
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
