@@ -5757,6 +5757,15 @@
                                 <div class="hdr-menu-sub">All clinical edits</div>
                             </div>
                         </div>
+                        <div class="hdr-menu-item" onclick="openNomenclatureAudit();hdrCloseMenu()">
+                            <div class="hdr-menu-icon" style="background:rgba(251,191,36,.08);color:#fbbf24">
+                                <i class="fas fa-spell-check" aria-hidden="true"></i>
+                            </div>
+                            <div class="hdr-menu-label">
+                                <div class="hdr-menu-title">Nomenclature audit</div>
+                                <div class="hdr-menu-sub">Scan database for naming errors</div>
+                            </div>
+                        </div>
                         <div class="hdr-menu-item" onclick="helixToggleShortcutHelp();hdrCloseMenu()">
                             <div class="hdr-menu-icon" style="background:rgba(148,163,184,.07);color:#64748b">
                                 <i class="fas fa-keyboard" aria-hidden="true"></i>
@@ -11124,10 +11133,301 @@ function _phoneticKey(s) {
         .slice(0, 12);
 }
 
+// ════════════════════════════════════════════════════════════════
+// VARIANT SEARCH GATE — Three-layer contamination prevention
+//
+// Layer 1: Structural gate  — hard-blocks non-variant input
+// Layer 2: Plausibility gate — controls what enters analytics
+// Layer 3: Persistence gate — controls what reaches Supabase
+//
+// Principle: the SEARCH always runs (results: none is valid feedback).
+// Only LOGGING is gated — garbage never enters the intelligence pipeline.
+// ════════════════════════════════════════════════════════════════
+
+const SEARCH_GATE = Object.freeze({
+
+    // ── Max variant name length ────────────────────────────────────
+    // Longest valid HGVS: c.1516_1524+14del — ~25 chars.
+    // Complex splice: 3849+10kbC>T       — ~14 chars.
+    // With prefix + range: c.1521_1523delCTT — ~18 chars.
+    // Safety margin: 60 chars (covers edge cases, blocks sentences).
+    MAX_LENGTH: 60,
+
+    // ── Structured filter prefixes (always valid) ────────────────
+    STRUCTURED_PREFIXES: new Set([
+        'class:', 'eti:', 'missing:', 'searched:', 'validated:',
+        'unvalidated', 'recent', 'complete', 'gap:', 'recent:',
+    ]),
+
+    // ── Words that are never variant names ───────────────────────
+    // Purely alphabetic English words > 5 chars with no digits or HGVS chars.
+    // These contaminate the research gaps tab most severely.
+    BLOCKED_WORDS: new Set([
+        'treatment', 'deletion', 'mutation', 'variant', 'patient',
+        'clinical', 'function', 'protein', 'disease', 'cystic',
+        'fibrosis', 'transmembrane', 'regulator', 'sequence',
+        'analysis', 'testing', 'result', 'report', 'positive',
+        'negative', 'normal', 'pathogenic', 'benign', 'uncertain',
+        'therapy', 'modulator', 'inhibitor', 'corrector',
+        'potentiator', 'amplifier', 'channel', 'chloride',
+        'sodium', 'bicarbonate', 'sweat', 'pancreas', 'lung',
+    ]),
+
+    /**
+     * Layer 1: Structural gate.
+     * Returns { blocked: true, reason } if query should NOT even run.
+     * Returns { blocked: false } if query is structurally acceptable.
+     *
+     * @param {string} raw - Raw input string
+     * @returns {{ blocked: boolean, reason?: string }}
+     */
+    structuralCheck(raw) {
+        if (!raw || !raw.trim()) return { blocked: true, reason: 'empty' };
+
+        const q = raw.trim();
+
+        // Hard length cap
+        if (q.length > this.MAX_LENGTH) {
+            return { blocked: true, reason: `too_long (${q.length} chars — max ${this.MAX_LENGTH})` };
+        }
+
+        // URL / email / path — clearly not a variant
+        if (/https?:\/\/|@[\w.]+\.\w{2,}|^\/[\w/]+/.test(q)) {
+            return { blocked: true, reason: 'url_or_email' };
+        }
+
+        // Parenthetical qualifier: "(homozygous)", "(heterozygous)", "(rs...)"
+        // These come from EMR paste and corrupt the core name
+        if (/\([^)]{3,}\)/.test(q)) {
+            return { blocked: true, reason: 'parenthetical_qualifier' };
+        }
+
+        // Sentence detection: 3+ words all alphabetic, none short (>3 chars each)
+        // "what is the" → sentence | "F508 del" → not a sentence (has short word)
+        // "cystic fibrosis transmembrane" → sentence (3 long alpha words)
+        const words = q.split(/\s+/).filter(Boolean);
+        if (words.length >= 3) {
+            const allLongAlpha = words.every(w => /^[a-zA-Z]{4,}$/.test(w));
+            if (allLongAlpha) {
+                return { blocked: true, reason: 'sentence_structure' };
+            }
+        }
+
+        // 4+ words = almost certainly prose, UNLESS it's a compound variant search.
+        // "F508del G551D W1282X R117H" → 4 variant-like parts → allowed
+        // "patient has F508del with pseudomonas" → 5 words, prose → blocked
+        if (words.length >= 4) {
+            const hasColon = q.includes(':');
+            if (!hasColon) {
+                // Allow if every part looks like a variant (has digit or is short HGVS)
+                const allVariantLike = words.every(w =>
+                    /\d/.test(w) || /^[cp]\./i.test(w) || w.length <= 3
+                );
+                if (!allVariantLike) {
+                    return { blocked: true, reason: `too_many_words (${words.length})` };
+                }
+                // Fall through — compound variant search, let detectCompound handle it
+            }
+        }
+        if (words.length >= 2) {
+            const hasDigit = /\d/.test(q);
+            const hasHGVS  = /[>_+\-]/.test(q) || /^[cp]\./i.test(q);
+            const hasColon = q.includes(':');
+
+            // Sentence-starter words — if query begins with these, it's prose
+            const SENTENCE_STARTERS = new Set([
+                'what','where','when','which','who','why','how',
+                'is','are','was','were','will','would','could','should',
+                'the','a','an','this','that','these','those',
+                'patient','please','find','show','give','tell',
+                'does','do','can','has','have','had',
+            ]);
+            if (SENTENCE_STARTERS.has(words[0].toLowerCase()) && !hasDigit && !hasHGVS && !hasColon) {
+                return { blocked: true, reason: 'sentence_starter' };
+            }
+
+            // Two long alpha words with no digits = sentence fragment
+            const allLongAlpha2 = words.every(w => /^[a-zA-Z]{5,}$/.test(w));
+            if (allLongAlpha2 && !hasDigit && !hasHGVS && !hasColon) {
+                return { blocked: true, reason: 'sentence_fragment' };
+            }
+        }
+
+        // Single word that is in the blocked dictionary
+        if (words.length === 1) {
+            const lower = q.toLowerCase();
+            if (this.BLOCKED_WORDS.has(lower)) {
+                return { blocked: true, reason: `blocked_word: ${lower}` };
+            }
+        }
+
+        // Purely numeric > 6 digits — phone numbers, record IDs, not positions
+        if (/^\d{7,}$/.test(q.replace(/\s/g, ''))) {
+            return { blocked: true, reason: 'long_number' };
+        }
+
+        return { blocked: false };
+    },
+
+    /**
+     * Layer 2: Plausibility gate.
+     * Determines whether a query that ran should be LOGGED.
+     * More permissive than Layer 1 — allows things through that look
+     * clinically plausible even if they didn't match anything.
+     *
+     * Returns true if the query SHOULD be logged.
+     *
+     * @param {string} query - The query string (raw or normalised)
+     * @returns {{ shouldLog: boolean, reason: string }}
+     */
+    plausibilityCheck(query) {
+        if (!query) return { shouldLog: false, reason: 'empty' };
+        const q = query.trim();
+
+        // Always log structured filter queries
+        for (const prefix of this.STRUCTURED_PREFIXES) {
+            if (q.toLowerCase().startsWith(prefix) || q.toLowerCase() === prefix.replace(':','')) {
+                return { shouldLog: true, reason: 'structured_filter' };
+            }
+        }
+
+        // Must have at least one digit OR be very short (≤4 chars, e.g. "CFTR")
+        // Every real variant name has a position number
+        const hasDigit = /\d/.test(q);
+        const isShort  = q.replace(/\s/g, '').length <= 4;
+        const hasHGVS  = /^[cCpPrRnNgG]\./.test(q) || /[>_]/.test(q);
+
+        if (!hasDigit && !isShort && !hasHGVS) {
+            return { shouldLog: false, reason: 'no_position_number' };
+        }
+
+        // Trailing qualifier: "F508del homozygous", "G551D carrier"
+        // Second word is pure alpha > 4 chars — qualifier, not part of the name
+        const words = q.split(/\s+/);
+        if (words.length === 2 && /\d/.test(words[0]) && /^[a-zA-Z]{5,}$/.test(words[1])) {
+            return { shouldLog: false, reason: 'trailing_qualifier — log the core variant separately' };
+        }
+
+        // rsID — log but with a note
+        if (/^rs\d+$/i.test(q)) {
+            return { shouldLog: true, reason: 'rsid_query' };
+        }
+
+        return { shouldLog: true, reason: 'plausible_variant' };
+    },
+
+    /**
+     * Layer 3: Persistence gate.
+     * Debounce + dedup gate before writing to Supabase.
+     * Prevents keystroke-by-keystroke logging as clinician types.
+     *
+     * @param {string} normQ  - Normalised query
+     * @param {boolean} isHit - Whether search returned results
+     * @returns {boolean}     - true = write to Supabase
+     */
+    _lastPersisted: {},
+
+    persistenceCheck(normQ, isHit) {
+        const now = Date.now();
+        const last = this._lastPersisted[normQ];
+
+        // Don't persist the same query within 10 seconds
+        // (prevents logging each keystroke "g5", "g55", "g551", "g551d" separately)
+        if (last && (now - last.ts) < 10000 && last.isHit === isHit) {
+            return false;
+        }
+
+        this._lastPersisted[normQ] = { ts: now, isHit };
+
+        // Prune old entries to prevent memory growth
+        const entries = Object.entries(this._lastPersisted);
+        if (entries.length > 200) {
+            const oldest = entries.sort((a,b) => a[1].ts - b[1].ts).slice(0, 100);
+            oldest.forEach(([k]) => delete this._lastPersisted[k]);
+        }
+
+        return true;
+    },
+
+    /**
+     * Compound search: if query contains space-separated valid-looking parts,
+     * return them as individual queries to run separately.
+     * "F508del G551D" → ["F508del", "G551D"]
+     *
+     * @param {string} query
+     * @returns {string[]|null} - Array of sub-queries, or null if not compound
+     */
+    detectCompound(query) {
+        if (!query || !query.includes(' ')) return null;
+        const parts = query.trim().split(/\s+/);
+        if (parts.length < 2 || parts.length > 4) return null;
+
+        // Each part must look like a variant (has digit OR HGVS prefix)
+        const allVariantLike = parts.every(p =>
+            /\d/.test(p) || /^[cp]\./i.test(p) || p.length <= 3
+        );
+
+        return allVariantLike ? parts : null;
+    },
+});
+
 function searchVariants(query) {
     if (!query || query.trim().length < CONFIG.UI.MIN_SEARCH_CHARS) {
         return STATE.variants;
     }
+
+    // ── Layer 1: Structural gate — block non-variant input ────────
+    // Search still shows "no results" for soft-blocked queries,
+    // but they are flagged so Layer 2 can skip logging.
+    const _gateResult = SEARCH_GATE.structuralCheck(query);
+    if (_gateResult.blocked) {
+        // Hard-blocked: return empty immediately, no logging
+        STATE.searchIntelligence._lastGateBlocked = true;
+        STATE.searchIntelligence._lastGateReason  = _gateResult.reason;
+        return [];
+    }
+    STATE.searchIntelligence._lastGateBlocked = false;
+
+    // ── Compound search: "F508del G551D" → search both ────────────
+    const _compound = SEARCH_GATE.detectCompound(query);
+    if (_compound) {
+        // Compound variant search — run each part, merge results, log each part
+        const allIds = new Set();
+        const merged = [];
+        const hitParts = [], missParts = [];
+        _compound.forEach(part => {
+            const partResults = searchVariants(part);
+            if (partResults.length > 0) {
+                hitParts.push(part);
+                partResults.forEach(v => {
+                    if (!allIds.has(v.id)) { allIds.add(v.id); merged.push(v); }
+                });
+            } else {
+                missParts.push(part);
+            }
+        });
+        if (merged.length > 0) {
+            STATE.searchIntelligence._lastResult = {
+                query: query.trim(), isHit: true, matchedField: 'compound',
+                matchedVariantId: merged[0].id,
+                compound: { hits: hitParts, misses: missParts, total: _compound.length },
+            };
+            // Store compound indicator for search label rendering
+            STATE.searchIntelligence._lastCompound = {
+                parts: _compound, hits: hitParts, misses: missParts
+            };
+            // Log each part individually so analytics stays clean
+            setTimeout(() => {
+                hitParts.forEach(p => {
+                    const r = searchVariants(p);
+                    if (r.length) logSearch(p, true, null, r[0].id);
+                });
+                missParts.forEach(p => logSearch(p, false, null, null));
+            }, 0);
+            return merged;
+        }
+    }
+    STATE.searchIntelligence._lastCompound = null;
     const raw      = query.toLowerCase().trim();
     const norm     = normaliseQueryTracked(query); // tracked version records steps for UI
     const stripped = norm.replace(/^p\.|^c\.|^r\./, '');
@@ -11228,6 +11528,18 @@ function searchVariants(query) {
 
 function logSearch(query, isHit, matchedField, matchedVariantId) {
     if (!query || query.length < CONFIG.UI.MIN_SEARCH_CHARS) return;
+
+    // ── Layer 2: Plausibility gate ────────────────────────────────
+    // Hard-blocked queries (Layer 1) never reach here.
+    // Plausibility check prevents sentences/non-variants from entering
+    // the analytics pipeline even if they somehow slipped through.
+    if (STATE.searchIntelligence._lastGateBlocked) return;
+    const _plaus = SEARCH_GATE.plausibilityCheck(query);
+    if (!_plaus.shouldLog) {
+        // Search ran, showed no results — correct UX. But don't pollute analytics.
+        console.debug('[NeumuacFQ Gate] Skipping log for non-variant query:', query, '—', _plaus.reason);
+        return;
+    }
     const si = STATE.searchIntelligence;
     const ts = Date.now();
     const normQ = normaliseQuery(query);
@@ -11492,6 +11804,11 @@ function fuzzyMatchVariant(query) {
 }
 
 async function persistSearchEvent(query, isHit, matchedField, matchedVariantId) {
+    // ── Layer 3: Persistence gate — debounce + dedup ────────────────
+    // Prevents keystroke-by-keystroke logging (G→G5→G55→G551→G551D)
+    const normQ = normaliseQuery(query);
+    if (!SEARCH_GATE.persistenceCheck(normQ, isHit)) return;
+
     try {
         const normQuery = normaliseQuery(query);
         const loc = await fetchLocationOnce();
@@ -11521,6 +11838,7 @@ async function persistSearchEvent(query, isHit, matchedField, matchedVariantId) 
                 accuracy_metres:   loc.accuracy_metres || null,
                 ip_address:        loc.ip_address     || null,
                 hospital_name:     hospital,
+                institution_name:  hospital,   // now synced to new column (migration added it)
                 institution_id:    STATE.searchIntelligence.hospitalId || null,
                 clinician_name:    STATE.searchIntelligence.clinicianName || null
             })
@@ -18058,6 +18376,400 @@ async function renderRegionalMissChart(canvasId) {
     }
 }
 
+
+
+// ════════════════════════════════════════════════════════════════
+// DATABASE NOMENCLATURE AUDIT
+// Scans ALL variants in STATE.variants for naming artifacts,
+// HGVS violations, and copy-paste corruption.
+// Unlike the entry validator (which runs on new input),
+// this runs retroactively against the full live database.
+// Results shown in a modal with per-variant fix buttons.
+// Fixes require write mode and are written to audit trail.
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * Runs the full nomenclature audit across all loaded variants.
+ * Returns a structured report — does NOT modify anything.
+ *
+ * @returns {{
+ *   total: number,
+ *   clean: number,
+ *   affected: Array<{variant, issues}>,
+ *   autoFixable: number,
+ *   requiresReview: number,
+ *   duplicateCandidates: Array<{a, b, reason}>
+ * }}
+ */
+function runNomenclatureAudit() {
+    const affected     = [];
+    const seenNorms    = new Map(); // normalised → variant, for duplicate detection
+    const dupes        = [];
+
+    STATE.variants.forEach(v => {
+        const fieldResults = {};
+        let hasIssue = false;
+        let autoFixable = false;
+
+        // ── Scan each name field ─────────────────────────────────
+        const fields = [
+            { key: 'legacy_name',  val: v.legacy_name,  validate: n => VariantNameValidator.validateLegacyName(n)  },
+            { key: 'protein_name', val: v.protein_name, validate: n => VariantNameValidator.validateProteinName(n) },
+            { key: 'cdna_name',    val: v.cdna_name,    validate: n => VariantNameValidator.validateCDNAName(n)     },
+        ];
+
+        fields.forEach(({ key, val, validate }) => {
+            if (!val) return;
+            const result = validate(val);
+            if (!result.valid || result.warnings.length > 0) {
+                hasIssue = true;
+                const fixable = result.warnings.some(w => w.autofix)
+                    || (result.suggestion && result.suggestion !== val);
+                if (fixable) autoFixable = true;
+                fieldResults[key] = {
+                    original:   val,
+                    result,
+                    suggested:  result.suggestion || (result.cleaned !== val ? result.cleaned : null),
+                    canAutoFix: fixable,
+                };
+            }
+        });
+
+        // ── Additional checks not in validator ───────────────────
+
+        // Arrow notation: "->" should be ">"
+        ['legacy_name','protein_name','cdna_name'].forEach(key => {
+            const val = v[key];
+            if (val && val.includes('->')) {
+                hasIssue = true;
+                autoFixable = true;
+                if (!fieldResults[key]) fieldResults[key] = { original: val, result: { errors:[], warnings:[] }, canAutoFix: true };
+                fieldResults[key].suggested = val.replace(/->/g, '>');
+                fieldResults[key].result.warnings.push({
+                    code: 'arrow_notation',
+                    msg: "'->' should be '>' in HGVS notation",
+                    autofix: () => val.replace(/->/g, '>'),
+                });
+            }
+        });
+
+        // Spaces inside variant name (e.g. "711+1G > T")
+        if (v.legacy_name && / > /.test(v.legacy_name)) {
+            hasIssue = true;
+            autoFixable = true;
+            const fixed = v.legacy_name.replace(/ > /g, '>').replace(/ >$/g, '>').trim();
+            if (!fieldResults['legacy_name']) fieldResults['legacy_name'] = { original: v.legacy_name, result: { errors:[], warnings:[] }, canAutoFix: true };
+            fieldResults['legacy_name'].suggested = fixed;
+            fieldResults['legacy_name'].result.warnings.push({
+                code: 'space_in_name',
+                msg: "Spaces around '>' — HGVS notation has no spaces",
+                autofix: () => fixed,
+            });
+        }
+
+        // Compound allele semicolon
+        if (v.legacy_name && v.legacy_name.includes(';')) {
+            hasIssue = true;
+            if (!fieldResults['legacy_name']) fieldResults['legacy_name'] = { original: v.legacy_name, result: { errors:[], warnings:[] }, canAutoFix: false };
+            fieldResults['legacy_name'].result.warnings.push({
+                code: 'compound_allele',
+                msg: "Semicolon-separated compound allele — consider splitting into two variant records",
+                autofix: null,
+            });
+        }
+
+        // ── Duplicate candidate detection ────────────────────────
+        if (v.legacy_name) {
+            const norm = normaliseQuery(v.legacy_name);
+            if (seenNorms.has(norm)) {
+                const existing = seenNorms.get(norm);
+                if (existing.id !== v.id) {
+                    dupes.push({
+                        a: existing, b: v,
+                        reason: `Both normalise to "${norm}"`,
+                    });
+                }
+            } else {
+                seenNorms.set(norm, v);
+            }
+            // Also check NomenclatureResolver aliases
+            const canonical = NomenclatureResolver.resolve(v.legacy_name);
+            if (canonical) {
+                const aliasNorm = normaliseQuery(canonical.legacy);
+                if (seenNorms.has(aliasNorm) && seenNorms.get(aliasNorm).id !== v.id) {
+                    dupes.push({
+                        a: seenNorms.get(aliasNorm), b: v,
+                        reason: `"${v.legacy_name}" and "${canonical.legacy}" are aliases`,
+                    });
+                }
+            }
+        }
+
+        if (hasIssue) {
+            affected.push({
+                variant:    v,
+                fields:     fieldResults,
+                autoFixable,
+            });
+        }
+    });
+
+    const autoFixableCount = affected.filter(a => a.autoFixable).length;
+
+    return {
+        total:              STATE.variants.length,
+        clean:              STATE.variants.length - affected.length,
+        affected,
+        autoFixable:        autoFixableCount,
+        requiresReview:     affected.length - autoFixableCount,
+        duplicateCandidates: [...new Map(dupes.map(d => [d.a.id + '_' + d.b.id, d])).values()],
+    };
+}
+
+/**
+ * Opens the nomenclature audit modal.
+ * Runs the audit and presents results with per-variant fix buttons.
+ */
+async function openNomenclatureAudit() {
+    const existing = document.getElementById('nomAuditOverlay');
+    if (existing) { existing.remove(); return; }
+
+    // Show loading state
+    const overlay = document.createElement('div');
+    overlay.id = 'nomAuditOverlay';
+    Object.assign(overlay.style, {
+        position: 'fixed', inset: '0', zIndex: '99992',
+        background: 'rgba(4,8,15,0.82)', backdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'flex-start',
+        justifyContent: 'center', paddingTop: '36px',
+    });
+    const card = document.createElement('div');
+    Object.assign(card.style, {
+        width: 'min(820px,96vw)', maxHeight: '82vh',
+        background: '#0c1422',
+        border: '1px solid rgba(99,140,210,0.22)',
+        borderRadius: '14px', display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '0 40px 80px rgba(0,0,0,0.85)',
+        fontFamily: 'var(--font-body)',
+    });
+    card.innerHTML = `<div style="padding:20px 22px;border-bottom:1px solid rgba(99,140,210,0.12);display:flex;align-items:center;gap:10px;">
+        <i class="fas fa-spell-check" style="color:var(--brand);font-size:14px;"></i>
+        <span style="font-size:14px;font-weight:700;color:var(--text-primary);">Database nomenclature audit</span>
+        <div style="flex:1;"></div>
+        <div style="font-size:11px;color:var(--text-tertiary);" id="nomAuditStatus">Scanning ${STATE.variants.length.toLocaleString()} variants…</div>
+        <button id="nomAuditClose" style="background:none;border:none;color:var(--text-tertiary);font-size:18px;cursor:pointer;padding:0 4px;">×</button>
+    </div>
+    <div id="nomAuditBody" style="overflow-y:auto;flex:1;padding:16px 22px;">
+        <div style="display:flex;align-items:center;gap:8px;color:var(--text-tertiary);font-size:12px;">
+            <i class="fas fa-spinner fa-spin"></i> Running audit…
+        </div>
+    </div>`;
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    FocusTrap.trap(card);
+
+    const close = () => { FocusTrap.release(); overlay.remove(); };
+    document.getElementById('nomAuditClose').addEventListener('click', close);
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', function esc(e) {
+        if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); }
+    });
+
+    // Run audit (small delay so UI renders first)
+    await new Promise(r => setTimeout(r, 80));
+    const report = runNomenclatureAudit();
+    const body   = document.getElementById('nomAuditBody');
+    const status = document.getElementById('nomAuditStatus');
+
+    if (status) {
+        const c = report.affected.length === 0 ? '#34d399' : report.autoFixable > 0 ? '#fbbf24' : '#f87171';
+        status.innerHTML = `<span style="color:${c};font-weight:700;">${report.affected.length} issues</span>
+            &nbsp;·&nbsp;${report.autoFixable} auto-fixable
+            &nbsp;·&nbsp;${report.duplicateCandidates.length} duplicate candidates`;
+    }
+
+    if (!body) return;
+
+    if (report.affected.length === 0 && report.duplicateCandidates.length === 0) {
+        body.innerHTML = `<div style="text-align:center;padding:40px 0;">
+            <i class="fas fa-check-circle" style="font-size:28px;color:#34d399;display:block;margin-bottom:10px;"></i>
+            <div style="font-size:14px;font-weight:700;color:#34d399;">All ${report.total.toLocaleString()} variants pass nomenclature checks</div>
+            <div style="font-size:12px;color:var(--text-tertiary);margin-top:6px;">No artifacts, HGVS violations, or naming issues detected.</div>
+        </div>`;
+        return;
+    }
+
+    // Summary strip
+    const summaryHTML = `
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
+            ${[
+                {val: report.total,      label: 'Total variants',    col: 'var(--text-secondary)'},
+                {val: report.clean,      label: 'Clean',             col: '#34d399'},
+                {val: report.autoFixable,label: 'Auto-fixable',      col: '#fbbf24'},
+                {val: report.requiresReview, label: 'Manual review', col: '#f87171'},
+            ].map(({val,label,col}) => `
+                <div style="background:rgba(41,121,255,0.05);border:1px solid rgba(41,121,255,0.1);border-radius:8px;padding:10px;text-align:center;">
+                    <div style="font-size:20px;font-weight:700;color:${col};font-family:var(--font-mono);">${val.toLocaleString()}</div>
+                    <div style="font-size:10px;color:var(--text-tertiary);margin-top:2px;">${label}</div>
+                </div>`).join('')}
+        </div>`;
+
+    // Fix-all button (write mode required)
+    const fixAllHTML = report.autoFixable > 0 ? `
+        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;">
+            <button onclick="nomAuditApplyAll()" id="nomAuditFixAllBtn"
+                style="padding:7px 16px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);
+                color:#fbbf24;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;
+                font-family:var(--font-body);display:flex;align-items:center;gap:6px;">
+                <i class="fas fa-wand-magic-sparkles"></i>
+                Apply all ${report.autoFixable} auto-fixable corrections
+            </button>
+            <span style="font-size:10px;color:var(--text-tertiary);">Write mode required · each fix is logged to audit trail</span>
+        </div>` : '';
+
+    // Variant rows
+    const rowsHTML = report.affected.map(({ variant: v, fields }) => {
+        const fieldRows = Object.entries(fields).map(([fieldKey, fd]) => {
+            if (!fd.suggested && !fd.result.warnings.length) return '';
+            const fieldLabel = { legacy_name:'Legacy', protein_name:'Protein', cdna_name:'cDNA' }[fieldKey] || fieldKey;
+            const issues = [...fd.result.errors.map(e => ({...e, level:'error'})),
+                           ...fd.result.warnings.map(w => ({...w, level:'warning'}))];
+            const primary = issues[0];
+            if (!primary) return '';
+            const c = primary.level === 'error' ? '#f87171' : '#fbbf24';
+            const fixBtn = fd.suggested && fd.canAutoFix
+                ? `<button onclick="nomAuditApplyFix(${v.id},'${fieldKey}','${(fd.suggested||'').replace(/'/g,"\'")}',this)"
+                    style="margin-left:8px;font-size:10px;padding:2px 8px;border-radius:4px;
+                    border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.08);color:#fbbf24;
+                    cursor:pointer;font-family:var(--font-body);">
+                    Fix → <code style="font-size:9px;font-family:var(--font-mono);">${escapeHTML(fd.suggested)}</code>
+                </button>` : '';
+            return `<div style="padding:5px 0;border-bottom:1px solid rgba(99,140,210,0.06);">
+                <span style="font-size:10px;font-weight:700;color:var(--text-tertiary);
+                    text-transform:uppercase;letter-spacing:.06em;margin-right:8px;">${fieldLabel}</span>
+                <code style="font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);">${escapeHTML(fd.original)}</code>
+                <span style="font-size:11px;color:${c};margin-left:8px;">${primary.msg}</span>
+                ${fixBtn}
+            </div>`;
+        }).join('');
+        if (!fieldRows) return '';
+        return `<div style="padding:12px 14px;border:1px solid rgba(99,140,210,0.1);border-radius:8px;margin-bottom:8px;background:rgba(41,121,255,0.02);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <span style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--text-primary);">
+                    ${escapeHTML(v.legacy_name)}
+                </span>
+                ${v.cftr_class ? `<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(41,121,255,0.1);color:var(--brand);">Class ${v.cftr_class}</span>` : ''}
+                <span style="font-size:10px;color:var(--text-tertiary);margin-left:auto;">${v.search_hit_count||0} searches</span>
+            </div>
+            ${fieldRows}
+        </div>`;
+    }).join('');
+
+    // Duplicate candidates
+    const dupesHTML = report.duplicateCandidates.length > 0 ? `
+        <div style="margin-top:20px;margin-bottom:8px;">
+            <div style="font-size:11px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">
+                <i class="fas fa-copy" style="margin-right:5px;"></i>
+                ${report.duplicateCandidates.length} possible duplicate variant${report.duplicateCandidates.length!==1?'s':''}
+            </div>
+            ${report.duplicateCandidates.map(d => `
+                <div style="padding:10px 14px;border:1px solid rgba(248,113,113,0.2);border-radius:8px;margin-bottom:6px;background:rgba(248,113,113,0.04);">
+                    <code style="font-size:11px;color:var(--text-primary);font-family:var(--font-mono);">${escapeHTML(d.a.legacy_name)}</code>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin:0 8px;">and</span>
+                    <code style="font-size:11px;color:var(--text-primary);font-family:var(--font-mono);">${escapeHTML(d.b.legacy_name)}</code>
+                    <span style="display:block;font-size:10px;color:var(--text-tertiary);margin-top:3px;">${escapeHTML(d.reason)} — manual review required</span>
+                </div>`).join('')}
+        </div>` : '';
+
+    body.innerHTML = summaryHTML + fixAllHTML + rowsHTML + dupesHTML;
+}
+
+/** Applies a single field fix to a variant (requires write mode) */
+async function nomAuditApplyFix(variantId, fieldKey, suggestedValue, btnEl) {
+    requireWriteMode(async () => {
+        if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Saving…'; }
+        try {
+            const r = await hFetch(`variants?id=eq.${variantId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ [fieldKey]: suggestedValue, updated_at: new Date().toISOString() })
+            });
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            // Update STATE
+            const v = STATE.variantsById?.get(variantId) || STATE.variants.find(x => x.id === variantId);
+            if (v) {
+                v[fieldKey] = suggestedValue;
+                STATE.variantsById?.set(variantId, v);
+            }
+            await writeAuditLog({
+                action:          'nomenclature_fix',
+                variant_id:      variantId,
+                variant_name:    v?.legacy_name || String(variantId),
+                field_changed:   fieldKey,
+                old_value:       v?.[fieldKey] || null,
+                new_value:       suggestedValue,
+                clinician_name:  STATE.searchIntelligence?.clinicianName || 'System',
+                clinician_role:  'Database curator',
+                note:            'Nomenclature audit auto-fix',
+            });
+            if (btnEl) {
+                btnEl.textContent = '✓ Fixed';
+                btnEl.style.color = '#34d399';
+                btnEl.style.borderColor = 'rgba(52,211,153,0.3)';
+                btnEl.style.background = 'rgba(52,211,153,0.08)';
+            }
+            showNotification(`${fieldKey.replace('_name','')} name corrected`, 'success', 2500);
+        } catch(e) {
+            if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Retry'; }
+            showNotification(`Fix failed: ${e.message}`, 'error');
+        }
+    }, 'Applying nomenclature fix requires write mode');
+}
+
+/** Applies all auto-fixable corrections in sequence */
+async function nomAuditApplyAll() {
+    requireWriteMode(async () => {
+        const report  = runNomenclatureAudit();
+        const fixable = report.affected.filter(a => a.autoFixable);
+        if (!fixable.length) { showNotification('Nothing to fix', 'info'); return; }
+
+        const btn = document.getElementById('nomAuditFixAllBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying fixes…'; }
+
+        let fixed = 0, failed = 0;
+        for (const { variant: v, fields } of fixable) {
+            const patch = {};
+            Object.entries(fields).forEach(([fieldKey, fd]) => {
+                if (fd.suggested && fd.canAutoFix) patch[fieldKey] = fd.suggested;
+            });
+            if (!Object.keys(patch).length) continue;
+            patch.updated_at = new Date().toISOString();
+            try {
+                const r = await hFetch(`variants?id=eq.${v.id}`, { method: 'PATCH', body: JSON.stringify(patch) });
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                Object.assign(v, patch);
+                STATE.variantsById?.set(v.id, v);
+                await writeAuditLog({
+                    action: 'nomenclature_batch_fix', variant_id: v.id,
+                    variant_name: v.legacy_name, clinician_name: STATE.searchIntelligence?.clinicianName || 'System',
+                    clinician_role: 'Database curator', note: `Batch fix: ${Object.keys(patch).join(', ')}`
+                });
+                fixed++;
+            } catch(e) { failed++; }
+        }
+
+        if (btn) { btn.disabled = false; btn.textContent = `✓ ${fixed} fixed${failed ? `, ${failed} failed` : ''}`; }
+        showNotification(`Nomenclature audit: ${fixed} corrections applied${failed ? `, ${failed} failed` : ''}`, fixed > 0 ? 'success' : 'error');
+
+        // Refresh the report
+        setTimeout(() => {
+            const body = document.getElementById('nomAuditBody');
+            if (body) { body.innerHTML = '<div style="font-size:11px;color:var(--text-tertiary);padding:12px;">Refreshing…</div>'; }
+            setTimeout(openNomenclatureAudit, 300);
+        }, 1200);
+    }, 'Applying batch nomenclature fixes requires write mode');
+}
+
 function renderSICharts() {
     populateSITab('overview');
     renderSIBadges();
@@ -21326,9 +22038,24 @@ function calculateGapScore(variant) {
                    : 'ADEQUATE';
 
     const result = { score, gapLevel, missing, recommendations: recs };
-    // Write-through to registry
+    // Write-through to in-memory registry
     if (variant && variant.id) {
         GAP_REGISTRY.set(variant.id, { ...result, _updatedAt: variant.updated_at });
+    }
+    // Persist to research_gaps table (fire-and-forget)
+    if (variant && variant.id && score > 0) {
+        hFetch('research_gaps', {
+            method: 'POST',
+            headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+            body: JSON.stringify({
+                variant_id:      variant.id,
+                gap_score:       Math.min(score, 100),
+                gap_level:       gapLevel,
+                missing_types:   missing,
+                recommendations: recs,
+                analyzed_at:     new Date().toISOString(),
+            })
+        }).catch(() => {}); // non-fatal
     }
     return result;
 }
@@ -22687,6 +23414,7 @@ function kbOpenCommandPalette() {
         { label: 'Variant Reach Atlas',    icon: 'fa-globe',           group: 'Navigation', action: () => { overlay.remove(); document.getElementById('siTabGeo')?.click(); } },
         { label: 'Search intelligence',       icon: 'fa-brain',           group: 'Navigation', action: () => { overlay.remove(); document.getElementById('siTabSearch')?.click(); } },
         { label: 'Audit trail',               icon: 'fa-clipboard-list',         group: 'Navigation', action: () => { overlay.remove(); showAuditTrail(); } },
+        { label: 'Nomenclature audit',          icon: 'fa-spell-check',            group: 'Navigation', action: () => { overlay.remove(); openNomenclatureAudit(); } },
         // ── Filters & sort ────────────────────────────────────────────────────
         { label: 'Clear all filters',         icon: 'fa-filter-circle-xmark', group: 'Filters',
           action: () => { overlay.remove(); _clearAllFilters(); } },
@@ -23639,6 +24367,7 @@ async function init() {
     // Phase 1: load DB-driven configs in parallel — non-blocking
     Promise.all([loadClassRules(), loadJournalImpacts(), loadCftrClassRules()]).catch(() => {});
     IdleGuard.start(); // ITEM 8: idle timeout guard
+    heliosFeedbackLoad(); // Load Helios feedback from Supabase
     attachVariantNameValidation(); // Nomenclature validation on entry form
     await loadVariants();
     initHospital();
@@ -26539,45 +27268,68 @@ async function heliosReleaseItem(itemId, clinicianName) {
     } catch(e) { /* non-fatal */ }
 }
 
+
 // ================================================================
-// HELIOS FEEDBACK LOOP ENGINE
-// Tracks approval/rejection rates per scan_source and item_type.
-// Dynamically adjusts bot_confidence thresholds so over-flagging
-// sources get suppressed and high-signal sources get amplified.
-// Persisted in localStorage as 'helix_feedback_v1'.
+// HELIOS FEEDBACK LOOP ENGINE — Supabase-backed
+// Moved from localStorage to helios_feedback table.
+// In-memory cache for performance; syncs to Supabase on each record.
+// localStorage kept as offline fallback.
 // ================================================================
-const HELIOS_FEEDBACK = (() => {
-    try { return JSON.parse(localStorage.getItem('helix_feedback_v1') || '{}'); } catch { return {}; }
-})();
+const HELIOS_FEEDBACK = {};  // in-memory cache; populated by heliosFeedbackLoad()
+
+async function heliosFeedbackLoad() {
+    try {
+        const r = await hFetch('helios_feedback?select=scan_source,item_type,approved,rejected,deferred,total');
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const rows = await r.json();
+        rows.forEach(row => {
+            const key = `${row.scan_source}::${row.item_type}`;
+            HELIOS_FEEDBACK[key] = { approved:row.approved, rejected:row.rejected, deferred:row.deferred, total:row.total };
+        });
+        console.log(`[NeumuacFQ Helios] Feedback loaded: ${rows.length} entries`);
+    } catch(e) {
+        // Offline fallback
+        try { Object.assign(HELIOS_FEEDBACK, JSON.parse(localStorage.getItem('helix_feedback_v1') || '{}')); } catch {}
+    }
+}
 
 function heliosFeedbackRecord(item, outcome) {
-    // outcome: 'approved' | 'rejected' | 'deferred'
-    const key = `${item.scan_source || 'UNKNOWN'}::${item.item_type || 'UNKNOWN'}`;
-    if (!HELIOS_FEEDBACK[key]) HELIOS_FEEDBACK[key] = { approved: 0, rejected: 0, deferred: 0, total: 0 };
+    const scanSource = item.scan_source || 'UNKNOWN';
+    const itemType   = item.item_type   || 'UNKNOWN';
+    const key = `${scanSource}::${itemType}`;
+    if (!HELIOS_FEEDBACK[key]) HELIOS_FEEDBACK[key] = { approved:0, rejected:0, deferred:0, total:0 };
     HELIOS_FEEDBACK[key][outcome] = (HELIOS_FEEDBACK[key][outcome] || 0) + 1;
-    HELIOS_FEEDBACK[key].total = (HELIOS_FEEDBACK[key].total || 0) + 1;
-    HELIOS_FEEDBACK[key].lastUpdated = new Date().toISOString();
-    try { localStorage.setItem('helix_feedback_v1', JSON.stringify(HELIOS_FEEDBACK)); } catch {}
+    HELIOS_FEEDBACK[key].total    = (HELIOS_FEEDBACK[key].total    || 0) + 1;
+    // Upsert to Supabase
+    hFetch('helios_feedback', {
+        method: 'POST',
+        headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({
+            scan_source: scanSource, item_type: itemType,
+            approved: HELIOS_FEEDBACK[key].approved, rejected: HELIOS_FEEDBACK[key].rejected,
+            deferred: HELIOS_FEEDBACK[key].deferred, total: HELIOS_FEEDBACK[key].total,
+            last_updated: new Date().toISOString(),
+        })
+    }).catch(() => {
+        try { localStorage.setItem('helix_feedback_v1', JSON.stringify(HELIOS_FEEDBACK)); } catch {}
+    });
     heliosFeedbackRefreshPanel();
 }
 
 function heliosFeedbackApprovalRate(scanSource, itemType) {
     const key = `${scanSource || 'UNKNOWN'}::${itemType || 'UNKNOWN'}`;
     const d = HELIOS_FEEDBACK[key];
-    if (!d || d.total < 3) return null; // not enough data
+    if (!d || d.total < 3) return null;
     return d.approved / d.total;
 }
 
-// Adjust confidence based on feedback: boost if historically approved, penalise if historically rejected
 function heliosFeedbackAdjustConfidence(item) {
     const rate = heliosFeedbackApprovalRate(item.scan_source, item.item_type);
     if (rate === null) return item.bot_confidence ?? 50;
-    // rate 1.0 → +15 pts, rate 0.0 → -25 pts, linear
     const delta = rate >= 0.5 ? Math.round((rate - 0.5) * 30) : Math.round((rate - 0.5) * 50);
     return Math.max(5, Math.min(98, (item.bot_confidence ?? 50) + delta));
 }
 
-// Decide if a source is suppressed (>= 5 decisions, approval rate < 15%)
 function heliosFeedbackIsSuppressed(scanSource, itemType) {
     const key = `${scanSource || 'UNKNOWN'}::${itemType || 'UNKNOWN'}`;
     const d = HELIOS_FEEDBACK[key];
@@ -26585,6 +27337,13 @@ function heliosFeedbackIsSuppressed(scanSource, itemType) {
     return (d.approved / d.total) < 0.15;
 }
 
+async function heliosFeedbackReset() {
+    if (!confirm('Reset all Helios feedback calibration data?')) return;
+    Object.keys(HELIOS_FEEDBACK).forEach(k => delete HELIOS_FEEDBACK[k]);
+    try { localStorage.removeItem('helix_feedback_v1'); } catch {}
+    try { await hFetch('helios_feedback?scan_source=not.is.null', { method: 'DELETE' }); } catch {}
+    heliosFeedbackRefreshPanel();
+}
 function heliosFeedbackRefreshPanel() {
     const panel = document.getElementById('heliosFeedbackPanel');
     if (!panel) return;
@@ -27387,17 +28146,22 @@ function heliosCheckVariantConsistency(v) {
         });
     }
 
-    // 2. Class I + responsive = possible but needs justification, ROUTINE
+    // 2. Class I + responsive — escalate to URGENT if FDA-confirmed non-responsive
     if (v.cftr_class === 'I' && v.eti_prediction === 'responsive' && v.class_subtype !== 'exceptional') {
+        const names = [v.legacy_name, v.protein_name].filter(Boolean).map(n => n.trim());
+        const isFdaNonResp = typeof ETI_AUTHORITY !== 'undefined'
+            && names.some(n => ETI_AUTHORITY.fda_non_responsive?.has(n));
         issues.push({
             item_type:      'INTERNAL_LOGIC',
-            bot_summary:    `Class I variant marked as 'responsive' — verify if this is a documented exceptional case`,
-            bot_reasoning:  `Class I variants (nonsense/stop mutations) are typically non-responsive to ETI. Exceptional cases exist but must be documented. If intentional, use Mark Exceptional to suppress this alert.`,
-            bot_confidence: 50,
-            proposed_field: 'class_subtype',
-            proposed_value: 'exceptional',
-            current_value:  v.class_subtype || 'not set',
-            _priority:      'ROUTINE'
+            bot_summary:    `Class I variant marked as 'responsive' — contradicts standard${isFdaNonResp ? ' and FDA label' : ' class rules'}`,
+            bot_reasoning:  isFdaNonResp
+                ? `${v.legacy_name} is a Class I nonsense/frameshift mutation confirmed non-responsive by CFTR2 and the FDA prescribing label. No approved modulator targets this variant type. The current 'responsive' prediction requires urgent correction.`
+                : `Class I variants (nonsense/stop mutations) produce no functional CFTR protein — there is no substrate for modulators to act on. Current value 'responsive' may be incorrect unless this is a documented exceptional case.`,
+            bot_confidence: isFdaNonResp ? 92 : 65,
+            proposed_field: 'eti_prediction',
+            proposed_value: 'non_responsive',
+            current_value:  v.eti_prediction,
+            _priority:      isFdaNonResp ? 'URGENT' : 'ROUTINE'
         });
     }
 
@@ -27505,6 +28269,111 @@ function heliosCheckVariantConsistency(v) {
             bot_confidence: 70,
             _priority:      'ROUTINE'
         });
+    }
+
+    // 11. ETI_AUTHORITY conflict — variant-specific FDA/CFTR2 check
+    // Cross-references the ETI_AUTHORITY table for known variants.
+    // This is higher confidence than the class-level checks above.
+    if (v.eti_prediction && typeof ETI_AUTHORITY !== 'undefined') {
+        const names = [v.legacy_name, v.protein_name].filter(Boolean).map(n => n.trim());
+        const isFdaApproved    = names.some(n => ETI_AUTHORITY.fda_trikafta_approved?.has(n));
+        const isFdaNonResp     = names.some(n => ETI_AUTHORITY.fda_non_responsive?.has(n));
+
+        if (isFdaNonResp && v.eti_prediction === 'responsive' && v.class_subtype !== 'exceptional') {
+            issues.push({
+                item_type:      'INTERNAL_LOGIC',
+                bot_summary:    `${v.legacy_name}: FDA/CFTR2 confirms non-responsive — database says 'responsive'`,
+                bot_reasoning:  `${v.legacy_name} is listed in the CFTR2 / FDA confirmed non-responsive registry. No approved modulator targets this variant. The current ETI prediction 'responsive' contradicts authoritative clinical evidence. This is an URGENT data quality issue.`,
+                bot_confidence: 95,
+                proposed_field: 'eti_prediction',
+                proposed_value: 'non_responsive',
+                current_value:  v.eti_prediction,
+                _priority:      'URGENT',
+                _source:        'FDA_AUTHORITY'
+            });
+        }
+        if (isFdaApproved && v.eti_prediction !== 'responsive' && v.eti_prediction !== null) {
+            issues.push({
+                item_type:      'INTERNAL_LOGIC',
+                bot_summary:    `${v.legacy_name}: FDA-approved for Trikafta — database says '${v.eti_prediction}'`,
+                bot_reasoning:  `${v.legacy_name} has FDA-approved indication for elexacaftor/tezacaftor/ivacaftor (Trikafta). The current ETI prediction '${v.eti_prediction}' contradicts the FDA prescribing label. Update to 'responsive' and set eti_evidence_tier to 'fda_approved'.`,
+                bot_confidence: 95,
+                proposed_field: 'eti_prediction',
+                proposed_value: 'responsive',
+                current_value:  v.eti_prediction,
+                _priority:      'URGENT',
+                _source:        'FDA_AUTHORITY'
+            });
+        }
+    }
+
+    // 12. Well-known variant class mismatch
+    // F508del MUST be Class II. G551D MUST be Class III. These are not negotiable.
+    const CANONICAL_CLASS = {
+        'F508del': 'II', 'p.Phe508del': 'II', 'G551D': 'III', 'p.Gly551Asp': 'III',
+        'W1282X': 'I', 'p.Trp1282Ter': 'I', 'G542X': 'I', 'R553X': 'I',
+        'N1303K': 'II', 'R117H': 'IV', 'p.Arg117His': 'IV',
+    };
+    const canonicalClass = CANONICAL_CLASS[v.legacy_name] || CANONICAL_CLASS[v.protein_name];
+    if (canonicalClass && v.cftr_class && v.cftr_class !== canonicalClass && v.class_subtype !== 'exceptional') {
+        issues.push({
+            item_type:      'INTERNAL_LOGIC',
+            bot_summary:    `${v.legacy_name} is definitively Class ${canonicalClass} — current assignment is Class ${v.cftr_class}`,
+            bot_reasoning:  `${v.legacy_name} has a well-established CFTR class (${canonicalClass}) based on its molecular mechanism and extensive clinical literature. Assigning Class ${v.cftr_class} is almost certainly a data entry error. This is an URGENT correction.`,
+            bot_confidence: 97,
+            proposed_field: 'cftr_class',
+            proposed_value: canonicalClass,
+            current_value:  v.cftr_class,
+            _priority:      'URGENT'
+        });
+    }
+
+    // 13. High demand + zero validations — patient safety risk
+    if ((v.search_hit_count || 0) >= 10 && !(v.validation_count || 0)) {
+        issues.push({
+            item_type:      'INTERNAL_ORPHAN',
+            bot_summary:    `${v.legacy_name} searched ${v.search_hit_count} times — zero clinical validations`,
+            bot_reasoning:  `This variant is actively used in clinical searches (${v.search_hit_count} hits) but has never been validated by a clinician. Unvalidated high-demand variants are a patient safety risk. Priority validation recommended.`,
+            bot_confidence: 88,
+            _priority:      'URGENT'
+        });
+    }
+
+    // 14. Exceptional case without clinical notes
+    if (v.class_subtype === 'exceptional' && !v.clinician_note && !v.clinical_alert) {
+        issues.push({
+            item_type:      'INTERNAL_ORPHAN',
+            bot_summary:    `${v.legacy_name} marked exceptional but no clinical justification recorded`,
+            bot_reasoning:  `Exceptional cases require documented clinical justification for governance and audit trail purposes. Add a clinical note explaining why the standard class rules do not apply to this variant.`,
+            bot_confidence: 80,
+            _priority:      'ROUTINE'
+        });
+    }
+
+    // 15. Evidence DOIs present but evidence_links empty — unenriched evidence
+    if ((v.evidence_doi || []).length > 0 && (!v.evidence_links || v.evidence_links.length === 0)) {
+        issues.push({
+            item_type:      'INTERNAL_ORPHAN',
+            bot_summary:    `${v.legacy_name} has ${v.evidence_doi.length} DOI(s) but no enriched evidence links`,
+            bot_reasoning:  `Evidence DOIs are recorded but have not been enriched with PubMed metadata (titles, abstracts, study type, year). Run the Helios external scan to enrich this evidence and enable evidence quality scoring.`,
+            bot_confidence: 75,
+            _priority:      'ROUTINE'
+        });
+    }
+
+    // 16. Stale evidence on high-demand variant (> 2 years old)
+    if (v.last_evidence_update && (v.search_hit_count || 0) >= 5) {
+        const ageMs = Date.now() - new Date(v.last_evidence_update).getTime();
+        const ageDays = ageMs / 86400000;
+        if (ageDays > 730) {
+            issues.push({
+                item_type:      'INTERNAL_ORPHAN',
+                bot_summary:    `${v.legacy_name}: evidence last updated ${Math.round(ageDays/365)} year(s) ago — re-scan recommended`,
+                bot_reasoning:  `This variant is frequently searched (${v.search_hit_count} hits) but its evidence was last updated ${Math.round(ageDays/365)} year(s) ago. The ETI landscape has changed significantly — a new Helios scan may find updated clinical trial data or modulator approvals.`,
+                bot_confidence: 60,
+                _priority:      'ROUTINE'
+            });
+        }
     }
 
     return issues;
@@ -27619,9 +28488,17 @@ async function heliosScanSingle() {
 
     // Internal checks
     const issues = heliosCheckVariantConsistency(v);
+    // Dedup: skip issues already pending for this variant
+    const existingKeys = new Set(
+        (HELIOS.pendingItems || [])
+            .filter(i => String(i.variant_id) === String(v.id) && i.status === 'pending')
+            .map(i => `${i.item_type}::${i.proposed_field||''}::${i.current_value||''}`)
+    );
     for (const issue of issues) {
-        const { _priority, ...issueData } = issue;
-        await heliosCreatePendingItem({ ...issueData, variant_id: v.id, variant_name: v.legacy_name, scan_source: 'INTERNAL', priority: _priority || 'ROUTINE' });
+        const dupKey = `${issue.item_type}::${issue.proposed_field||''}::${issue.current_value||''}`;
+        if (existingKeys.has(dupKey)) { heliosLog('info', `  ↳ Skipped duplicate: ${issue.bot_summary?.slice(0,50)}`); continue; }
+        const { _priority, _source, ...issueData } = issue;
+        await heliosCreatePendingItem({ ...issueData, variant_id: v.id, variant_name: v.legacy_name, scan_source: _source || 'INTERNAL', priority: _priority || 'ROUTINE' });
     }
 
     // External
@@ -28490,12 +29367,9 @@ async function helixLoadTrends() {
     const container = document.getElementById('helixTrendPanel');
     if (!container) return;
     try {
-        // platform_snapshots: table not yet created — chart skipped until migration runs
-        // 404 = table not created yet — show a quiet informational message, not an error
-        if (r.status === 404) {
-            container.innerHTML = `<div style="font-size:11px;color:var(--text-tertiary);padding:16px;">Trend data unavailable — <code>platform_snapshots</code> table needs creating (see SQL migrations).</div>`;
-            return;
-        }
+        const r = await hFetch(
+            'platform_snapshots?select=snapshot_date,total_variants,hit_rate_pct,miss_count,validated_count,total_searches&order=snapshot_date.asc&limit=120'
+        );
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const snaps = await r.json();
         if (!snaps.length) {
