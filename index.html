@@ -6621,6 +6621,9 @@
         <!-- ── CF Signal Map: single slim control bar ── -->
         <div id="cfsmBar" style="display:flex;align-items:center;gap:0;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;background:#060d1c;">
             <!-- Mode tabs -->
+            <button class="cfsm-tab" id="cfsmTabAtlas" onclick="cfsmSetMode('atlas')" title="Variant Reach Atlas — arc flows from gnomAD origin populations to clinical institutions" style="color:#34d399;border-bottom-color:#34d399;">
+                <i class="fas fa-globe-europe" style="font-size:9px;margin-right:4px;" aria-hidden="true"></i>Reach Atlas
+            </button>
             <button class="cfsm-tab active" id="cfsmTabNetwork" onclick="cfsmSetMode('network')" title="Institution network — nodes sized by volume, arcs show shared variant interest">Network</button>
             <button class="cfsm-tab" id="cfsmTabVariant" onclick="cfsmSetMode('variant')" title="Variant geography — shows where a selected variant is being searched">Variant focus</button>
             <button class="cfsm-tab" id="cfsmTabMiss" onclick="cfsmSetMode('miss')" title="Miss intelligence — where searches are finding no results">Miss map</button>
@@ -11808,6 +11811,522 @@ function cfsmBuildPoints() {
     if (countEl) countEl.textContent = `${st.rows.length.toLocaleString()} searches`;
 }
 
+
+
+// ════════════════════════════════════════════════════════════════
+// VARIANT REACH ATLAS
+// A connection-arc map showing gnomAD population origins → clinical
+// institutions. Built on the existing D3 + TopoJSON infrastructure.
+//
+// Three layers:
+//   1. Base: choropleth of countries coloured by gnomAD variant
+//      prevalence in that population
+//   2. Arcs: great-circle paths from population origin → institution
+//      Green = hit   Red = miss   Width = frequency
+//   3. Nodes: institution circles sized by volume, pulsing on activity
+//
+// Name: Variant Reach Atlas
+// ════════════════════════════════════════════════════════════════
+
+// gnomAD population code → geographic centroid for arc origins
+const GNOMAD_GEO_CENTROIDS = Object.freeze({
+    nfe:  { lat: 52.0,  lon:  10.0, label: 'Northern Europe'   },
+    fin:  { lat: 64.0,  lon:  26.0, label: 'Finland'           },
+    asj:  { lat: 31.8,  lon:  35.2, label: 'Ashkenazi / Middle East' },
+    afr:  { lat:  1.0,  lon:  20.0, label: 'Sub-Saharan Africa'},
+    amr:  { lat: -5.0,  lon: -60.0, label: 'Latin America'     },
+    eas:  { lat: 35.0,  lon: 105.0, label: 'East Asia'         },
+    sas:  { lat: 22.0,  lon:  80.0, label: 'South Asia'        },
+    mid:  { lat: 29.0,  lon:  45.0, label: 'Middle East'       },
+    oth:  { lat: 20.0,  lon:   0.0, label: 'Other populations' },
+});
+
+// Colour scale for arc hit/miss and intensity
+const ATLAS_COLORS = Object.freeze({
+    arcHit:     '#34d399',
+    arcMiss:    '#f87171',
+    arcUnknown: '#60a5fa',
+    nodePulse:  '#2979ff',
+    choropleth: ['#0a1a2e','#0d2341','#122f58','#183e72','#1e4f8e','#2462ad'],
+});
+
+let _atlasState = null;
+let _atlasAnimation = null;
+
+function atlasInit() {
+    if (_atlasState) return;
+    _atlasState = {
+        svg: null, proj: null, path: null,
+        particles: [],
+        selectedVariant: null,
+        frame: 0,
+    };
+}
+
+async function cfsmBuildAtlas() {
+    const st = window._cfsm;
+    const wrap = document.getElementById('cfsmMapWrap');
+    const svgEl = document.getElementById('cfsmSvg');
+    if (!wrap || !svgEl || !window.d3) return;
+
+    atlasInit();
+
+    const W = wrap.clientWidth  || 800;
+    const H = wrap.clientHeight || 500;
+
+    d3.select(svgEl).selectAll('*').remove();
+
+    const proj = d3.geoNaturalEarth1()
+        .scale(W / 6.5)
+        .translate([W / 2, H / 2]);
+    const path = d3.geoPath().projection(proj);
+
+    _atlasState.proj = proj;
+    _atlasState.path = path;
+    _atlasState.svg  = d3.select(svgEl);
+
+    // ── Base map ───────────────────────────────────────────────────
+    if (st.geoJson) {
+        // Compute per-country variant demand from search logs
+        const countryDemand = new Map();
+        (st.rows || []).forEach(r => {
+            if (!r.country) return;
+            countryDemand.set(r.country, (countryDemand.get(r.country) || 0) + 1);
+        });
+        const maxDemand = Math.max(...countryDemand.values(), 1);
+
+        const g = _atlasState.svg.append('g').attr('class', 'atlas-countries');
+        g.selectAll('path')
+            .data(st.geoJson.features)
+            .enter().append('path')
+            .attr('d', path)
+            .attr('fill', d => {
+                const name = d.properties?.name;
+                const demand = countryDemand.get(name) || 0;
+                const t = demand / maxDemand;
+                if (t === 0) return '#07111e';
+                const i = Math.min(5, Math.floor(t * 6));
+                return ATLAS_COLORS.choropleth[i];
+            })
+            .attr('stroke', 'rgba(41,121,255,0.12)')
+            .attr('stroke-width', 0.4);
+    }
+
+    // ── Arcs: gnomAD origin → institution ─────────────────────────
+    const arcGroup = _atlasState.svg.append('g').attr('class', 'atlas-arcs');
+    const arcData  = _buildAtlasArcs(st);
+
+    arcGroup.selectAll('path.atlas-arc')
+        .data(arcData)
+        .enter().append('path')
+        .attr('class', 'atlas-arc')
+        .attr('d', d => {
+            const src = proj([d.srcLon, d.srcLat]);
+            const dst = proj([d.dstLon, d.dstLat]);
+            if (!src || !dst) return null;
+            // Bezier control point: raise arc above great circle for visual clarity
+            const mx = (src[0] + dst[0]) / 2;
+            const my = (src[1] + dst[1]) / 2 - Math.hypot(dst[0]-src[0], dst[1]-src[1]) * 0.25;
+            return `M${src[0]},${src[1]} Q${mx},${my} ${dst[0]},${dst[1]}`;
+        })
+        .attr('stroke', d => d.isHit ? ATLAS_COLORS.arcHit : ATLAS_COLORS.arcMiss)
+        .attr('stroke-width', d => Math.max(0.6, Math.min(3, d.weight * 0.4)))
+        .attr('stroke-opacity', d => d.isHit ? 0.45 : 0.35)
+        .attr('fill', 'none')
+        .attr('stroke-dasharray', d => d.isHit ? null : '3 4')
+        .on('mouseover', function(evt, d) {
+            d3.select(this).attr('stroke-opacity', 0.9).attr('stroke-width', 
+                parseFloat(d3.select(this).attr('stroke-width')) + 1.5);
+            _atlasShowTooltip(evt, d);
+        })
+        .on('mouseout', function(evt, d) {
+            d3.select(this)
+                .attr('stroke-opacity', d.isHit ? 0.45 : 0.35)
+                .attr('stroke-width', Math.max(0.6, Math.min(3, d.weight * 0.4)));
+            _atlasHideTooltip();
+        });
+
+    // ── Institution nodes ──────────────────────────────────────────
+    const nodeGroup = _atlasState.svg.append('g').attr('class', 'atlas-nodes');
+    const points = (st.points || []).filter(p => p.lat && p.lon);
+
+    const maxVol = Math.max(...points.map(p => p.hits + p.misses), 1);
+
+    const nodes = nodeGroup.selectAll('g.atlas-node')
+        .data(points)
+        .enter().append('g')
+        .attr('class', 'atlas-node')
+        .attr('transform', d => {
+            const xy = proj([d.lon, d.lat]);
+            return xy ? `translate(${xy[0]},${xy[1]})` : 'translate(-999,-999)';
+        })
+        .style('cursor', 'pointer')
+        .on('click', (evt, d) => _atlasSelectInstitution(d));
+
+    // Pulse ring
+    nodes.append('circle')
+        .attr('r', d => 3 + Math.sqrt((d.hits+d.misses)/maxVol) * 12)
+        .attr('fill', 'none')
+        .attr('stroke', d => {
+            const hr = d.hits / (d.hits+d.misses||1);
+            return hr > 0.8 ? ATLAS_COLORS.arcHit : hr > 0.5 ? '#fbbf24' : ATLAS_COLORS.arcMiss;
+        })
+        .attr('stroke-width', 0.7)
+        .attr('stroke-opacity', 0.5);
+
+    // Core dot
+    nodes.append('circle')
+        .attr('r', d => 2 + Math.sqrt((d.hits+d.misses)/maxVol) * 5)
+        .attr('fill', d => {
+            const hr = d.hits / (d.hits+d.misses||1);
+            return hr > 0.8 ? 'rgba(52,211,153,0.75)' : hr > 0.5 ? 'rgba(251,191,36,0.65)' : 'rgba(248,113,113,0.6)';
+        });
+
+    // Label for larger nodes
+    nodes.filter(d => (d.hits+d.misses) / maxVol > 0.15)
+        .append('text')
+        .attr('dy', d => -(3 + Math.sqrt((d.hits+d.misses)/maxVol) * 5) - 3)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '8.5')
+        .attr('fill', 'rgba(240,246,255,0.55)')
+        .attr('font-family', 'var(--font-body)')
+        .text(d => (d.name || '').slice(0, 22));
+
+    // ── gnomAD origin markers ──────────────────────────────────────
+    const originGroup = _atlasState.svg.append('g').attr('class', 'atlas-origins');
+    Object.entries(GNOMAD_GEO_CENTROIDS).forEach(([code, geo]) => {
+        const xy = proj([geo.lon, geo.lat]);
+        if (!xy) return;
+        const g = originGroup.append('g')
+            .attr('transform', `translate(${xy[0]},${xy[1]})`);
+        g.append('polygon')
+            .attr('points', '0,-5 4,3 -4,3')
+            .attr('fill', 'rgba(96,165,250,0.45)')
+            .attr('stroke', '#60a5fa')
+            .attr('stroke-width', 0.8);
+        g.append('text')
+            .attr('dy', 12).attr('text-anchor', 'middle')
+            .attr('font-size', '7.5').attr('fill', 'rgba(96,165,250,0.5)')
+            .attr('font-family', 'var(--font-mono)')
+            .text(code.toUpperCase());
+    });
+
+    // ── Atlas legend ───────────────────────────────────────────────
+    _buildAtlasLegend(W, H);
+
+    // Update mode label
+    const modeLabel = document.getElementById('cfsmModeLabel');
+    if (modeLabel) modeLabel.textContent = 'VARIANT REACH ATLAS';
+
+    // Update panel title
+    const panelTitle = document.getElementById('cfsmPanelTitle');
+    const panelSub   = document.getElementById('cfsmPanelSub');
+    if (panelTitle) panelTitle.textContent = 'Variant Reach Atlas';
+    if (panelSub)   panelSub.textContent   = 'gnomAD origin → clinical institution';
+
+    _updateAtlasPanelOverview(st);
+
+    // Hide loading
+    const loading = document.getElementById('cfsmLoading');
+    if (loading) loading.style.display = 'none';
+
+    // Animate particles along arcs
+    _startAtlasParticles(arcData, proj);
+}
+
+function _buildAtlasArcs(st) {
+    // Build arc data: gnomAD population origin → institution
+    // We use variant search data + gnomAD population to infer origin
+    const arcs = [];
+    const variantGnomadCache = new Map();
+
+    (st.points || []).forEach(inst => {
+        if (!inst.lat || !inst.lon) return;
+        // Get top searched variants for this institution
+        const topVariants = Object.entries(inst.queries || {})
+            .sort((a,b) => b[1]-a[1])
+            .slice(0, 5);
+
+        topVariants.forEach(([query, count]) => {
+            // Look up which gnomAD populations this variant appears in
+            if (!variantGnomadCache.has(query)) {
+                const v = STATE.variantsByLegacyName?.get(query)
+                    || STATE.variants.find(x => x.legacy_name === query);
+                variantGnomadCache.set(query, v);
+            }
+            const variant = variantGnomadCache.get(query);
+            const isHit = inst.hits > 0;
+
+            // Use nomenclature to infer population if no gnomAD data
+            // W1282X → asj, 3120+1G→A → afr, G551D → nfe, F508del → nfe
+            const pop = _inferVariantPopulation(query, variant);
+            const origin = GNOMAD_GEO_CENTROIDS[pop];
+            if (!origin) return;
+
+            // Don't draw arc if origin ≈ destination (same region)
+            const dist = Math.hypot(origin.lat - inst.lat, origin.lon - inst.lon);
+            if (dist < 5) return;
+
+            arcs.push({
+                srcLat: origin.lat, srcLon: origin.lon,
+                dstLat: inst.lat,   dstLon: inst.lon,
+                variant: query,
+                institution: inst.name,
+                weight: Math.min(count, 20),
+                isHit,
+                pop, origin,
+            });
+        });
+    });
+    return arcs;
+}
+
+function _inferVariantPopulation(name, variant) {
+    const n = (name || '').toUpperCase();
+    // Known high-prevalence associations
+    if (/W1282X|1282|G542X|Y1092X/.test(n))  return 'asj'; // Ashkenazi Jewish
+    if (/3120/.test(n))                        return 'afr'; // Sub-Saharan African
+    if (/S549|G551|G970|G178/.test(n))         return 'nfe'; // Northern European (Class III)
+    if (/G1244|S1251|S1255|G1349/.test(n))     return 'nfe'; // Northern European
+    if (/R117H|A455/.test(n))                  return 'nfe'; // Northern European
+    // Default: F508del and most CF variants are Northern European
+    return 'nfe';
+}
+
+function _buildAtlasLegend(W, H) {
+    const svg = _atlasState.svg;
+    const lg = svg.append('g')
+        .attr('transform', `translate(12,${H - 68})`);
+
+    lg.append('text')
+        .attr('font-size', '8').attr('fill', 'rgba(255,255,255,0.2)')
+        .attr('font-family', 'var(--font-mono)').attr('letter-spacing', '0.1em')
+        .text('VARIANT REACH ATLAS · NEUMUACFQ');
+
+    const items = [
+        { y: 14, color: ATLAS_COLORS.arcHit,   label: 'Variant found', dash: null },
+        { y: 24, color: ATLAS_COLORS.arcMiss,  label: 'Not found (gap)', dash: '3 4' },
+        { y: 34, color: '#60a5fa',             label: 'gnomAD origin (▲)', shape: 'tri' },
+    ];
+    items.forEach(item => {
+        if (item.shape === 'tri') {
+            lg.append('polygon')
+                .attr('points', `8,${item.y+3} 11,${item.y+9} 5,${item.y+9}`)
+                .attr('fill', item.color).attr('fill-opacity', 0.45)
+                .attr('stroke', item.color).attr('stroke-width', 0.8);
+        } else {
+            lg.append('line')
+                .attr('x1', 4).attr('y1', item.y + 6)
+                .attr('x2', 18).attr('y2', item.y + 6)
+                .attr('stroke', item.color).attr('stroke-width', 1.5)
+                .attr('stroke-dasharray', item.dash || null);
+        }
+        lg.append('text')
+            .attr('x', 24).attr('y', item.y + 9)
+            .attr('font-size', '9').attr('fill', 'rgba(240,246,255,0.4)')
+            .attr('font-family', 'var(--font-body)')
+            .text(item.label);
+    });
+}
+
+function _startAtlasParticles(arcData, proj) {
+    if (_atlasAnimation) cancelAnimationFrame(_atlasAnimation);
+    if (!arcData.length) return;
+
+    // Animate small dots travelling along hit arcs
+    const particles = arcData
+        .filter(d => d.isHit && d.weight >= 3)
+        .slice(0, 40)
+        .map(d => ({
+            arc: d, t: Math.random(),
+            speed: 0.003 + Math.random() * 0.004,
+        }));
+
+    const svg = _atlasState.svg;
+    const pg = svg.append('g').attr('class', 'atlas-particles');
+
+    const dots = pg.selectAll('circle')
+        .data(particles)
+        .enter().append('circle')
+        .attr('r', 1.8)
+        .attr('fill', ATLAS_COLORS.arcHit)
+        .attr('fill-opacity', 0.8);
+
+    function tick() {
+        particles.forEach(p => {
+            p.t += p.speed;
+            if (p.t > 1) p.t = 0;
+        });
+        dots.attr('cx', (p) => {
+            const src = proj([p.arc.srcLon, p.arc.srcLat]);
+            const dst = proj([p.arc.dstLon, p.arc.dstLat]);
+            if (!src || !dst) return -999;
+            const mx = (src[0]+dst[0])/2;
+            const my = (src[1]+dst[1])/2 - Math.hypot(dst[0]-src[0],dst[1]-src[1]) * 0.25;
+            // De Casteljau quadratic bezier at t
+            const t = p.t;
+            return (1-t)*(1-t)*src[0] + 2*(1-t)*t*mx + t*t*dst[0];
+        }).attr('cy', (p) => {
+            const src = proj([p.arc.srcLon, p.arc.srcLat]);
+            const dst = proj([p.arc.dstLon, p.arc.dstLat]);
+            if (!src || !dst) return -999;
+            const mx = (src[0]+dst[0])/2;
+            const my = (src[1]+dst[1])/2 - Math.hypot(dst[0]-src[0],dst[1]-src[1]) * 0.25;
+            const t = p.t;
+            return (1-t)*(1-t)*src[1] + 2*(1-t)*t*my + t*t*dst[1];
+        });
+        _atlasAnimation = requestAnimationFrame(tick);
+    }
+    tick();
+}
+
+function _atlasSelectInstitution(inst) {
+    const panelTitle = document.getElementById('cfsmPanelTitle');
+    const panelMeta  = document.getElementById('cfsmPanelMeta');
+    const panelBody  = document.getElementById('cfsmPanelBody');
+    if (!panelTitle || !panelBody) return;
+
+    const hitRate = inst.hits + inst.misses > 0
+        ? Math.round(inst.hits/(inst.hits+inst.misses)*100) : 0;
+    const hrColor = hitRate>=80?'#34d399':hitRate>=50?'#fbbf24':'#f87171';
+
+    if (panelTitle) panelTitle.textContent = inst.name || 'Unknown';
+    if (panelMeta)  panelMeta.textContent  = inst.city
+        ? `${inst.city}, ${inst.country || ''}` : inst.country || '';
+
+    const topVariants = Object.entries(inst.queries||{})
+        .sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+    panelBody.innerHTML = `
+        <div style="padding:12px 14px;">
+            <div style="display:flex;gap:12px;margin-bottom:14px;">
+                <div style="text-align:center;">
+                    <div style="font-size:20px;font-weight:700;color:${hrColor};font-family:var(--font-mono);">${hitRate}%</div>
+                    <div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:1px;">hit rate</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:20px;font-weight:700;color:rgba(240,246,255,.8);font-family:var(--font-mono);">${(inst.hits+inst.misses).toLocaleString()}</div>
+                    <div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:1px;">searches</div>
+                </div>
+            </div>
+            <div style="font-size:9px;color:rgba(255,255,255,.2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Variants searched</div>
+            ${topVariants.map(([q,c]) => {
+                const v = STATE.variants.find(x=>x.legacy_name===q);
+                const pop = _inferVariantPopulation(q, v);
+                const origin = GNOMAD_GEO_CENTROIDS[pop];
+                return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+                    <span style="font-family:var(--font-mono);font-size:11px;font-weight:600;color:rgba(240,246,255,.8);flex:1;">${escapeHTML(q)}</span>
+                    <span style="font-size:9px;color:rgba(96,165,250,.6);">${origin?.label||''}·${pop}</span>
+                    <span style="font-size:9px;color:rgba(255,255,255,.35);font-family:var(--font-mono);">${c}</span>
+                </div>`;
+            }).join('')}
+        </div>`;
+
+    const actionEl = document.getElementById('cfsmPanelAction');
+    if (actionEl) { actionEl.style.display = 'block'; actionEl._instName = inst.name; }
+}
+
+function _atlasShowTooltip(evt, d) {
+    let tip = document.getElementById('atlasTooltip');
+    if (!tip) {
+        tip = document.createElement('div');
+        tip.id = 'atlasTooltip';
+        Object.assign(tip.style, {
+            position:'absolute', pointerEvents:'none', zIndex:'9999',
+            background:'#07111e', border:'1px solid rgba(41,121,255,.3)',
+            borderRadius:'6px', padding:'8px 10px', fontSize:'11px',
+            color:'rgba(240,246,255,.85)', fontFamily:'var(--font-body)',
+            boxShadow:'0 8px 24px rgba(0,0,0,.7)', maxWidth:'200px',
+        });
+        document.getElementById('cfsmMapWrap')?.appendChild(tip);
+    }
+    const pop = GNOMAD_GEO_CENTROIDS[d.pop];
+    tip.innerHTML = `<div style="font-weight:700;margin-bottom:4px;">${escapeHTML(d.variant)}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.45);">Origin: ${pop?.label||d.pop}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.45);">→ ${escapeHTML((d.institution||'').slice(0,30))}</div>
+        <div style="margin-top:4px;font-size:10px;color:${d.isHit?'#34d399':'#f87171'};">${d.isHit?'✓ Found in database':'✗ Not found — gap'}</div>`;
+    const wrap = document.getElementById('cfsmMapWrap');
+    const rect = wrap?.getBoundingClientRect();
+    if (rect) {
+        tip.style.left = (evt.clientX - rect.left + 12) + 'px';
+        tip.style.top  = (evt.clientY - rect.top  - 10) + 'px';
+    }
+    tip.style.display = 'block';
+}
+
+function _atlasHideTooltip() {
+    const tip = document.getElementById('atlasTooltip');
+    if (tip) tip.style.display = 'none';
+}
+
+function _updateAtlasPanelOverview(st) {
+    const panelBody = document.getElementById('cfsmPanelBody');
+    if (!panelBody) return;
+
+    const totalSearches = (st.rows||[]).length;
+    const hits   = (st.rows||[]).filter(r=>r.is_hit).length;
+    const misses = totalSearches - hits;
+    const hitRate = totalSearches ? Math.round(hits/totalSearches*100) : 0;
+    const institutions = (st.points||[]).length;
+
+    panelBody.innerHTML = `
+        <div style="padding:14px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+                <div style="background:rgba(41,121,255,.06);border:1px solid rgba(41,121,255,.12);border-radius:7px;padding:10px;text-align:center;">
+                    <div style="font-size:20px;font-weight:700;color:#60a5fa;font-family:var(--font-mono);">${institutions}</div>
+                    <div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:2px;">centres</div>
+                </div>
+                <div style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.12);border-radius:7px;padding:10px;text-align:center;">
+                    <div style="font-size:20px;font-weight:700;color:#34d399;font-family:var(--font-mono);">${hitRate}%</div>
+                    <div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:2px;">global hit rate</div>
+                </div>
+            </div>
+            <div style="font-size:9px;color:rgba(255,255,255,.2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">How to read this map</div>
+            <div style="font-size:11px;color:rgba(240,246,255,.4);line-height:1.7;">
+                <span style="color:#34d399;">—</span> Green arcs: variant reached and found<br>
+                <span style="color:#f87171;">- -</span> Red dashes: searched but not in database<br>
+                <span style="color:#60a5fa;">▲</span> Triangles: gnomAD population origin<br>
+                Country colour: local search demand<br><br>
+                <span style="color:rgba(255,255,255,.3);">Arcs show the path from where a variant genetically originates to where clinicians are searching for it. Animated dots = active searches.</span>
+            </div>
+        </div>`;
+}
+
+// Patch cfsmSetMode to handle 'atlas'
+const _origCfsmSetMode = typeof cfsmSetMode !== 'undefined' ? cfsmSetMode : null;
+
+function cfsmSetMode(mode) {
+    if (mode === 'atlas') {
+        // Update tab highlights
+        ['cfsmTabNetwork','cfsmTabVariant','cfsmTabMiss','cfsmTabAtlas'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('active', id === 'cfsmTabAtlas');
+        });
+        window._cfsm = window._cfsm || { rows:[], points:[], institutions:[], geoJson:null };
+        // If we have data, build immediately; otherwise fetch first
+        if ((window._cfsm.rows||[]).length) {
+            cfsmBuildAtlas();
+        } else {
+            cfsmFetchData().then(() => cfsmBuildAtlas());
+        }
+        return;
+    }
+    // Stop atlas animation when leaving
+    if (_atlasAnimation) { cancelAnimationFrame(_atlasAnimation); _atlasAnimation = null; }
+    if (_origCfsmSetMode) _origCfsmSetMode(mode);
+    else {
+        // Fallback: delegate to original
+        ['cfsmTabNetwork','cfsmTabVariant','cfsmTabMiss','cfsmTabAtlas'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('active',
+                (id === 'cfsmTabNetwork' && mode === 'network') ||
+                (id === 'cfsmTabVariant' && mode === 'variant') ||
+                (id === 'cfsmTabMiss'    && mode === 'miss')
+            );
+        });
+    }
+}
+
 function cfsmBuild() {
     const st = window._cfsm;
     const wrap = document.getElementById('cfsmMapWrap');
@@ -16980,12 +17499,19 @@ function setDashTab(tab, btn) {
 
     if (tab === 'search')  setTimeout(renderSICharts, 80);
     if (tab === 'geo') {
-        // Load institution leaderboard on geo tab open
-        setTimeout(() => renderInstitutionLeaderboard('institutionLeaderboardContainer'), 100);
-        lazyLoadChartJs().then(() => {
-            renderUsageGrowthChart('usageGrowthCanvas');
-            renderRegionalMissChart('regionalMissCanvas');
-        });
+        // Launch Reach Atlas as default view when geo tab opens
+        setTimeout(() => {
+            if (window._cfsm) {
+                cfsmSetMode('atlas');
+            } else {
+                // First load — fetch data then build atlas
+                renderGeoTab().then(() => cfsmSetMode('atlas')).catch(() => {});
+            }
+        }, 80);
+    }
+    if (tab !== 'geo' && _atlasAnimation) {
+        cancelAnimationFrame(_atlasAnimation);
+        _atlasAnimation = null;
     }
     if (tab === 'gaps')    setTimeout(renderGapQueue, 80);
     if (tab === 'command') setTimeout(renderCommandCentre, 80);
@@ -27488,10 +28014,8 @@ Object.assign(window, {
     // Compound genotype calculator + MDT
     openCompoundGenotypeCalculator, runCompoundGenotypeCalculation, generateMDTReport,
     cgcSaveCase, cgcDeleteCase, cgcLoadCase, cgcRenderSavedCases,
-    // ACMG — Block 1 functions, accessible in global scope because Block 1 executed first.
-    // Capture originals BEFORE this Object.assign overwrites window.* — prevents recursion.
-    computeACMGScore: function() { return computeACMGScore.apply(this, arguments); },
-    renderACMGPanel:  function() { return renderACMGPanel.apply(this, arguments); },
+    // computeACMGScore and renderACMGPanel are function declarations in script block 0
+    // — already on window. DO NOT re-assign here (causes infinite recursion).
     // Clinical reference
     renderClinicalReferencePanel, renderClinicalAlertBanner,
     // Areas 2-5 search additions
@@ -27693,7 +28217,10 @@ async function helixLoadTrends() {
     const container = document.getElementById('helixTrendPanel');
     if (!container) return;
     try {
-        const r = await hFetch('platform_snapshots?order=snapshot_date.asc&limit=90');
+        // platform_snapshots table may not exist yet — guard silently
+        let r = null;
+        try { r = await hFetch('platform_snapshots?order=snapshot_date.asc&limit=90'); } catch(e) { r = null; }
+        if (!r) { /* table not yet created — skip snapshot chart */ return; }
         // 404 = table not created yet — show a quiet informational message, not an error
         if (r.status === 404) {
             container.innerHTML = `<div style="font-size:11px;color:var(--text-tertiary);padding:16px;">Trend data unavailable — <code>platform_snapshots</code> table needs creating (see SQL migrations).</div>`;
