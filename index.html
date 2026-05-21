@@ -1945,6 +1945,45 @@
         .si-card-note { font-size: 11px; color:var(--text-tertiary); font-family:var(--font-mono); }
         .si-card-body { padding:13px; overflow-y:auto; max-height:55vh; }
         .si-row2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        /* ── Session intelligence badges ── */
+        .si-badge-card {
+            background: var(--surface-2);
+            border: 1px solid rgba(99,140,210,0.12);
+            border-radius: 9px;
+            padding: 12px 14px;
+            min-height: 72px;
+        }
+        .si-badge-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .si-badge-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .si-tier-pill {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            letter-spacing: .04em;
+            white-space: nowrap;
+        }
+        .si-pulse-dot {
+            width: 9px; height: 9px;
+            border-radius: 2px;
+            flex-shrink: 0;
+            transition: opacity .2s;
+        }
+
         .si-bar-row { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
         .si-bar-row:last-child { margin-bottom:0; }
         .si-bl { font-size:11px; font-family:var(--font-mono); color:var(--text-primary); min-width:118px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -6551,15 +6590,75 @@
                     <div class="si-kpi"><div class="si-kpi-label">Miss queue</div><div class="si-kpi-val r" id="siKpiMiss">0</div><div class="si-kpi-sub">no result found</div></div>
                 </div>
                 <div class="si-body">
-                    <div class="si-card">
-                        <div class="si-card-head">
-                            <div class="si-card-title">
-                                <span style="width:6px;height:6px;border-radius:50%;background:#2979ff;display:inline-block;flex-shrink:0;"></span>
-                                Search activity — hits vs misses over session
+                    <!-- SESSION INTELLIGENCE BADGES — replaces broken time-series chart -->
+                    <div id="siIntelBadges" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+
+                        <!-- Badge 1: Search Pulse (dot grid) -->
+                        <div class="si-badge-card" style="grid-column:1/3;">
+                            <div class="si-badge-label">
+                                <span class="si-badge-dot" style="background:#2979ff;"></span>
+                                Search pulse — last 60 queries
                             </div>
-                            <div class="si-card-note">Bars = volume · Line = hit rate %</div>
+                            <div id="siPulseDots" style="display:flex;flex-wrap:wrap;gap:3px;padding:8px 0 2px;min-height:36px;"></div>
+                            <div style="display:flex;gap:12px;margin-top:6px;">
+                                <span style="font-size:10px;color:var(--text-tertiary);display:flex;align-items:center;gap:4px;">
+                                    <span style="width:8px;height:8px;border-radius:2px;background:rgba(52,211,153,0.7);display:inline-block;"></span>Hit
+                                </span>
+                                <span style="font-size:10px;color:var(--text-tertiary);display:flex;align-items:center;gap:4px;">
+                                    <span style="width:8px;height:8px;border-radius:2px;background:rgba(248,113,113,0.7);display:inline-block;"></span>Miss
+                                </span>
+                                <span style="font-size:10px;color:var(--text-tertiary);" id="siStreakLabel"></span>
+                            </div>
                         </div>
-                        <div class="si-card-body"><canvas id="siTimelineChart" height="110"></canvas></div>
+
+                        <!-- Badge 2: Session quality -->
+                        <div class="si-badge-card">
+                            <div class="si-badge-label">
+                                <span class="si-badge-dot" id="siQualityDot" style="background:#34d399;"></span>
+                                Session quality
+                            </div>
+                            <div style="font-size:22px;font-weight:700;font-family:var(--font-mono);margin:6px 0 2px;" id="siQualityScore">—</div>
+                            <div style="font-size:11px;color:var(--text-tertiary);line-height:1.5;" id="siQualityNote">—</div>
+                        </div>
+
+                        <!-- Badge 3: Tier breakdown -->
+                        <div class="si-badge-card">
+                            <div class="si-badge-label">
+                                <span class="si-badge-dot" style="background:#60a5fa;"></span>
+                                Match precision
+                            </div>
+                            <div id="siTierBadges" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;"></div>
+                        </div>
+
+                        <!-- Badge 4: Velocity -->
+                        <div class="si-badge-card">
+                            <div class="si-badge-label">
+                                <span class="si-badge-dot" style="background:#fbbf24;"></span>
+                                Search velocity
+                            </div>
+                            <div style="font-size:22px;font-weight:700;font-family:var(--font-mono);margin:6px 0 2px;" id="siVelocityVal">—</div>
+                            <div style="font-size:11px;color:var(--text-tertiary);" id="siVelocityNote">per minute</div>
+                        </div>
+
+                        <!-- Badge 5: Field dominance -->
+                        <div class="si-badge-card">
+                            <div class="si-badge-label">
+                                <span class="si-badge-dot" style="background:#c084fc;"></span>
+                                Naming convention
+                            </div>
+                            <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:8px 0 2px;" id="siFieldDominant">—</div>
+                            <div style="font-size:11px;color:var(--text-tertiary);" id="siFieldDomNote">—</div>
+                        </div>
+
+                        <!-- Badge 6: Last search -->
+                        <div class="si-badge-card">
+                            <div class="si-badge-label">
+                                <span class="si-badge-dot" id="siLastDot" style="background:#34d399;"></span>
+                                Last search
+                            </div>
+                            <div style="font-size:13px;font-weight:700;font-family:var(--font-mono);color:var(--text-primary);margin:8px 0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="siLastQuery">—</div>
+                            <div style="font-size:11px;color:var(--text-tertiary);" id="siLastMeta">—</div>
+                        </div>
                     </div>
                     <div class="si-row2">
                         <div class="si-card">
@@ -11158,6 +11257,10 @@ function logSearch(query, isHit, matchedField, matchedVariantId) {
     // Update live activity ribbon
     pushRibbonEvent(query, isHit);
     updateMissQueueChip();
+    // Update live intelligence badges if SI panel is open
+    if (document.getElementById('siPulseDots')) {
+        requestAnimationFrame(() => renderSIBadges());
+    }
 
     // Hit / miss flash feedback
     // Only trigger visual flash on tier-0 exact match — not substring/fuzzy
@@ -17956,54 +18059,151 @@ async function renderRegionalMissChart(canvasId) {
 }
 
 function renderSICharts() {
-    if (!window.Chart) return;
     populateSITab('overview');
-    const tl = getSearchTimeline();
-    const ctx = document.getElementById('siTimelineChart');
-    if (!ctx) return;
-    const si = STATE.searchIntelligence;
-    if (si.siCharts['timeline']) { si.siCharts['timeline'].destroy(); delete si.siCharts['timeline']; }
-    // Empty state — show placeholder instead of black box
-    if (!tl.labels.length) {
-        const parent = ctx.parentElement;
-        ctx.style.display = 'none';
-        if (!parent.querySelector('.si-chart-empty')) {
-            const empty = document.createElement('div');
-            empty.className = 'si-chart-empty';
-            empty.style.cssText = 'height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;';
-            empty.innerHTML = '<div style="width:28px;height:28px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;"><i class="fas fa-chart-bar" style="font-size:11px;color:var(--text-tertiary);"></i></div><span style="font-size:11px;color:var(--text-tertiary);">Search some variants to populate this chart</span>';
-            parent.appendChild(empty);
-        }
-        return;
-    }
-    // Remove empty state if data arrives
-    const emptyEl = ctx.parentElement.querySelector('.si-chart-empty');
-    if (emptyEl) emptyEl.remove();
-    ctx.style.display = 'block';
-    si.siCharts['timeline'] = new Chart(ctx, {
-        data: {
-            labels: tl.labels,
-            datasets: [
-                { type:'bar', label:'Hits',    data:tl.hits,   backgroundColor:'rgba(52,211,153,0.55)', borderColor:'#34d399', borderWidth:1.5, borderRadius:4, yAxisID:'y', barPercentage:0.75 },
-                { type:'bar', label:'Misses',  data:tl.misses, backgroundColor:'rgba(248,113,113,0.45)', borderColor:'#f87171', borderWidth:1.5, borderRadius:4, yAxisID:'y', barPercentage:0.75 },
-                { type:'line',label:'Hit rate %', data:tl.rates, borderColor:'#fbbf24', borderWidth:2.5, pointBackgroundColor:'#fbbf24', pointBorderColor:'#0f1d30', pointBorderWidth:1.5, pointRadius:4, tension:.35, yAxisID:'y2', fill:false }
-            ]
-        },
-        options: {
-            responsive:true, maintainAspectRatio:false,
-            plugins:{
-                legend:{ labels:{ color:'rgba(255,255,255,0.8)', font:{size:10}, boxWidth:10, padding:14, usePointStyle:true, pointStyleWidth:8 } },
-                tooltip:{ backgroundColor:'#0f1d30', borderColor:'rgba(99,140,210,0.3)', borderWidth:1, titleColor:'#f0f6ff', bodyColor:'#9ab8e0',
-                    callbacks:{ label: ctx => ctx.dataset.label === 'Hit rate %' ? ` Hit rate: ${ctx.parsed.y}%` : ` ${ctx.dataset.label}: ${ctx.parsed.y}` }
-                }
-            },
-            scales:{
-                x:{ ticks:{color:'rgba(240,246,255,0.4)',font:{size:10}}, grid:{color:'rgba(99,140,210,0.12)'} },
-                y:{ beginAtZero:true, stacked:false, ticks:{color:'rgba(240,246,255,0.4)',font:{size:10}}, grid:{color:'rgba(99,140,210,0.12)'}, title:{display:true,text:'Count',color:'rgba(240,246,255,0.35)',font:{size:9}} },
-                y2:{ beginAtZero:false, min:0, max:100, position:'right', ticks:{color:'#fbbf24',font:{size:10}, callback:v=>v+'%'}, grid:{display:false}, title:{display:true,text:'Hit rate',color:'#fbbf24',font:{size:9}} }
+    renderSIBadges();
+}
+
+function renderSIBadges() {
+    const si   = STATE.searchIntelligence;
+    const tl   = si.timeline;
+    const rate = getSearchHitRate();
+
+    // ── Search pulse dots ────────────────────────────────────────
+    const dotsEl = document.getElementById('siPulseDots');
+    if (dotsEl) {
+        const recent = tl.slice(-60);
+        if (recent.length) {
+            dotsEl.innerHTML = recent.map((e, i) =>
+                `<div class="si-pulse-dot" style="background:${
+                    e.hit
+                    ? 'rgba(52,211,153,' + (0.3 + (i/recent.length)*0.6).toFixed(2) + ')'
+                    : 'rgba(248,113,113,' + (0.3 + (i/recent.length)*0.6).toFixed(2) + ')'
+                };border-radius:${e.hit ? '2px' : '50%'};width:9px;height:9px;" title="${e.hit?'Hit':'Miss'}"></div>`
+            ).join('');
+            // Streak
+            let streak = 0, streakType = null;
+            for (let i = recent.length - 1; i >= 0; i--) {
+                if (streakType === null) streakType = recent[i].hit;
+                if (recent[i].hit !== streakType) break;
+                streak++;
             }
+            const streakEl = document.getElementById('siStreakLabel');
+            if (streakEl) {
+                if (streak > 2) {
+                    streakEl.style.color = streakType ? '#34d399' : '#f87171';
+                    streakEl.textContent = streakType ? `${streak} consecutive hits` : `${streak} consecutive misses`;
+                } else {
+                    streakEl.textContent = '';
+                }
+            }
+        } else {
+            dotsEl.innerHTML = '<span style="font-size:11px;color:var(--text-tertiary);">Search variants to populate</span>';
         }
-    });
+    }
+
+    // ── Session quality ──────────────────────────────────────────
+    const qScore = document.getElementById('siQualityScore');
+    const qNote  = document.getElementById('siQualityNote');
+    const qDot   = document.getElementById('siQualityDot');
+    if (qScore) {
+        if (rate.total > 0) {
+            const hr    = rate.hitRate;
+            const color = hr >= 90 ? '#34d399' : hr >= 70 ? '#fbbf24' : '#f87171';
+            const label = hr >= 90 ? 'Excellent' : hr >= 75 ? 'Good' : hr >= 50 ? 'Fair' : 'Poor';
+            const note  = hr >= 90 ? 'Database well-matched to clinical queries'
+                        : hr >= 75 ? 'Most queries resolve — some gaps present'
+                        : hr >= 50 ? 'Notable miss rate — check miss queue'
+                        : 'High miss rate — database expansion needed';
+            qScore.textContent = label;
+            qScore.style.color = color;
+            if (qDot)  qDot.style.background  = color;
+            if (qNote) qNote.textContent       = note;
+        } else {
+            qScore.textContent = '—';
+            if (qNote) qNote.textContent = 'No searches this session';
+        }
+    }
+
+    // ── Tier distribution ────────────────────────────────────────
+    const tierEl = document.getElementById('siTierBadges');
+    if (tierEl) {
+        const recent = si.recentSearches.slice(0, 50);
+        const tierCounts = {0:0,1:0,2:0,3:0,4:0};
+        recent.forEach(r => { const t = r.tier ?? (r.isHit ? 0 : 5); if (t<=4) tierCounts[t]++; });
+        const total = Object.values(tierCounts).reduce((a,b)=>a+b,0);
+        const TIERS = [
+            {label:'Exact',     color:'#34d399', bg:'rgba(52,211,153,0.12)',  border:'rgba(52,211,153,0.3)'},
+            {label:'Prefix',    color:'#60a5fa', bg:'rgba(96,165,250,0.12)',  border:'rgba(96,165,250,0.3)'},
+            {label:'Substring', color:'#9ab8e0', bg:'rgba(154,184,224,0.1)', border:'rgba(154,184,224,0.25)'},
+            {label:'Fuzzy',     color:'#fbbf24', bg:'rgba(251,191,36,0.1)',  border:'rgba(251,191,36,0.25)'},
+            {label:'Phonetic',  color:'#c084fc', bg:'rgba(192,132,252,0.1)', border:'rgba(192,132,252,0.25)'},
+        ];
+        if (total > 0) {
+            tierEl.innerHTML = TIERS.map((t,i) => {
+                const pct = Math.round((tierCounts[i]||0)/total*100);
+                return pct ? `<span class="si-tier-pill" style="background:${t.bg};border:1px solid ${t.border};color:${t.color};">${t.label} ${pct}%</span>` : '';
+            }).filter(Boolean).join('');
+        } else {
+            tierEl.innerHTML = '<span style="font-size:11px;color:var(--text-tertiary);">Searching…</span>';
+        }
+    }
+
+    // ── Velocity ─────────────────────────────────────────────────
+    const velEl   = document.getElementById('siVelocityVal');
+    const velNote = document.getElementById('siVelocityNote');
+    if (velEl) {
+        const now  = Date.now();
+        const w5   = tl.filter(e => e.ts > now - 300000).length;
+        const w1   = tl.filter(e => e.ts > now - 60000).length;
+        const vpm  = (w5 / 5).toFixed(1);
+        velEl.textContent = vpm;
+        velEl.style.color = parseFloat(vpm) >= 5 ? '#34d399' : parseFloat(vpm) >= 1 ? '#fbbf24' : 'var(--text-tertiary)';
+        if (velNote) velNote.textContent = `per min · ${w1} in last 60s`;
+    }
+
+    // ── Field dominance ──────────────────────────────────────────
+    const fieldDom  = document.getElementById('siFieldDominant');
+    const fieldNote = document.getElementById('siFieldDomNote');
+    const fb = getFieldBreakdown();
+    const fbTotal = Object.values(fb).reduce((a,b)=>a+b,0);
+    if (fieldDom) {
+        if (fbTotal > 0) {
+            const FIELDS = {
+                legacy_name:  {name:'Legacy name',    ex:'F508del, G551D',   color:'#93c5fd'},
+                protein_name: {name:'Protein (HGVS)', ex:'p.Phe508del',      color:'#c4b5fd'},
+                cdna_name:    {name:'cDNA (HGVS)',    ex:'c.1521_1523del',   color:'#6ee7b7'},
+                alt_names:    {name:'Alt name',       ex:'ΔF508, delta-F508',color:'#fbbf24'},
+            };
+            const top = Object.entries(fb).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1])[0];
+            if (top) {
+                const m = FIELDS[top[0]] || {name:top[0], ex:'', color:'#9ab8e0'};
+                const pct = Math.round(top[1]/fbTotal*100);
+                fieldDom.textContent = m.name;
+                fieldDom.style.color = m.color;
+                if (fieldNote) fieldNote.textContent = `${pct}% of hits · e.g. ${m.ex}`;
+            }
+        } else {
+            fieldDom.textContent = '—';
+            if (fieldNote) fieldNote.textContent = 'Appears after searches';
+        }
+    }
+
+    // ── Last search ───────────────────────────────────────────────
+    const lastQ    = document.getElementById('siLastQuery');
+    const lastMeta = document.getElementById('siLastMeta');
+    const lastDot  = document.getElementById('siLastDot');
+    const r0       = si.recentSearches[0];
+    if (lastQ && r0) {
+        lastQ.textContent = r0.original || r0.query || '—';
+        const fl = {legacy_name:'legacy',protein_name:'protein',cdna_name:'cDNA',alt_names:'alt'};
+        if (lastDot) lastDot.style.background = r0.isHit ? '#34d399' : '#f87171';
+        if (lastMeta) {
+            lastMeta.textContent = r0.isHit
+                ? `✓ Hit via ${fl[r0.matchedField] || r0.matchedField || 'database'}`
+                : '✗ No result — research gap candidate';
+            lastMeta.style.color = r0.isHit ? '#34d399' : '#f87171';
+        }
+    }
 }
 
 // ── Chart.js lazy loader ─────────────────────────────────────────
