@@ -5813,7 +5813,7 @@
                         <i class="fas fa-bolt" style="font-size: 10px"></i> Excep.
                         <span class="chip-divider"></span><span class="chip-count" id="chipExceptional">—</span>
                     </button>
-                    <button class="filter-chip" id="chip-missing" onclick="filterVariants('missing')">
+                    <button class="filter-chip" id="chip-missing" onclick="openGapWorklist()">
                         Missing
                         <span class="chip-divider"></span><span class="chip-count" id="chipMissing">—</span>
                     </button>
@@ -6434,22 +6434,25 @@
                     </div>
                 </div>
                 <div class="dash-card">
-                    <div class="dash-card-title">ETI Response</div>
+                    <div class="dash-card-title">ETI evidence reliability</div>
                     <div style="position:relative;height:240px;width:100%;">
                         <canvas id="responseChart"></canvas>
                     </div>
                 </div>
             </div>
             <div class="dash-card">
-                <div class="dash-card-title">Data Completeness
-                    <span style="font-size: 11px;font-weight:400;color:var(--text-tertiary);margin-left:8px;">
-                        <span style="color:#34d399;">■</span> Complete (all clinical fields)
-                        &nbsp;&nbsp;
-                        <span style="color:#2979ff;">■</span> Minimal (name + class only)
-                    </span>
-                </div>
+                <div class="dash-card-title">Curation field gaps <span style="font-size:10px;color:var(--text-tertiary);font-weight:400;margin-left:6px;">click any bar to filter</span></div>
                 <div style="position:relative;height:80px;width:100%;">
                     <canvas id="completionChart"></canvas>
+                    </div>
+                    <!-- Validation coverage chart — NEW Batch2 -->
+                    <div class="dashboard-chart-card">
+                        <div class="dash-card-title" style="padding:0 0 8px;">Search demand vs validation coverage <span style="font-size:10px;color:#f87171;font-weight:400;">▲ = risk</span></div>
+                        <div style="height:160px;position:relative;">
+                            <canvas id="validationChart"></canvas>
+                        </div>
+                    </div>
+                    <div style="display:none;"><!-- placeholder close -->
                 </div>
             </div>
             <div class="dash-card" style="margin-top:14px;">
@@ -8756,9 +8759,8 @@ function resolveETIPrediction(legacy_name, protein_name, cftr_class, literatureP
 // ── HOW TO PATCH deriveClassificationProposal ──────────────────────────
 // Inside deriveClassificationProposal, REPLACE the final return statement:
 //
-//   return {
-//       cftr_class:         topClass,
-//       eti_prediction:     etiResult,    ← REMOVE this line
+//   
+    // ETI authority patch: applied directly in deriveClassificationProposal below
 //       ...
 //   };
 //
@@ -9077,13 +9079,22 @@ function deriveClassificationProposal(papers, clinvarHits) {
                     : etiVotes.no  > etiVotes.yes ? 'non_responsive'
                     : null;
 
+    // Resolve ETI with authority hierarchy (FDA > class rule > literature)
+    const _etiResolved = resolveETIPrediction(
+        null, null, topClass,
+        { eti_prediction: etiResult, hasEtiEvidence: etiVotes.yes + etiVotes.no > 0, citations }
+    );
+
     return {
-        cftr_class:         topClass,
-        eti_prediction:     etiResult,
+        cftr_class:           topClass,
+        eti_prediction:       _etiResolved.prediction,
+        eti_evidence_tier:    _etiResolved.evidence_tier,
+        eti_authority_source: _etiResolved.source,
+        eti_note:             _etiResolved.note,
         determination,
         citations,
-        hasEtiEvidence:     etiVotes.yes + etiVotes.no > 0,
-        hasFunctionalStudy: !!citations.functional,
+        hasEtiEvidence:       etiVotes.yes + etiVotes.no > 0,
+        hasFunctionalStudy:   !!citations.functional,
     };
 }
 
@@ -13197,7 +13208,14 @@ function calculateMasterStats() {
         classII: v.filter(x => x.cftr_class === 'II').length,
         classIII: v.filter(x => x.cftr_class === 'III').length,
         classIV: v.filter(x => x.cftr_class === 'IV').length,
-        classV: v.filter(x => x.cftr_class === 'V').length,
+        classV:  v.filter(x => x.cftr_class === 'V').length,
+        classVI: v.filter(x => x.cftr_class === 'VI').length,
+        missingClass: v.filter(x => !x.cftr_class).length,
+        missingEti:   v.filter(x => !x.eti_prediction || x.eti_prediction === 'unknown').length,
+        missingProtein: v.filter(x => !x.protein_name).length,
+        missingCdna:  v.filter(x => !x.cdna_name).length,
+        missingEvidence: v.filter(x => !(x.evidence_links||[]).length).length,
+        unvalidatedHighDemand: v.filter(x => !(x.validation_count||0) && (x.search_hit_count||0) >= 5).length,
         exceptional: v.filter(x => x.class_subtype === 'exceptional').length,
         responsive: v.filter(x => x.eti_prediction === 'responsive').length,
         nonResponsive: v.filter(x => x.eti_prediction === 'non_responsive').length,
@@ -16961,6 +16979,14 @@ function setDashTab(tab, btn) {
     if (btn) btn.classList.add('active');
 
     if (tab === 'search')  setTimeout(renderSICharts, 80);
+    if (tab === 'geo') {
+        // Load institution leaderboard on geo tab open
+        setTimeout(() => renderInstitutionLeaderboard('institutionLeaderboardContainer'), 100);
+        lazyLoadChartJs().then(() => {
+            renderUsageGrowthChart('usageGrowthCanvas');
+            renderRegionalMissChart('regionalMissCanvas');
+        });
+    }
     if (tab === 'gaps')    setTimeout(renderGapQueue, 80);
     if (tab === 'command') setTimeout(renderCommandCentre, 80);
 }
@@ -17087,6 +17113,249 @@ function populateSITab(name) {
     } else { rEl.innerHTML = '<div style="font-size:11px;color:var(--text-tertiary);padding:8px 0;">No searches this session yet.</div>'; }
 }
 
+
+
+// ════════════════════════════════════════════════════════════════
+// USAGE ANALYTICS — 3 new charts replacing CFSM as primary views
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * Renders institution activity leaderboard from search_logs data.
+ * Replaces the world map dot as the PRIMARY view in the geo panel.
+ */
+async function renderInstitutionLeaderboard(containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+
+    el.innerHTML = '<div style="font-size:11px;color:var(--text-tertiary);padding:12px;">'
+        + '<i class="fas fa-spinner fa-spin" style="margin-right:6px;font-size:10px;"></i>'
+        + 'Loading institution data…</div>';
+
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/search_logs`
+            + `?select=institution_name,hospital_name,country,is_hit,query,searched_at`
+            + `&order=searched_at.desc&limit=3000`,
+            { headers: { apikey: CONFIG.SUPABASE.KEY, Authorization: `Bearer ${CONFIG.SUPABASE.KEY}` } }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+
+        // Aggregate by institution
+        const map = new Map();
+        rows.forEach(r => {
+            const name = r.institution_name || r.hospital_name || r.country || 'Unknown';
+            if (!map.has(name)) map.set(name, {
+                name, country: r.country || '',
+                hits: 0, total: 0, queries: new Map(),
+                lastSeen: r.searched_at,
+            });
+            const inst = map.get(name);
+            inst.total++;
+            if (r.is_hit) inst.hits++;
+            if (r.query) inst.queries.set(r.query, (inst.queries.get(r.query)||0)+1);
+            if (r.searched_at > inst.lastSeen) inst.lastSeen = r.searched_at;
+        });
+
+        const sorted = [...map.values()]
+            .sort((a,b) => b.total - a.total)
+            .slice(0, 12);
+
+        if (!sorted.length) {
+            el.innerHTML = '<div style="font-size:11px;color:var(--text-tertiary);padding:16px;">No institution data yet.</div>';
+            return;
+        }
+
+        const maxTotal = sorted[0].total;
+        const rows2 = sorted.map((inst, i) => {
+            const hitRate = inst.total ? Math.round(inst.hits/inst.total*100) : 0;
+            const hitColor = hitRate >= 80 ? '#34d399' : hitRate >= 60 ? '#fbbf24' : '#f87171';
+            const topQuery = inst.queries.size
+                ? [...inst.queries.entries()].sort((a,b)=>b[1]-a[1])[0][0]
+                : '—';
+            const barW = Math.round(inst.total/maxTotal*120);
+            const daysAgo = inst.lastSeen
+                ? Math.floor((Date.now() - new Date(inst.lastSeen))/86400000)
+                : null;
+            const lastStr = daysAgo === 0 ? 'today'
+                : daysAgo === 1 ? 'yesterday'
+                : daysAgo !== null ? `${daysAgo}d ago` : '—';
+            return `<tr style="border-bottom:1px solid rgba(99,140,210,0.08);
+                cursor:pointer;transition:background .1s;"
+                onmouseover="this.style.background='rgba(41,121,255,0.04)'"
+                onmouseout="this.style.background=''">
+                <td style="padding:8px 12px;font-size:11px;color:var(--text-tertiary);width:24px;">${i+1}</td>
+                <td style="padding:8px 4px;font-size:12px;font-weight:600;color:var(--text-primary);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHTML(inst.name)}">${escapeHTML(inst.name.slice(0,28))}${inst.name.length>28?'…':''}</td>
+                <td style="padding:8px 8px;">
+                    <div style="height:6px;background:rgba(41,121,255,0.1);border-radius:3px;width:130px;overflow:hidden;">
+                        <div style="height:100%;width:${barW}px;background:var(--brand);border-radius:3px;opacity:.7;"></div>
+                    </div>
+                    <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;">${inst.total.toLocaleString()} searches</div>
+                </td>
+                <td style="padding:8px;font-size:12px;font-weight:700;color:${hitColor};font-family:var(--font-mono);text-align:center;">${hitRate}%</td>
+                <td style="padding:8px;font-size:10px;color:var(--text-secondary);font-family:var(--font-mono);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(topQuery)}</td>
+                <td style="padding:8px 12px;font-size:10px;color:var(--text-tertiary);text-align:right;white-space:nowrap;">${lastStr}</td>
+            </tr>`;
+        }).join('');
+
+        el.innerHTML = `<table style="width:100%;border-collapse:collapse;">
+            <thead><tr style="border-bottom:1px solid rgba(99,140,210,0.15);">
+                <th style="padding:6px 12px;font-size:9px;color:var(--text-tertiary);font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:left;">#</th>
+                <th style="padding:6px 4px;font-size:9px;color:var(--text-tertiary);font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:left;">Institution</th>
+                <th style="padding:6px 8px;font-size:9px;color:var(--text-tertiary);font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Volume</th>
+                <th style="padding:6px 8px;font-size:9px;color:var(--text-tertiary);font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:center;">Hit rate</th>
+                <th style="padding:6px 8px;font-size:9px;color:var(--text-tertiary);font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Top variant</th>
+                <th style="padding:6px 12px;font-size:9px;color:var(--text-tertiary);font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:right;">Last active</th>
+            </tr></thead>
+            <tbody>${rows2}</tbody>
+        </table>`;
+    } catch(e) {
+        el.innerHTML = `<div style="font-size:11px;color:var(--text-tertiary);padding:12px;">Institution data unavailable: ${escapeHTML(e.message)}</div>`;
+    }
+}
+
+/**
+ * Renders weekly usage growth curve using Chart.js.
+ */
+async function renderUsageGrowthChart(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || !window.Chart) return;
+
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/search_logs?select=searched_at,is_hit&order=searched_at.asc&limit=10000`,
+            { headers: { apikey: CONFIG.SUPABASE.KEY, Authorization: `Bearer ${CONFIG.SUPABASE.KEY}` } }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+        if (!rows.length) return;
+
+        // Bucket by week
+        const weeks = new Map();
+        rows.forEach(r => {
+            const d = new Date(r.searched_at);
+            const monday = new Date(d);
+            monday.setDate(d.getDate() - d.getDay() + 1);
+            const key = monday.toISOString().split('T')[0];
+            if (!weeks.has(key)) weeks.set(key, { total:0, hits:0 });
+            weeks.get(key).total++;
+            if (r.is_hit) weeks.get(key).hits++;
+        });
+
+        const sorted = [...weeks.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+        const labels = sorted.map(([k]) => k.slice(5));
+        const totals = sorted.map(([,v]) => v.total);
+        const rates  = sorted.map(([,v]) => v.total ? Math.round(v.hits/v.total*100) : 0);
+
+        if (STATE.ui.charts[canvasId]) STATE.ui.charts[canvasId].destroy();
+        STATE.ui.charts[canvasId] = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    { label:'Searches', data:totals, borderColor:'#60a5fa', backgroundColor:'rgba(96,165,250,0.1)',
+                      borderWidth:2, pointRadius:2, tension:.4, fill:true, yAxisID:'y' },
+                    { label:'Hit rate %', data:rates, borderColor:'#34d399', backgroundColor:'transparent',
+                      borderWidth:2, pointRadius:2, tension:.4, borderDash:[4,3], yAxisID:'y2' },
+                ]
+            },
+            options: {
+                responsive:true, maintainAspectRatio:false,
+                plugins: {
+                    legend:{ labels:{color:'rgba(240,246,255,0.5)',font:{size:10},boxWidth:10,padding:12,usePointStyle:true} },
+                    tooltip:{ backgroundColor:'#0a1220', borderColor:'rgba(99,140,210,0.25)', borderWidth:1,
+                        titleColor:'#f0f6ff', bodyColor:'#9ab8e0' }
+                },
+                scales: {
+                    x:{ grid:{color:'rgba(99,140,210,0.1)'}, ticks:{color:'rgba(240,246,255,0.4)',font:{size:9},maxTicksLimit:8} },
+                    y:{ beginAtZero:true, grid:{color:'rgba(99,140,210,0.1)'}, ticks:{color:'rgba(240,246,255,0.4)',font:{size:9}},
+                        title:{display:true,text:'Searches',color:'rgba(240,246,255,0.4)',font:{size:8}} },
+                    y2:{ min:0,max:100,position:'right', grid:{display:false},
+                         ticks:{color:'#34d399',font:{size:9},callback:v=>v+'%'},
+                         title:{display:true,text:'Hit rate',color:'#34d399',font:{size:8}} },
+                }
+            }
+        });
+    } catch(e) {
+        console.warn('[NeumuacFQ] Usage growth chart failed:', e.message);
+    }
+}
+
+/**
+ * Renders regional miss signal — top miss queries by country.
+ * Shows which populations are underserved by the current database.
+ */
+async function renderRegionalMissChart(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || !window.Chart) return;
+
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/search_logs`
+            + `?select=query,country,institution_name&is_hit=eq.false&order=query.asc&limit=2000`,
+            { headers: { apikey: CONFIG.SUPABASE.KEY, Authorization: `Bearer ${CONFIG.SUPABASE.KEY}` } }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+        if (!rows.length) return;
+
+        // Group: query + country → count
+        const map = new Map();
+        rows.forEach(r => {
+            if (!r.query || r.query.length < 2) return;
+            const key = r.query + '|' + (r.country || 'Unknown');
+            if (!map.has(key)) map.set(key, { query:r.query, country:r.country||'Unknown', count:0, institutions:new Set() });
+            const e = map.get(key);
+            e.count++;
+            if (r.institution_name) e.institutions.add(r.institution_name);
+        });
+
+        // Take top 10 miss-query + country combos, sorted by count
+        const top = [...map.values()]
+            .sort((a,b) => b.count - a.count || b.institutions.size - a.institutions.size)
+            .slice(0, 10);
+
+        if (STATE.ui.charts[canvasId]) STATE.ui.charts[canvasId].destroy();
+        STATE.ui.charts[canvasId] = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: top.map(r => `${r.query} (${r.country})`),
+                datasets: [{
+                    label: 'Missed searches',
+                    data: top.map(r => r.count),
+                    backgroundColor: top.map(r =>
+                        r.institutions.size >= 2 ? 'rgba(248,113,113,0.75)'
+                        : 'rgba(251,191,36,0.6)'),
+                    borderColor: top.map(r =>
+                        r.institutions.size >= 2 ? '#f87171' : '#fbbf24'),
+                    borderWidth: 1, borderRadius: 4, borderSkipped: false,
+                }]
+            },
+            options: {
+                indexAxis: 'y', responsive:true, maintainAspectRatio:false,
+                plugins: {
+                    legend:{ display:false },
+                    tooltip:{ backgroundColor:'#0a1220', borderColor:'rgba(99,140,210,0.25)', borderWidth:1,
+                        titleColor:'#f0f6ff', bodyColor:'#9ab8e0',
+                        callbacks:{ label: ctx => {
+                            const r = top[ctx.dataIndex];
+                            const urgency = r.institutions.size >= 2 ? ' 🔴 multi-institution' : '';
+                            return ` ${ctx.raw} misses · ${r.institutions.size} institution${r.institutions.size!==1?'s':''}${urgency}`;
+                        }}
+                    }
+                },
+                scales: {
+                    x:{ beginAtZero:true, grid:{color:'rgba(99,140,210,0.1)'},
+                        ticks:{color:'rgba(240,246,255,0.4)',font:{size:10}} },
+                    y:{ grid:{display:false}, ticks:{color:'rgba(240,246,255,0.5)',font:{size:10}} }
+                }
+            }
+        });
+    } catch(e) {
+        console.warn('[NeumuacFQ] Regional miss chart failed:', e.message);
+    }
+}
+
 function renderSICharts() {
     if (!window.Chart) return;
     populateSITab('overview');
@@ -17159,155 +17428,310 @@ function lazyLoadChartJs() {
 
 function renderCharts() {
     if (!window.Chart) return;
-
     const s = STATE.masterStats;
+    const v = STATE.variants;
 
-    // Dark-mode safe colour palette
-    const GRID  = 'rgba(99,140,210,0.12)';
-    const TICK  = 'rgba(240,246,255,0.45)';
-    const TIP   = { bg: '#0d1526', border: 'rgba(99,140,210,0.25)', title: '#f0f6ff', body: '#9ab8e0' };
+    const GRID = 'rgba(99,140,210,0.1)';
+    const TICK = 'rgba(240,246,255,0.5)';
+    const TIP  = { bg:'#0a1220', border:'rgba(99,140,210,0.25)', title:'#f0f6ff', body:'#9ab8e0' };
 
-    const classCfg = {
-        type: 'doughnut',
-        data: {
-            labels: ['I','II','III','IV','V'],
-            datasets: [{
-                data: [s.classI, s.classII, s.classIII, s.classIV, s.classV],
-                backgroundColor: ['#f87171','#fb923c','#34d399','#60a5fa','#c084fc'],
-                borderWidth: 2,
-                borderColor: '#0a1220'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '68%',
-            plugins: {
-                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, color: TICK, padding: 10 } },
-                tooltip: { backgroundColor: TIP.bg, borderColor: TIP.border, borderWidth: 1, titleColor: TIP.title, bodyColor: TIP.body }
-            }
-        }
-    };
-
-    const respCfg = {
-        type: 'bar',
-        data: {
-            labels: ['Responsive','Non-responsive','Unknown'],
-            datasets: [{
-                data: [s.responsive, s.nonResponsive, s.unknown],
-                backgroundColor: ['rgba(52,211,153,0.75)','rgba(248,113,113,0.75)','rgba(251,191,36,0.65)'],
-                borderColor:     ['#34d399','#f87171','#fbbf24'],
-                borderWidth: 1,
-                borderRadius: 6,
-                borderSkipped: false
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { backgroundColor: TIP.bg, borderColor: TIP.border, borderWidth: 1, titleColor: TIP.title, bodyColor: TIP.body }
+    // ── Chart 1: CLASS DISTRIBUTION — dual ring ──────────────────
+    // Outer ring: class distribution I–VI + unclassified
+    // Inner ring: ETI confidence tiers (FDA / class-rule / literature / unknown)
+    const cc = document.getElementById('classChart');
+    if (cc) {
+        if (STATE.ui.charts.classChart) STATE.ui.charts.classChart.destroy();
+        const unclassified = s.total - s.classI - s.classII - s.classIII
+                           - s.classIV - s.classV - (s.classVI||0);
+        // Inner ring: ETI authority tiers
+        const fdaCount    = v.filter(x => x.eti_evidence_tier === 'fda_approved'
+                                       || x.eti_evidence_tier === 'fda_non_responsive').length;
+        const classCount  = v.filter(x => x.eti_evidence_tier === 'class_rule').length;
+        const litCount    = v.filter(x => x.eti_evidence_tier === 'literature').length;
+        const insufCount  = v.filter(x => !x.eti_evidence_tier
+                                       || x.eti_evidence_tier === 'insufficient').length;
+        STATE.ui.charts.classChart = new Chart(cc, {
+            type: 'doughnut',
+            data: {
+                datasets: [
+                    {   // Outer: class distribution
+                        data: [s.classI, s.classII, s.classIII, s.classIV,
+                               s.classV, s.classVI||0, unclassified],
+                        backgroundColor: ['#f87171','#fb923c','#34d399','#60a5fa',
+                                          '#c084fc','#22d3ee','rgba(99,140,210,0.2)'],
+                        borderColor: '#0a1220', borderWidth: 2, weight: 2,
+                    },
+                    {   // Inner: ETI reliability tier
+                        data: [fdaCount, classCount, litCount, insufCount],
+                        backgroundColor: ['rgba(34,197,94,0.8)','rgba(251,191,36,0.7)',
+                                          'rgba(96,165,250,0.6)','rgba(99,140,210,0.25)'],
+                        borderColor: '#0a1220', borderWidth: 2, weight: 1,
+                    }
+                ],
+                labels: ['I','II','III','IV','V','VI','—'],
             },
-            scales: {
-                y: { beginAtZero: true, grid: { color: GRID }, ticks: { color: TICK, font: { size: 10 } } },
-                x: { grid: { display: false }, ticks: { color: TICK, font: { size: 10 } } }
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '55%',
+                plugins: {
+                    legend: { position:'bottom', labels:{ color:TICK, font:{size:10},
+                        boxWidth:10, padding:8, usePointStyle:true,
+                        filter: (item) => item.datasetIndex === 0,
+                    }},
+                    tooltip: { backgroundColor:TIP.bg, borderColor:TIP.border, borderWidth:1,
+                        titleColor:TIP.title, bodyColor:TIP.body,
+                        callbacks: { label: ctx => {
+                            if (ctx.datasetIndex === 1) {
+                                const labels = ['FDA confirmed','Class rule','Literature','Unknown'];
+                                const pct = s.total ? Math.round(ctx.raw/s.total*100) : 0;
+                                return ` ${labels[ctx.dataIndex]}: ${ctx.raw} (${pct}%)`;
+                            }
+                            const pct = s.total ? Math.round(ctx.raw/s.total*100) : 0;
+                            return ` Class ${ctx.label}: ${ctx.raw} (${pct}%) — click to filter`;
+                        }}
+                    }
+                }
             }
-        }
-    };
+        });
+        cc._chart = STATE.ui.charts.classChart;
+        cc.style.cursor = 'pointer';
+        cc.title = 'Outer: class distribution · Inner: ETI confidence tier';
+        cc.onclick = evt => {
+            const pts = cc._chart.getElementsAtEventForMode(evt,'nearest',{intersect:true},false);
+            if (!pts.length || pts[0].datasetIndex !== 0) return;
+            const label = cc._chart.data.labels[pts[0].index];
+            if (!label || label === '—') return;
+            closeDashboard();
+            setTimeout(() => helixChartDrillFilter('class', label, `Class ${label}`), 150);
+        };
+    }
 
-    const compCfg = {
-        type: 'bar',
-        data: {
-            labels: ['Complete','Partial','Minimal'],
-            datasets: [{
-                data: [s.complete, s.clinical - s.complete, s.total - s.clinical],
-                backgroundColor: ['rgba(52,211,153,0.75)','rgba(96,165,250,0.65)','rgba(99,140,210,0.3)'],
-                borderColor:     ['#34d399','#60a5fa','rgba(99,140,210,0.5)'],
-                borderWidth: 1,
-                borderRadius: 6,
-                borderSkipped: false
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { backgroundColor: TIP.bg, borderColor: TIP.border, borderWidth: 1, titleColor: TIP.title, bodyColor: TIP.body }
+    // ── Chart 2: ETI TRUST GAUGE — radial arc ────────────────────
+    // Shows reliability of ETI predictions as a gauge from gray→green
+    const rc = document.getElementById('responseChart');
+    if (rc) {
+        if (STATE.ui.charts.responseChart) STATE.ui.charts.responseChart.destroy();
+        const fdaApproved   = v.filter(x => x.eti_evidence_tier === 'fda_approved').length;
+        const fdaNonResp    = v.filter(x => x.eti_evidence_tier === 'fda_non_responsive').length;
+        const classRule     = v.filter(x => x.eti_evidence_tier === 'class_rule').length;
+        const literature    = v.filter(x => x.eti_evidence_tier === 'literature').length;
+        const insufficient  = v.filter(x => !x.eti_evidence_tier
+                                         || x.eti_evidence_tier === 'insufficient').length;
+        STATE.ui.charts.responseChart = new Chart(rc, {
+            type: 'doughnut',
+            data: {
+                labels: ['FDA approved','FDA non-resp.','Class rule','Literature','Insufficient'],
+                datasets: [{
+                    data: [fdaApproved, fdaNonResp, classRule, literature, insufficient],
+                    backgroundColor: ['rgba(34,197,94,0.85)','rgba(248,113,113,0.7)',
+                                      'rgba(251,191,36,0.65)','rgba(96,165,250,0.6)',
+                                      'rgba(99,140,210,0.2)'],
+                    borderColor: '#0a1220', borderWidth: 2,
+                    hoverOffset: 6,
+                }]
             },
-            scales: {
-                x: { beginAtZero: true, max: s.total, grid: { color: GRID }, ticks: { color: TICK, font: { size: 10 } } },
-                y: { grid: { display: false }, ticks: { color: TICK, font: { size: 10 } } }
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                circumference: 180, rotation: -90, cutout: '70%',
+                plugins: {
+                    legend: { position:'bottom', labels:{ color:TICK, font:{size:10},
+                        boxWidth:10, padding:8, usePointStyle:true }},
+                    tooltip: { backgroundColor:TIP.bg, borderColor:TIP.border, borderWidth:1,
+                        titleColor:TIP.title, bodyColor:TIP.body,
+                        callbacks: { label: ctx => {
+                            const pct = s.total ? Math.round(ctx.raw/s.total*100) : 0;
+                            return ` ${ctx.raw} variants (${pct}%)`;
+                        }}
+                    }
+                }
             }
+        });
+        // Centre label showing trust score
+        rc._chart = STATE.ui.charts.responseChart;
+        const trustPct = s.total
+            ? Math.round((fdaApproved + fdaNonResp) / s.total * 100)
+            : 0;
+        const rcParent = rc.parentElement;
+        let trustLabel = rcParent.querySelector('.gauge-centre');
+        if (!trustLabel) {
+            trustLabel = document.createElement('div');
+            trustLabel.className = 'gauge-centre';
+            Object.assign(trustLabel.style, {
+                position:'absolute', left:'50%', top:'55%',
+                transform:'translate(-50%,-50%)', textAlign:'center',
+                pointerEvents:'none',
+            });
+            rcParent.style.position = 'relative';
+            rcParent.appendChild(trustLabel);
         }
-    };
+        trustLabel.innerHTML = `<div style="font-size:22px;font-weight:700;
+            font-family:var(--font-mono);color:${trustPct>=50?'#34d399':'#fbbf24'}">
+            ${trustPct}%</div>
+            <div style="font-size:9px;color:var(--text-tertiary);letter-spacing:.08em;">
+            FDA-grounded</div>`;
+    }
 
-    ['classChart','responseChart','completionChart'].forEach(id => {
-        const canvas = document.getElementById(id);
-        if (!canvas) return;
-        if (STATE.ui.charts[id]) STATE.ui.charts[id].destroy();
-        const cfg = id === 'classChart' ? classCfg : id === 'responseChart' ? respCfg : compCfg;
-        STATE.ui.charts[id] = new Chart(canvas, cfg);
-        // Store reference on canvas for drill-down click handler
-        canvas._chart = STATE.ui.charts[id];
-    });
+    // ── Chart 3: FIELD COMPLETENESS MATRIX — rendered as SVG grid ──
+    // Not a Chart.js chart — pure SVG grid, more informative than bars
+    const mc = document.getElementById('completionChart');
+    if (mc) {
+        if (STATE.ui.charts.completionChart) STATE.ui.charts.completionChart.destroy();
+        // Render as SVG field matrix instead
+        mc.style.display = 'none';
+        const parent = mc.parentElement;
+        let matrix = parent.querySelector('.field-matrix-svg');
+        if (matrix) matrix.remove();
+        const fields = [
+            { key:'cftr_class',    label:'Class',         count: s.missingClass||0,    color:'#f87171' },
+            { key:'eti_pred',      label:'ETI',           count: s.missingEti||0,      color:'#fb923c' },
+            { key:'protein_name',  label:'Protein',       count: s.missingProtein||0,  color:'#fbbf24' },
+            { key:'cdna_name',     label:'cDNA',          count: s.missingCdna||0,     color:'#fbbf24' },
+            { key:'evidence',      label:'Evidence',      count: s.missingEvidence||0, color:'#60a5fa' },
+        ];
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('viewBox', '0 0 400 70');
+        svg.setAttribute('width', '100%');
+        svg.style.display = 'block';
+        svg.classList.add('field-matrix-svg');
+        const bw = 70, gap = 8, startX = 10;
+        fields.forEach((f, i) => {
+            const x = startX + i * (bw + gap);
+            const pct = s.total ? f.count / s.total : 0;
+            const fillH = Math.max(2, Math.round(pct * 40));
+            const g = document.createElementNS(svgNS, 'g');
+            g.style.cursor = 'pointer';
+            g.setAttribute('title', `${f.count} missing ${f.label}`);
+            // Background
+            const bg = document.createElementNS(svgNS, 'rect');
+            bg.setAttribute('x', x); bg.setAttribute('y', 0);
+            bg.setAttribute('width', bw); bg.setAttribute('height', 48);
+            bg.setAttribute('rx', 5);
+            bg.setAttribute('fill', 'rgba(99,140,210,0.06)');
+            bg.setAttribute('stroke', 'rgba(99,140,210,0.12)');
+            bg.setAttribute('stroke-width', '0.5');
+            // Fill (missing amount)
+            const fill = document.createElementNS(svgNS, 'rect');
+            fill.setAttribute('x', x); fill.setAttribute('y', 48 - fillH);
+            fill.setAttribute('width', bw); fill.setAttribute('height', fillH);
+            fill.setAttribute('rx', f.count === s.total ? 5 : 0);
+            fill.setAttribute('fill', f.color);
+            fill.setAttribute('fill-opacity', '0.6');
+            // Label
+            const lbl = document.createElementNS(svgNS, 'text');
+            lbl.setAttribute('x', x + bw/2); lbl.setAttribute('y', 58);
+            lbl.setAttribute('text-anchor', 'middle');
+            lbl.setAttribute('font-size', '9'); lbl.setAttribute('fill', TICK);
+            lbl.setAttribute('font-family', 'var(--font-body)');
+            lbl.textContent = f.label;
+            // Count
+            const cnt = document.createElementNS(svgNS, 'text');
+            cnt.setAttribute('x', x + bw/2); cnt.setAttribute('y', 68);
+            cnt.setAttribute('text-anchor', 'middle');
+            cnt.setAttribute('font-size', '10'); cnt.setAttribute('fill', f.color);
+            cnt.setAttribute('font-weight', '700');
+            cnt.setAttribute('font-family', 'var(--font-mono)');
+            cnt.textContent = f.count;
+            g.appendChild(bg); g.appendChild(fill);
+            g.appendChild(lbl); g.appendChild(cnt);
+            // Drill-down
+            const filterMap = {
+                cftr_class: 'missing:class', eti_pred: 'missing:eti',
+                protein_name: 'missing:hgvs', cdna_name: 'missing:hgvs',
+                evidence: 'missing:evidence',
+            };
+            g.onclick = () => {
+                const q = filterMap[f.key] || 'missing:any';
+                closeDashboard();
+                setTimeout(() => {
+                    const inp = document.getElementById('searchInput');
+                    if (inp) { inp.value = q; inp.dispatchEvent(new Event('input')); }
+                }, 150);
+            };
+            svg.appendChild(g);
+        });
+        parent.appendChild(svg);
+    }
 
-    // ── Drill-down click-to-filter (merged from former second renderCharts) ──
-    // Runs after a brief delay to let Chart.js finish rendering
-    const drillTip = { callbacks: {
-        label: ctx => ctx.dataset.label
-            ? ` ${ctx.dataset.label}: ${ctx.parsed.y ?? ctx.parsed.x ?? ctx.raw} — click to filter`
-            : ` ${ctx.label}: ${ctx.raw} — click to filter`
-    }};
+    // ── Chart 4: VALIDATION DEMAND SCATTER — quadrant plot ────────
+    const vc = document.getElementById('validationChart');
+    if (vc && s.total) {
+        if (STATE.ui.charts.validationChart) STATE.ui.charts.validationChart.destroy();
+        const scatter = v.filter(x => (x.search_hit_count||0) > 0 || (x.validation_count||0) > 0)
+            .map(x => ({
+                x: x.search_hit_count || 0,
+                y: x.validation_count || 0,
+                name: x.legacy_name,
+                id: x.id,
+                danger: (x.search_hit_count||0) >= 5 && !(x.validation_count||0),
+            }));
+        const maxDemand = Math.max(...scatter.map(p => p.x), 1);
+        STATE.ui.charts.validationChart = new Chart(vc, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Safe',
+                    data: scatter.filter(p => !p.danger),
+                    backgroundColor: 'rgba(96,165,250,0.6)',
+                    pointRadius: 5, pointHoverRadius: 7,
+                },{
+                    label: 'Risk (high demand, unvalidated)',
+                    data: scatter.filter(p => p.danger),
+                    backgroundColor: 'rgba(248,113,113,0.8)',
+                    pointRadius: 6, pointHoverRadius: 9,
+                    pointStyle: 'triangle',
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels:{ color:TICK, font:{size:10}, boxWidth:10,
+                        padding:10, usePointStyle:true }},
+                    tooltip: { backgroundColor:TIP.bg, borderColor:TIP.border, borderWidth:1,
+                        titleColor:TIP.title, bodyColor:TIP.body,
+                        callbacks: {
+                            title: ctx => {
+                                const pt = scatter.find(p =>
+                                    p.x === ctx[0].parsed.x && p.y === ctx[0].parsed.y);
+                                return pt?.name || 'Unknown';
+                            },
+                            label: ctx => [
+                                ` Searches: ${ctx.parsed.x}`,
+                                ` Validations: ${ctx.parsed.y}`,
+                                ctx.dataset.label.includes('Risk') ? ' ⚠ Unvalidated — high demand' : '',
+                            ].filter(Boolean)
+                        }
+                    },
+                    annotation: undefined,
+                },
+                scales: {
+                    x: { grid:{color:GRID}, ticks:{color:TICK,font:{size:10}},
+                         title:{display:true,text:'Search demand',color:TICK,font:{size:9}} },
+                    y: { beginAtZero:true, grid:{color:GRID}, ticks:{color:TICK,font:{size:10}},
+                         title:{display:true,text:'Validations',color:TICK,font:{size:9}} },
+                }
+            }
+        });
+        vc._chart = STATE.ui.charts.validationChart;
+        vc.style.cursor = 'pointer';
+        vc.title = 'Red triangles = high demand, unvalidated — click to navigate';
+        vc.onclick = evt => {
+            const pts = vc._chart.getElementsAtEventForMode(evt,'nearest',{intersect:true},false);
+            if (!pts.length) return;
+            const idx = pts[0].index;
+            const ds  = pts[0].datasetIndex;
+            const pool = ds === 0 ? scatter.filter(p=>!p.danger) : scatter.filter(p=>p.danger);
+            const pt = pool[idx];
+            if (!pt) return;
+            closeDashboard();
+            setTimeout(() => selectVariant(pt.name, false), 150);
+        };
+    }
 
-    setTimeout(() => {
-        const cc = document.getElementById('classChart');
-        if (cc?._chart) {
-            cc.style.cursor = 'pointer';
-            cc.title = 'Click a segment to filter by class';
-            cc._chart.options.plugins.tooltip.callbacks = drillTip.callbacks;
-            cc._chart.update('none');
-            cc.onclick = evt => {
-                const pts = cc._chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-                if (!pts.length) return;
-                const label = cc._chart.data.labels[pts[0].index];
-                closeDashboard();
-                setTimeout(() => helixChartDrillFilter('class', label, `Class ${label}`), 150);
-            };
-        }
-        const rc = document.getElementById('responseChart');
-        if (rc?._chart) {
-            rc.style.cursor = 'pointer';
-            rc.title = 'Click a bar to filter by ETI status';
-            rc._chart.options.plugins.tooltip.callbacks = drillTip.callbacks;
-            rc._chart.update('none');
-            rc.onclick = evt => {
-                const pts = rc._chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-                if (!pts.length) return;
-                const label = rc._chart.data.labels[pts[0].index];
-                const typeMap = { 'Responsive':'eti_responsive','Non-responsive':'eti_nonresponsive','Unknown':'eti_unknown' };
-                closeDashboard();
-                setTimeout(() => helixChartDrillFilter(typeMap[label] || 'eti_responsive', null, label), 150);
-            };
-        }
-        const mc = document.getElementById('completionChart');
-        if (mc?._chart) {
-            mc.style.cursor = 'pointer';
-            mc.title = 'Click a bar to filter by data completeness';
-            mc._chart.options.plugins.tooltip.callbacks = drillTip.callbacks;
-            mc._chart.update('none');
-            mc.onclick = evt => {
-                const pts = mc._chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-                if (!pts.length) return;
-                const label = mc._chart.data.labels[pts[0].index];
-                const typeMap = { 'Complete':'complete','Partial':'partial','Minimal':'minimal' };
-                closeDashboard();
-                setTimeout(() => helixChartDrillFilter(typeMap[label] || 'complete', null, label), 150);
-            };
-        }
-    }, 200);
+    // ── Update chart title in dashboard ──────────────────────────────
+    const classTitle = document.querySelector('.dash-card-title');
+    if (classTitle && classTitle.textContent.includes('Class Distribution')) {
+        classTitle.textContent = 'Class distribution · ETI reliability';
+    }
 }
 
 function refreshDashboardStats() {
@@ -18043,6 +18467,209 @@ function toggleExportMenu() {
 // ══════════════════════════════════════════════════════════════════════════════
 //  EXPORT CENTRE — full modal with all export types beautifully presented
 // ══════════════════════════════════════════════════════════════════════════════
+
+
+// ================================================================
+// GAP PRIORITY WORKLIST — openGapWorklist()
+// Shows all variants ranked by curation gap severity.
+// Each row: variant name, gap level badge, missing fields with
+// color coding, search demand, and direct jump-to-variant link.
+// ================================================================
+function openGapWorklist() {
+    if (document.getElementById('gapWorklistOverlay')) {
+        document.getElementById('gapWorklistOverlay').remove();
+        return;
+    }
+
+    // ── Compute and rank all variants ──────────────────────────────
+    const ranked = STATE.variants
+        .map(v => ({ v, gap: calculateGapScore(v) }))
+        .filter(({ gap }) => gap.score > 0)
+        .sort((a, b) => b.gap.score - a.gap.score);
+
+    const LEVEL_META = {
+        CRITICAL: { color: '#f87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.3)' },
+        SEVERE:   { color: '#fb923c', bg: 'rgba(251,146,60,0.08)', border: 'rgba(251,146,60,0.25)' },
+        MODERATE: { color: '#fbbf24', bg: 'rgba(251,191,36,0.07)', border: 'rgba(251,191,36,0.2)' },
+        LOW:      { color: '#9ab8e0', bg: 'rgba(154,184,224,0.05)', border: 'rgba(154,184,224,0.15)' },
+    };
+
+    // Field missing chips — what to show per gap
+    const FIELD_LABELS = {
+        cftr_class:          { label: 'Class',          color: '#f87171' },
+        eti_prediction:      { label: 'ETI',            color: '#fb923c' },
+        protein_name:        { label: 'Protein',        color: '#fbbf24' },
+        cdna_name:           { label: 'cDNA',           color: '#fbbf24' },
+        final_determination: { label: 'Determination',  color: '#9ab8e0' },
+        evidence_links:      { label: 'Evidence',       color: '#60a5fa' },
+    };
+
+    // ── Build overlay ──────────────────────────────────────────────
+    const overlay = document.createElement('div');
+    overlay.id = 'gapWorklistOverlay';
+    Object.assign(overlay.style, {
+        position: 'fixed', inset: '0', zIndex: '99990',
+        background: 'rgba(4,8,15,0.8)', backdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        paddingTop: '40px',
+    });
+
+    const card = document.createElement('div');
+    Object.assign(card.style, {
+        width: 'min(780px,96vw)', maxHeight: '80vh',
+        background: '#070e1c',
+        border: '1px solid rgba(99,140,210,0.22)',
+        borderRadius: '14px', display: 'flex', flexDirection: 'column',
+        boxShadow: '0 40px 80px rgba(0,0,0,0.85)',
+        fontFamily: 'var(--font-body)',
+    });
+
+    // Header
+    const critCount = ranked.filter(r => r.gap.gapLevel === 'CRITICAL').length;
+    const header = document.createElement('div');
+    Object.assign(header.style, {
+        padding: '16px 20px 14px',
+        borderBottom: '1px solid rgba(99,140,210,0.12)',
+        display: 'flex', alignItems: 'center', gap: '10px', flexShrink: '0',
+    });
+    header.innerHTML = `
+        <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+                <span style="font-size:13px;font-weight:700;color:var(--text-primary);">Curation Gap Worklist</span>
+                ${critCount ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+                    background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);color:#f87171;">
+                    ${critCount} CRITICAL</span>` : ''}
+            </div>
+            <div style="font-size:11px;color:var(--text-tertiary);">
+                ${ranked.length} variants need curation · ranked by gap severity
+            </div>
+        </div>
+        <button id="gapWorklistClose" aria-label="Close"
+            style="background:none;border:none;color:var(--text-tertiary);font-size:18px;cursor:pointer;padding:0 4px;">×</button>`;
+
+    // Filter tabs
+    const filterBar = document.createElement('div');
+    Object.assign(filterBar.style, {
+        display: 'flex', gap: '6px', padding: '10px 20px 0',
+        borderBottom: '1px solid rgba(99,140,210,0.08)', flexShrink: '0',
+    });
+
+    let activeFilter = 'all';
+    const FILTERS = [
+        { id: 'all',      label: 'All' },
+        { id: 'CRITICAL', label: 'Critical' },
+        { id: 'SEVERE',   label: 'Severe' },
+        { id: 'MODERATE', label: 'Moderate' },
+    ];
+
+    function buildRows(filter) {
+        const rows = filter === 'all' ? ranked : ranked.filter(r => r.gap.gapLevel === filter);
+        if (!rows.length) {
+            return `<div style="padding:32px;text-align:center;color:var(--text-tertiary);font-size:12px;">
+                No variants at this level ✓
+            </div>`;
+        }
+        return rows.map(({ v, gap }) => {
+            const lm = LEVEL_META[gap.gapLevel] || LEVEL_META.LOW;
+            const chips = (gap.missing || []).map(f => {
+                const fm = FIELD_LABELS[f] || { label: f, color: '#9ab8e0' };
+                return `<span style="font-size:9px;padding:2px 6px;border-radius:3px;
+                    background:${fm.color}18;border:1px solid ${fm.color}33;color:${fm.color};
+                    font-weight:600;letter-spacing:.04em;">${fm.label}</span>`;
+            }).join('');
+
+            const demand = v.search_hit_count || 0;
+            const demandBadge = demand >= 10
+                ? `<span style="font-size:9px;color:#fbbf24;font-weight:700;" title="${demand} searches">🔥 ${demand}</span>`
+                : demand > 0
+                ? `<span style="font-size:9px;color:var(--text-tertiary);">${demand} searches</span>`
+                : '';
+
+            const topRec = (gap.recommendations || [])[0] || '';
+
+            return `<div style="padding:11px 20px;border-bottom:1px solid rgba(99,140,210,0.07);
+                display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:background .12s;"
+                onmouseover="this.style.background='rgba(41,121,255,0.04)'"
+                onmouseout="this.style.background=''"
+                onclick="document.getElementById('gapWorklistOverlay').remove();selectVariant('${v.legacy_name.replace(/'/g,"\'")}',false);">
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap;">
+                        <span style="font-family:var(--font-mono);font-size:12px;font-weight:700;
+                            color:var(--text-primary);">${escapeHTML(v.legacy_name)}</span>
+                        <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                            background:${lm.bg};border:1px solid ${lm.border};color:${lm.color};
+                            letter-spacing:.06em;">${gap.gapLevel}</span>
+                        ${demandBadge}
+                    </div>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:${topRec ? '5px' : '0'};">
+                        ${chips}
+                    </div>
+                    ${topRec ? `<div style="font-size:10px;color:var(--text-tertiary);line-height:1.5;">
+                        ${escapeHTML(topRec)}</div>` : ''}
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                    <span style="font-size:11px;font-weight:700;color:${lm.color};
+                        font-family:var(--font-mono);">${gap.score}</span>
+                    <i class="fas fa-chevron-right" style="font-size:9px;color:var(--text-tertiary);"></i>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // Build filter tabs
+    FILTERS.forEach(({ id, label }) => {
+        const tab = document.createElement('button');
+        const count = id === 'all' ? ranked.length : ranked.filter(r => r.gap.gapLevel === id).length;
+        tab.style.cssText = `padding:5px 12px 8px;background:none;border:none;border-bottom:2px solid ${id === 'all' ? 'var(--brand)' : 'transparent'};
+            color:${id === 'all' ? 'var(--brand)' : 'var(--text-tertiary)'};font-size:11px;font-weight:600;
+            cursor:pointer;font-family:var(--font-body);transition:all .15s;white-space:nowrap;`;
+        tab.innerHTML = `${label} <span style="font-size:9px;opacity:.7;">(${count})</span>`;
+        tab.addEventListener('click', () => {
+            activeFilter = id;
+            listBody.innerHTML = buildRows(id);
+            filterBar.querySelectorAll('button').forEach((b, bi) => {
+                const isActive = FILTERS[bi].id === id;
+                b.style.borderBottomColor = isActive ? 'var(--brand)' : 'transparent';
+                b.style.color = isActive ? 'var(--brand)' : 'var(--text-tertiary)';
+            });
+        });
+        filterBar.appendChild(tab);
+    });
+
+    // List body
+    const listBody = document.createElement('div');
+    Object.assign(listBody.style, {
+        overflowY: 'auto', flex: '1',
+    });
+    listBody.innerHTML = buildRows('all');
+
+    // Footer
+    const footer = document.createElement('div');
+    Object.assign(footer.style, {
+        padding: '10px 20px', borderTop: '1px solid rgba(99,140,210,0.1)',
+        fontSize: '10px', color: 'var(--text-tertiary)', flexShrink: '0',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    });
+    footer.innerHTML = `
+        <span>Click any row to navigate to that variant</span>
+        <span>Gap score = weighted sum of missing clinical fields</span>`;
+
+    card.appendChild(header);
+    card.appendChild(filterBar);
+    card.appendChild(listBody);
+    card.appendChild(footer);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    FocusTrap.trap(card);
+
+    const close = () => { FocusTrap.release(); overlay.remove(); };
+    document.getElementById('gapWorklistClose').addEventListener('click', close);
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', function esc(e) {
+        if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); }
+    });
+}
+
 function openExportCentre() {
     if (document.getElementById('exportCentreOverlay')) return;
 
@@ -20719,6 +21346,150 @@ function kbHighlightRow(idx) {
         rows[idx].classList.add('kb-focus');
         rows[idx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
+}
+
+
+
+// ================================================================
+// KEYBOARD SHORTCUTS PANEL — called by ? hotkey
+// ================================================================
+function showKeyboardShortcuts() {
+    if (document.getElementById('kbShortcutsOverlay')) return;
+
+    const SHORTCUTS = [
+        { group: 'Navigation',    keys: [
+            { key: '/',          desc: 'Focus search bar' },
+            { key: 'Esc',        desc: 'Close modal / clear search' },
+            { key: '↑ ↓',        desc: 'Move through search results' },
+            { key: 'Enter',      desc: 'Select highlighted result' },
+        ]},
+        { group: 'Variant',       keys: [
+            { key: 'Shift+P',    desc: 'Print / PDF current variant' },
+            { key: 'Shift+G',    desc: 'Load gnomAD population data' },
+            { key: 'Columns icon', desc: 'Pin for side-by-side compare' },
+        ]},
+        { group: 'Write mode',    keys: [
+            { key: 'W',          desc: 'Activate write mode (PIN required)' },
+        ]},
+        { group: 'Tools',         keys: [
+            { key: '?',          desc: 'Show this help panel' },
+            { key: 'Shift+D',    desc: 'Open analytics dashboard' },
+            { key: 'Shift+H',    desc: 'Open Helios AI inbox' },
+        ]},
+        { group: 'Search syntax', keys: [
+            { key: 'class:II',   desc: 'Filter by CFTR class' },
+            { key: 'eti:responsive', desc: 'Filter by ETI prediction' },
+            { key: 'missing:class',  desc: 'Show variants missing a field' },
+            { key: 'searched:>10',   desc: 'Filter by search demand' },
+            { key: 'gap:CRITICAL',   desc: 'Filter by curation gap level' },
+            { key: 'unvalidated',    desc: 'Show unvalidated variants' },
+        ]},
+    ];
+
+    const overlay = document.createElement('div');
+    overlay.id = 'kbShortcutsOverlay';
+    Object.assign(overlay.style, {
+        position: 'fixed', inset: '0', zIndex: '99995',
+        background: 'rgba(4,8,15,0.75)', backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+    });
+
+    const card = document.createElement('div');
+    Object.assign(card.style, {
+        width: 'min(560px,95vw)', maxHeight: '85vh',
+        background: '#0a1220',
+        border: '1px solid rgba(99,140,210,0.25)',
+        borderRadius: '14px', overflowY: 'auto',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.9)',
+        fontFamily: 'var(--font-body)',
+    });
+
+    // Header
+    const header = document.createElement('div');
+    Object.assign(header.style, {
+        padding: '18px 22px 14px',
+        borderBottom: '1px solid rgba(99,140,210,0.12)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        position: 'sticky', top: '0', background: '#0a1220', zIndex: '1',
+    });
+    header.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;">
+            <kbd style="font-size:13px;padding:3px 8px;background:rgba(41,121,255,0.1);
+                border:1px solid rgba(41,121,255,0.3);border-radius:5px;color:var(--brand);
+                font-family:var(--font-mono);">?</kbd>
+            <span style="font-size:13px;font-weight:700;color:var(--text-primary);">Keyboard shortcuts</span>
+        </div>
+        <button id="kbShortcutsClose" style="background:none;border:none;color:var(--text-tertiary);
+            font-size:18px;cursor:pointer;padding:0 4px;line-height:1;" aria-label="Close">×</button>`;
+
+    // Body
+    const body = document.createElement('div');
+    body.style.padding = '10px 22px 20px';
+
+    SHORTCUTS.forEach(({ group, keys }) => {
+        const groupEl = document.createElement('div');
+        groupEl.style.marginBottom = '16px';
+
+        const groupLabel = document.createElement('div');
+        Object.assign(groupLabel.style, {
+            fontSize: '10px', fontWeight: '700',
+            color: 'var(--text-tertiary)', textTransform: 'uppercase',
+            letterSpacing: '.1em', marginBottom: '8px', marginTop: '10px',
+        });
+        groupLabel.textContent = group;
+        groupEl.appendChild(groupLabel);
+
+        keys.forEach(({ key, desc }) => {
+            const row = document.createElement('div');
+            Object.assign(row.style, {
+                display: 'flex', alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '5px 0',
+                borderBottom: '1px solid rgba(99,140,210,0.07)',
+            });
+            const kbdEl = document.createElement('kbd');
+            Object.assign(kbdEl.style, {
+                fontSize: '11px', padding: '2px 7px',
+                background: 'rgba(99,140,210,0.08)',
+                border: '1px solid rgba(99,140,210,0.2)',
+                borderRadius: '4px', color: 'var(--text-secondary)',
+                fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap',
+            });
+            kbdEl.textContent = key;
+            const descEl = document.createElement('span');
+            Object.assign(descEl.style, {
+                fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'right',
+            });
+            descEl.textContent = desc;
+            row.appendChild(descEl);
+            row.appendChild(kbdEl);
+            groupEl.appendChild(row);
+        });
+        body.appendChild(groupEl);
+    });
+
+    // Footer note
+    const footer = document.createElement('div');
+    Object.assign(footer.style, {
+        fontSize: '10px', color: 'var(--text-tertiary)',
+        borderTop: '1px solid rgba(99,140,210,0.1)',
+        paddingTop: '10px', marginTop: '4px',
+    });
+    footer.textContent = 'Press ? or Esc to close this panel.';
+    body.appendChild(footer);
+
+    card.appendChild(header);
+    card.appendChild(body);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    FocusTrap.trap(card);
+
+    const close = () => { FocusTrap.release(); overlay.remove(); };
+    document.getElementById('kbShortcutsClose').addEventListener('click', close);
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', function esc(e) {
+        if (e.key === 'Escape' || e.key === '?') { close(); document.removeEventListener('keydown', esc); }
+    });
 }
 
 // Global hotkeys — separate from search input
@@ -24683,17 +25454,14 @@ function renderHeliosItem(item) {
                 </div>` : ''}
             </div>` : ''}
 
-            <!-- Confidence bar — improved -->
+            <!-- Confidence breakdown — explainable chips (Batch1/Item2) -->
             ${!isDone ? `
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-                <span style="font-size:10px;color:var(--helios-text3);font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;">
+            <div style="margin-bottom:14px;">
+                <div style="font-size:10px;color:var(--helios-text3);font-weight:700;
+                    letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">
                     ${isMissFlag ? 'Priority signal' : 'AI confidence'}
-                </span>
-                <div style="flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;">
-                    <div style="height:100%;width:${conf}%;background:${confBar};border-radius:3px;
-                        transition:width .5s cubic-bezier(.4,0,.2,1);"></div>
                 </div>
-                <span style="font-size:11px;font-weight:700;color:${confCol};font-family:var(--helios-mono);">${conf}%</span>
+                ${renderConfidenceBreakdown(conf, item.confidence_breakdown || null, 'compact')}
             </div>` : ''}
 
             <!-- Reasoning — skip raw text for miss flags (already shown above) -->
@@ -26722,8 +27490,8 @@ Object.assign(window, {
     cgcSaveCase, cgcDeleteCase, cgcLoadCase, cgcRenderSavedCases,
     // ACMG — Block 1 functions, accessible in global scope because Block 1 executed first.
     // Capture originals BEFORE this Object.assign overwrites window.* — prevents recursion.
-    computeACMGScore: (function(){ const _f = computeACMGScore; return function(){ return _f.apply(this, arguments); }; })(),
-    renderACMGPanel:  (function(){ const _f = renderACMGPanel;  return function(){ return _f.apply(this, arguments); }; })(),
+    computeACMGScore: function() { return computeACMGScore.apply(this, arguments); },
+    renderACMGPanel:  function() { return renderACMGPanel.apply(this, arguments); },
     // Clinical reference
     renderClinicalReferencePanel, renderClinicalAlertBanner,
     // Areas 2-5 search additions
